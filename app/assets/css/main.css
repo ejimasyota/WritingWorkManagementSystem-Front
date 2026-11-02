@@ -1,0 +1,5529 @@
+/* ==========================================================================
+ * 共通設定
+ * ========================================================================== */
+/* 1. 画面全体 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+h3 {
+  color: #2c3e50;
+}
+
+/* ==========================================================================
+ * スクロールバー共通デザイン
+ * ========================================================================== */
+/* Webkit系（Chrome, Safari, Edge） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #b0b0b0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ==========================================================================
+ * ログイン画面
+ * ========================================================================== */
+/* カウントダウン表示エリア */
+.CountdownArea {
+  display: none;
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  color: #856404;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b0b0b0 transparent;
+}
+
+/* ダークモード時のスクロールバー */
+body.DarkMode ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body.DarkMode ::-webkit-scrollbar-thumb {
+  background: #4a4a6a;
+}
+
+body.DarkMode ::-webkit-scrollbar-thumb:hover {
+  background: #6a6a8a;
+}
+
+body.DarkMode ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+body.DarkMode * {
+  scrollbar-color: #4a4a6a transparent;
+}
+
+/* 2. HTML・BODY */
+html,
+body {
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  font-size: 14px;
+  color: #333;
+  background-color: #f5f5f5;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* 3. スピンボタンを非表示(Chrome, Safari, Edge, Operaで有効) */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ==========================================================================
+ * ダークモード
+ * ========================================================================== */
+body.DarkMode {
+  height: 100%;
+  color: #e0e0e0;
+  background-color: #1a1a2e;
+}
+
+body.DarkMode .ContentArea {
+  background-color: #16213e;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.DarkMode .Sidebar {
+  background-color: #0f0f23;
+}
+
+body.DarkMode .SidebarHeader {
+  border-bottom-color: #2a2a4a;
+}
+
+body.DarkMode .SidebarFooter {
+  border-top-color: #2a2a4a;
+}
+
+body.DarkMode .SidebarItem:hover {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .InputForm,
+body.DarkMode .SelectForm,
+body.DarkMode .TextAreaForm {
+  background-color: #1a1a2e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .InputForm:focus,
+body.DarkMode .SelectForm:focus,
+body.DarkMode .TextAreaForm:focus {
+  border-color: #3498db;
+}
+
+body.DarkMode .InputForm:disabled,
+body.DarkMode .SelectForm:disabled {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .SelectForm option {
+  color: #e0e0e0;
+  background-color: #1a1a2e;
+}
+
+body.DarkMode .DataTable {
+  background-color: #16213e;
+}
+
+body.DarkMode .DataTable thead {
+  background-color: #0f0f23;
+}
+
+body.DarkMode .DataTable th,
+body.DarkMode .DataTable td {
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .DataTable tbody tr:hover {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .Card {
+  background-color: #16213e;
+}
+
+body.DarkMode .DialogContainer {
+  background-color: #16213e;
+}
+
+body.DarkMode .DialogTitle {
+  color: #e0e0e0;
+}
+
+body.DarkMode .DialogSection {
+  background-color: #1a2744;
+  border-bottom-color: #3a3a5a;
+}
+
+body.DarkMode .DialogSectionTitle {
+  color: #e0e0e0;
+  border-left-color: #5dade2;
+}
+
+body.DarkMode .PaginationButton {
+  background-color: #16213e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .PaginationButton:hover:not(:disabled) {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+body.DarkMode .ContentTitle {
+  color: #e0e0e0;
+}
+
+body.DarkMode .WelcomeMessage {
+  color: #a0a0a0;
+}
+
+body.DarkMode .UserIdDisplay {
+  color: #e0e0e0;
+}
+
+body.DarkMode .RecordCount {
+  color: #a0a0a0;
+}
+
+body.DarkMode .WorkTitle {
+  background-color: #2a2a4a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .TabButton {
+  color: #a0a0a0;
+}
+
+body.DarkMode .TabButton:hover {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .TabButton.Active {
+  color: #3498db;
+}
+
+body.DarkMode .RelationSidebar {
+  background-color: #1a1a2e;
+}
+
+body.DarkMode .CharacterListItem {
+  background-color: #16213e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .CharacterListItem:hover {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .RelationCanvas {
+  background-color: #16213e;
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .RelationObject {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+}
+
+body.DarkMode .TimelineContent {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+}
+
+body.DarkMode .TimelineTitle {
+  color: #e0e0e0;
+}
+
+body.DarkMode .TimelineDesc {
+  color: #a0a0a0;
+}
+
+body.DarkMode .ClassChartGroup {
+  background-color: #16213e;
+}
+
+body.DarkMode .ClassChartNode {
+  background-color: #1a1a2e;
+}
+
+body.DarkMode .ClassChartName {
+  color: #e0e0e0;
+}
+
+body.DarkMode .ClassChartDesc {
+  color: #a0a0a0;
+}
+
+body.DarkMode .StoryItem {
+  background-color: #16213e;
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .StoryItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.DarkMode .StoryText {
+  color: #e0e0e0;
+}
+
+body.DarkMode .CalendarDay {
+  background-color: #16213e;
+}
+
+body.DarkMode .CalendarDay:hover {
+  background-color: #2a2a4a;
+}
+
+body.DarkMode .CalendarDay.OtherMonth {
+  background-color: #1a1a2e;
+}
+
+body.DarkMode .LabelStyle {
+  color: #ecf0f1;
+}
+
+body.DarkMode .CalendarDay.Today {
+  background-color: #2a3a4a;
+}
+
+body.DarkMode h3 {
+  color: #ecf0f1;
+}
+
+/* ==========================================================================
+ * ログイン画面
+ * ========================================================================== */
+/* 1. ログイン画面コンテナ */
+.LoginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 20px;
+}
+
+/* 2. ログインフォームカード */
+.LoginCard {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* 3. ログインタイトル */
+.LoginTitle {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+/* 4. ログインサブタイトル */
+.LoginSubtitle {
+  text-align: center;
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+/* 5. ログインフォーム */
+.LoginForm .FormGroup {
+  margin-bottom: 20px;
+}
+
+/* 6. ログイン入力フォーム */
+.LoginForm .InputForm {
+  padding: 14px 15px;
+  font-size: 15px;
+}
+
+/* 7. ログインフォームボタン */
+.LoginForm .ButtonClass {
+  padding: 14px 24px;
+  font-size: 16px;
+}
+
+/* 8. ログインフォームボタンコンテナ */
+.LoginButtonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* 9. ログインアイコン */
+.LoginIcon {
+  font-size: 50px;
+  color: #667eea;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 10.ログイン画面レスポンシブ対応 */
+@media screen and (max-width: 480px) {
+  .LoginCard {
+    padding: 30px 20px;
+  }
+  .LoginTitle {
+    font-size: 24px;
+  }
+}
+
+/* ==========================================================================
+ * 会員登録画面
+ * ========================================================================== */
+/* 1. 会員登録画面コンテナ */
+.RegistrationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 20px;
+}
+
+/* 2. 会員登録フォームカード */
+.RegistrationCard {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* 3. 会員登録タイトル */
+.RegistrationTitle {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+/* 4. 会員登録サブタイトル */
+.RegistrationSubtitle {
+  text-align: center;
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+/* 5. 会員登録フォーム */
+.RegistrationForm .FormGroup {
+  margin-bottom: 20px;
+}
+
+/* 6. 会員登録入力フォーム */
+.RegistrationForm .InputForm {
+  padding: 14px 15px;
+  font-size: 15px;
+}
+
+/* 7. 会員登録フォームボタン */
+.RegistrationForm .ButtonClass {
+  padding: 14px 24px;
+  font-size: 16px;
+}
+
+/* 8. 会員登録フォームボタンコンテナ */
+.RegistrationButtonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* 9. 会員登録アイコン */
+.RegistrationIcon {
+  font-size: 50px;
+  color: #667eea;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 10. 会員登録ヒントテキスト */
+.HintText {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 5px;
+}
+
+/* 11. 会員登録画面レスポンシブ対応 */
+@media screen and (max-width: 480px) {
+  .RegistrationCard {
+    padding: 30px 20px;
+  }
+  .RegistrationTitle {
+    font-size: 24px;
+  }
+}
+
+/* ==========================================================================
+ * レイアウト
+ * ========================================================================== */
+/* 1. ページコンテナ */
+.PageContainer {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 2. メインコンテンツラッパー */
+.MainContentWrapper {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+ * サイドバー
+ * ========================================================================== */
+/* 1. サイドバー */
+.Sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  z-index: 11;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+/* 2. サイドバーヘッダー */
+.SidebarHeader {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #34495e;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  position: relative;
+}
+
+/* 3. サイドバーヘッダーのタイトル */
+.SidebarHeader h1 {
+  font-size: 18px;
+  font-weight: 600;
+  /* モバイル等の狭幅でシステム名がつぶれる（折返し・圧縮）のを防ぐ */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3-1. 通知ベルアイコン */
+.NotificationBellButton {
+  background: transparent;
+  border: none;
+  color: #ecf0f1;
+  cursor: pointer;
+  font-size: 18px;
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  /* タイトルとの間の余白を吸収してベル＋設定アイコンを右端へ寄せる */
+  margin-left: auto;
+  /* 狭幅でもアイコンは縮小させない */
+  flex-shrink: 0;
+}
+.NotificationBellButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 3-1b. 設定アイコン（通知ベルの右隣・同スタイル） */
+.SettingsButton {
+  background: transparent;
+  border: none;
+  color: #ecf0f1;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  /* 狭幅でもアイコンは縮小させない */
+  flex-shrink: 0;
+}
+.SettingsButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 一覧のメタ情報列（登録者・更新者・登録/更新年月日）の非表示（設定トグル） */
+body.HideMetaColumns .DataTable .MetaCol {
+  display: none;
+}
+
+/* 3-2. 通知バッジ */
+.NotificationBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-sizing: border-box;
+}
+.NotificationBadge.Hidden {
+  display: none;
+}
+
+/* 3-3. 通知パネル（DialogContent 内） */
+.NotificationPanel {
+  padding: 4px 0;
+}
+.NotificationPanelSectionTitle {
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #7f8c8d;
+  border-bottom: 1px solid #ecf0f1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.DarkMode .NotificationPanelSectionTitle {
+  border-bottom-color: #34495e;
+}
+.NotificationPanelItem {
+  padding: 10px 16px;
+  border-bottom: 1px solid #ecf0f1;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.1s;
+}
+body.DarkMode .NotificationPanelItem {
+  border-bottom-color: #34495e;
+}
+.NotificationPanelItem:hover {
+  background: #f5f7fa;
+}
+body.DarkMode .NotificationPanelItem:hover {
+  background: #34495e;
+}
+.NotificationPanelItemTitle {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.NotificationPanelItemDate {
+  font-size: 11px;
+  color: #95a5a6;
+  white-space: nowrap;
+}
+.NotificationPanelItemCount {
+  background: #3498db;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.NotificationPanelDismiss {
+  background: transparent;
+  border: none;
+  color: #95a5a6;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+.NotificationPanelDismiss:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+.NotificationPanelEmpty {
+  padding: 30px 16px;
+  text-align: center;
+  color: #95a5a6;
+  font-size: 13px;
+}
+
+/* 4. サイドバーメニュー */
+.SidebarMenu {
+  flex: 1;
+  padding: 10px 0;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* 5. サイドバーメニューボタン */
+.SidebarItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+  background: none;
+  color: #ecf0f1;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+.SidebarItem:hover {
+  background-color: #34495e;
+}
+.SidebarItem.Active {
+  background-color: #3498db;
+}
+
+/* 6. サイドバーメニューボタンアイコン */
+.SidebarItem i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* 6-1. サイドバーバッジ */
+.SidebarBadge {
+  background-color: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0 6px;
+  margin-left: auto;
+}
+
+/* 7. サイドバーフッター */
+.SidebarFooter {
+  padding: 15px 20px;
+  border-top: 1px solid #34495e;
+}
+
+/* 8. サイドバーバージョン表記 */
+.SidebarVersion {
+  text-align: center;
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 10px;
+}
+
+/* ==========================================================================
+ * メイン画面
+ * ========================================================================== */
+/* 1. メインコンテンツ表示エリア */
+.ContentArea {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  min-height: calc(100vh - 80px);
+}
+
+.WelcomeMessage {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin-bottom: 5px;
+}
+
+.UserIdDisplay {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.ProjectTable {
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+ * カード・パネル
+ * ========================================================================== */
+.Card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.ContentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ContentTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* ヘルプアイコン（クリックで説明ダイアログ）。生成は Common.js の CreateHelpIcon()、
+ * 挙動は InitContentHeaderHelpIcons() が担う。従来各所でインライン指定していた
+ * スタイルを本クラスに集約する。 */
+.ContentHeaderHelpIcon {
+  color: #3498db;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 1rem;
+}
+
+/* ==========================================================================
+ * フォーム要素
+ * ========================================================================== */
+.FormGroup {
+  margin-bottom: 20px;
+}
+
+.InputForm {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.InputForm:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.InputForm:disabled {
+  background-color: #f5f5f5;
+  color: #555;
+  cursor: not-allowed;
+  -webkit-text-fill-color: #555;
+  opacity: 1;
+}
+
+.InputForm::placeholder {
+  color: #999;
+}
+
+.SelectForm {
+  width: 100%;
+  padding: 12px 36px 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  height: 44px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23555' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 10px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.SelectForm:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.SelectForm:disabled {
+  background-color: #f5f5f5;
+  color: #555;
+  cursor: not-allowed;
+  -webkit-text-fill-color: #555;
+  opacity: 1;
+}
+
+.SelectForm option {
+  color: #333;
+}
+
+.TextAreaForm {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  min-height: 100px;
+  resize: none;
+  transition: border-color 0.2s ease;
+}
+
+.TextAreaForm:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.InputWithButton {
+  display: flex;
+  gap: 10px;
+}
+
+.InputWithButton .InputForm {
+  flex: 1;
+}
+
+.InputWithButton .SelectForm {
+  flex: 1;
+  /* flexアイテムが内容幅より縮まないため、明示的に許可する */
+  min-width: 0;
+}
+
+/* ==========================================================================
+ * ボタン
+ * ========================================================================== */
+.ButtonClass {
+  min-height: 35px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ButtonClass:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.PrimaryButton {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.PrimaryButton:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.SecondaryButton {
+  background-color: #95a5a6;
+  color: #fff;
+}
+
+.SecondaryButton:hover:not(:disabled) {
+  background-color: #7f8c8d;
+}
+
+.SuccessButton {
+  background-color: #27ae60;
+  color: #fff;
+}
+
+.SuccessButton:hover:not(:disabled) {
+  background-color: #219a52;
+}
+
+.DangerButton {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.DangerButton:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.WarningButton {
+  background-color: #f39c12;
+  color: #fff;
+}
+
+.WarningButton:hover:not(:disabled) {
+  background-color: #d68910;
+}
+
+.SaveButton {
+  background-color: #27ae60;
+  color: #fff;
+}
+
+.SaveButton:hover:not(:disabled) {
+  background-color: #219a52;
+}
+
+.CloseButton {
+  background-color: #95a5a6;
+  color: #fff;
+}
+
+.CloseButton:hover:not(:disabled) {
+  background-color: #7f8c8d;
+}
+
+.ClearButton {
+  background-color: #f39c12;
+  color: #fff;
+}
+
+.ClearButton:hover:not(:disabled) {
+  background-color: #d68910;
+}
+
+.DeleteButton {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.DeleteButton:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.BackupButton {
+  background-color: #16a085;
+  color: #fff;
+}
+
+.BackupButton:hover:not(:disabled) {
+  background-color: #13866f;
+}
+
+.RestoreButton {
+  background-color: #8e44ad;
+  color: #fff;
+}
+
+.RestoreButton:hover:not(:disabled) {
+  background-color: #73368d;
+}
+
+.ButtonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.ButtonSmall {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.ButtonFull {
+  width: 100%;
+}
+
+/* ==========================================================================
+ * タブ
+ * ========================================================================== */
+.TabContainer {
+  margin-bottom: 20px;
+}
+
+.TabHeader {
+  display: flex;
+  border-bottom: 2px solid #3498db;
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.TabButton {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.TabButton:hover {
+  color: #3498db;
+  background-color: #f8f9fa;
+}
+
+.TabButton.Active {
+  color: #3498db;
+  border-bottom-color: #3498db;
+  font-weight: 600;
+}
+
+.TabContent {
+  display: none;
+}
+
+.TabContent.Active {
+  display: block;
+}
+
+/* ==========================================================================
+ * テーブル
+ * ========================================================================== */
+.TableContainer {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.DataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.DataTable th,
+.DataTable td {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.DataTable thead {
+  background-color: #34495e;
+  color: #fff;
+}
+
+.DataTable th {
+  padding: 15px 12px;
+  font-weight: 500;
+  position: relative;
+}
+
+.ColumnResizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  background: transparent;
+  z-index: 2;
+}
+
+.ColumnResizer:hover,
+.ColumnResizer.Resizing {
+  background: rgba(0, 123, 255, 0.4);
+}
+
+/* ==========================================================================
+ * キャラ設定画面 タグ情報タブ
+ * ========================================================================== */
+/* 入力欄に添える注記（タブやダイアログの補足説明） */
+.FormNotice {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+body.DarkMode .FormNotice {
+  color: #ccc;
+}
+
+/* ダイアログでは入力欄の下に置くため、余白を上側へ入れ替える */
+.DialogContent .FormNotice {
+  margin: 8px 0 0;
+}
+
+.TagTabHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.TagCountLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+body.DarkMode .TagCountLabel {
+  color: #e0e0e0;
+}
+
+.TagTabButtonGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.CharaTagCardGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.CharaTagCard {
+  position: relative;
+  padding: 10px 28px 10px 12px;
+  border-radius: 6px;
+  background: #cccccc;
+  color: #222;
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-word;
+  width: fit-content;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.CharaTagCard:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.CharaTagCard:active {
+  transform: translateY(1px);
+}
+
+.CharaTagCardName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.CharaTagCardClose {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+}
+
+.CharaTagCardClose:hover {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.CharaTagCardEmpty {
+  width: 100%;
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-size: 14px;
+}
+
+.CharaTagChipList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  white-space: normal;
+}
+
+.CharaTagChip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #cccccc;
+  color: #222;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* 一覧のタグ列
+ * セル側で省略するとタグそのものが途中で切れてしまうため、
+ * 省略はタグ内のテキストへ寄せる（セルは切り落としのみ行う） */
+.DataTable td.TagCol {
+  text-overflow: clip;
+}
+
+.DataTable td.TagCol .CharaTagChipList {
+  max-width: 100%;
+}
+
+.DataTable td.TagCol .CharaTagChip {
+  max-width: 100%;
+  /* flexアイテムは既定で内容幅より縮まないため、省略の前提として下限を外す */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+ * サブ一覧
+ *   入力欄の中でJSON保持の内容を一覧表示する表に付与する
+ *   （キャラ設定画面の好きな物・能力・技など）
+ *   画面下部の一覧（.DataTable）と区別できるようヘッダー色のみ変更する
+ *   ※768px以下では .DataTable thead ごと非表示となるためレスポンシブ対応は不要
+ * ========================================================================== */
+.SubDataTable thead {
+  background-color: #7f8c8d;
+}
+
+body.DarkMode .SubDataTable thead {
+  background-color: #3a3a5a;
+}
+
+/* ==========================================================================
+ * キャラ設定画面 内面情報タブ
+ *   好きな物・嫌いな物・地雷・長所・短所を表形式で表示する
+ *   表本体は一覧と同じ .DataTable を流用し、入力欄内に収まるよう余白のみ調整する
+ * ========================================================================== */
+.CharaEntryTableArea {
+  overflow-x: auto;
+}
+
+.CharaEntryTable {
+  table-layout: fixed;
+}
+
+/* 列幅は table-layout:fixed の等分割に委ねる
+ * （列数が表ごとに異なるうえ、幅指定があるとリサイザで変更した幅が反映されないため） */
+.CharaEntryTable th,
+.CharaEntryTable td {
+  padding: 8px 12px;
+}
+
+/* リサイズで広げた分は表全体を伸ばし、入力欄内で横スクロールさせる
+ * （最大幅が残っていると列を広げても内容が3点リーダーで隠れてしまう） */
+.CharaEntryTable td {
+  max-width: none;
+}
+
+/* 行クリックで内容をダイアログに表示するため、押下できることを示す */
+.CharaEntryRow {
+  cursor: pointer;
+}
+
+/* 表直下に配置するため、一覧用の上余白を詰める */
+.CharaEntryPaginationArea .PaginationContainer {
+  margin-top: 10px;
+}
+
+.CharaEntryButtonGroup {
+  margin-top: 10px;
+}
+
+/* ==========================================================================
+ * タグ選択ダイアログ
+ * ========================================================================== */
+.TagSelectDialogList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.TagSelectChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #cccccc;
+  color: #222;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.TagSelectChip:not(.Disabled):hover {
+  transform: translateY(-1px);
+}
+
+.TagSelectChip.Selected {
+  box-shadow:
+    0 0 0 3px #007bff,
+    0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.TagSelectChip.Disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+.TagSelectChipName {
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.TagSelectEmpty {
+  text-align: center;
+  color: #999;
+  padding: 24px 12px;
+  font-size: 14px;
+}
+
+body.DarkMode .TagSelectEmpty {
+  color: #aaa;
+}
+
+/* --------------------------------------------------------------------------
+ * プルダウン一覧ダイアログ
+ * -------------------------------------------------------------------------- */
+.OptionSearchArea {
+  margin-bottom: 12px;
+}
+
+.OptionSearchList {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.OptionSearchItem {
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+
+.OptionSearchItem:hover,
+.OptionSearchItem.Selected {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+/* 空の選択肢（未選択） */
+.OptionSearchItem.Unset {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* 参照専用時は閲覧のみのため、選択できる見た目にしない */
+.OptionSearchItem.ReadOnly {
+  cursor: default;
+}
+
+.OptionSearchItem.ReadOnly:hover {
+  border-color: #e0e0e0;
+  background: #fff;
+}
+
+.OptionSearchItem.ReadOnly.Selected {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.OptionSearchEmpty {
+  text-align: center;
+  color: #999;
+  padding: 24px 12px;
+  font-size: 14px;
+}
+
+body.DarkMode .OptionSearchItem {
+  background: #16213e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .OptionSearchItem:hover,
+body.DarkMode .OptionSearchItem.Selected {
+  background: #2a2a4a;
+  border-color: #3498db;
+}
+
+body.DarkMode .OptionSearchItem.Unset {
+  color: #8a8aaa;
+}
+
+body.DarkMode .OptionSearchItem.ReadOnly:hover {
+  background: #16213e;
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .OptionSearchItem.ReadOnly.Selected {
+  background: #2a2a4a;
+  border-color: #3498db;
+}
+
+body.DarkMode .OptionSearchEmpty {
+  color: #aaa;
+}
+
+.DataTable tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+}
+
+.DataTable tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.DataTable td {
+  padding: 12px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 一覧の操作パレット列
+ * 列幅はヘッダの width:1% でボタンの実寸まで縮めるため、
+ * 通常セルの最大幅（200px）が残っているとボタンが3点リーダーで隠れてしまう */
+.DataTable td.ActionCol {
+  max-width: none;
+  text-align: center;
+}
+
+/* ==========================================================================
+ * ページネーション
+ * ========================================================================== */
+.PaginationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.PaginationButton {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.PaginationButton:hover:not(:disabled) {
+  background-color: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+
+.PaginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.PaginationButton.Active,
+.PaginationButton.Active:disabled {
+  background-color: #3498db;
+  color: #fff;
+  border-color: #3498db;
+  opacity: 1;
+  cursor: default;
+}
+
+.RecordCount {
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 一覧下部フッタ（件数=左端／ページネーション=中央維持） */
+.ListFooter {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.ListFooter #RecordCountArea {
+  justify-self: start;
+}
+
+.ListFooter #PaginationArea {
+  grid-column: 2;
+}
+
+.ListFooter .RecordCount {
+  margin-bottom: 0;
+}
+
+.ListFooter .PaginationContainer {
+  margin-top: 0;
+}
+
+.MobileTableToolbar {
+  display: none;
+}
+
+/* ==========================================================================
+ * ダイアログ
+ * ========================================================================== */
+.DialogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: DialogOverlayFadeIn 0.2s ease-out;
+}
+
+.DialogContainer {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  position: relative;
+  animation: DialogContainerFadeIn 0.25s ease-out;
+}
+
+@keyframes DialogOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes DialogContainerFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes DialogOverlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes DialogContainerFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
+.DialogSmall {
+  width: 90%;
+  max-width: 500px;
+}
+
+.DialogMedium {
+  width: 90%;
+  max-width: 600px;
+}
+
+.DialogLarge {
+  width: 90%;
+  max-width: 800px;
+}
+
+.DialogTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.DialogContent {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+/* インフォダイアログ本文の下に表示する画像（ShowInfoDialog の Options.ImageSrc）
+ * スマホ・タブレットでもダイアログ幅からはみ出さないよう幅を制限する */
+.DialogContentImage {
+  display: block;
+  align-self: center;
+  max-width: 100%;
+  height: auto;
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+body.DarkMode .DialogContentImage {
+  border-color: #3a3a5a;
+}
+
+.DialogSection {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.DialogSection:last-child {
+  margin-bottom: 0;
+}
+
+.DialogSectionTitle {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #2c3e50;
+  border-left: 3px solid #3498db;
+  padding-left: 8px;
+}
+
+.DialogButtonArea {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+ * デートピッカー 入力フィールド
+ * ========================================================================== */
+.DatePickerFieldsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.DatePickerField {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.DatePickerField .DatePickerFieldInput {
+  width: auto;
+  min-width: 60px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.DatePickerField .DatePickerFieldInput[maxlength='4'] {
+  width: 90px;
+}
+
+.DatePickerField .DatePickerFieldInput[maxlength='2'] {
+  width: 60px;
+}
+
+.DatePickerSep {
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+body.DarkMode .DatePickerSep {
+  color: #e0e0e0;
+}
+
+/* ==========================================================================
+ * カラーピッカー
+ * ========================================================================== */
+.ColorPicker {
+  width: 50px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.ColorPicker::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.ColorPicker::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.ColorCodeInput {
+  flex: 1;
+  max-width: 120px;
+  font-family: monospace;
+}
+
+.LabelStyle {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+/* ==========================================================================
+ * 入力フォーム バリデーション
+ * ========================================================================== */
+/* 必須項目ラベル（赤い ※ を末尾に表示） */
+/* flex 化することで、エラーアイコンを ※ の右側に表示できる（icon に order: 1 を付与） */
+.LabelStyle.Required {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.LabelStyle.Required::after {
+  content: '※';
+  color: #e74c3c;
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+.LabelStyle.Required .FieldErrorIcon {
+  order: 1;
+}
+
+/* 参照専用の値表示（アカウント作成日など、編集不可のラベル値） */
+.ReadOnlyValue {
+  display: inline-block;
+  font-size: 14px;
+  color: #333;
+  padding: 4px 0;
+}
+body.DarkMode .ReadOnlyValue {
+  color: #ecf0f1;
+}
+
+/* 設定ダイアログのセクション・行レイアウト */
+.SettingsSection {
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+.SettingsSection:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.SettingsSectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+}
+.SettingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.SettingsRowLabel {
+  font-size: 14px;
+  color: #333;
+}
+body.DarkMode .SettingsSection {
+  border-bottom-color: #3a3a5a;
+}
+body.DarkMode .SettingsSectionTitle {
+  color: #aaa;
+}
+body.DarkMode .SettingsRowLabel {
+  color: #e0e0e0;
+}
+
+/* ============================================================
+ * 画像一覧画面
+ * ============================================================ */
+/* PC：5列1行のグリッド */
+.ImageListGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+.ImageListCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+.ImageListCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.ImageListThumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+.ImageListThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* 画像欠損（サーバーに実ファイルが存在しない）時の代替アイコン */
+.ImageMissingIcon {
+  font-size: 48px;
+  color: #c0c0c0;
+}
+.ImageMissingIconLarge {
+  font-size: 96px;
+}
+body.DarkMode .ImageMissingIcon {
+  color: #6a6a8a;
+}
+.ImageListName {
+  padding: 6px 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ImageListScreen {
+  padding: 0 8px 8px;
+  font-size: 11px;
+  color: #888;
+}
+body.DarkMode .ImageListCard {
+  background: #1a1a2e;
+  border-color: #3a3a5a;
+}
+body.DarkMode .ImageListThumb {
+  background: #2a2a4a;
+}
+body.DarkMode .ImageListName {
+  color: #e0e0e0;
+}
+body.DarkMode .ImageListScreen {
+  color: #aaa;
+}
+/* モバイル：縦積みカード（1列） */
+@media screen and (max-width: 768px) {
+  .ImageListGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* エラー状態の入力欄（赤枠） */
+.InputForm.HasError,
+.SelectForm.HasError,
+.TextAreaForm.HasError {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+body.DarkMode .InputForm.HasError,
+body.DarkMode .SelectForm.HasError,
+body.DarkMode .TextAreaForm.HasError {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.15);
+}
+
+/* ラベル横のエラーアイコン */
+.FieldErrorIcon {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin-left: 6px;
+  color: #e74c3c;
+  cursor: help;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+body.DarkMode .FieldErrorIcon {
+  color: #ff6b6b;
+}
+
+/* ホバー時に表示するツールチップ（アイコン右側に表示してアコーディオン上端のクリップを回避） */
+.FieldErrorIcon .ErrorTooltip {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #2c3e50;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  width: max-content;
+  max-width: 200px;
+  white-space: normal;
+  word-break: break-word;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.FieldErrorIcon .ErrorTooltip::after {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: #2c3e50;
+}
+
+.FieldErrorIcon:hover .ErrorTooltip,
+.FieldErrorIcon:focus .ErrorTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+body.DarkMode .FieldErrorIcon .ErrorTooltip {
+  background-color: #1a1a2e;
+  border: 1px solid #3a3a5a;
+}
+
+body.DarkMode .FieldErrorIcon .ErrorTooltip::after {
+  border-right-color: #1a1a2e;
+}
+
+/* ==========================================================================
+ * スピナー
+ * ========================================================================== */
+.SpinnerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: DialogOverlayFadeIn 0.2s ease-out;
+}
+
+.SpinnerContainer {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: DialogContainerFadeIn 0.25s ease-out;
+}
+
+.SpinnerTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.Spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: SpinnerAnimation 1s linear infinite;
+}
+
+@keyframes SpinnerAnimation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+body.DarkMode .SpinnerContainer {
+  background-color: #16213e;
+}
+
+body.DarkMode .SpinnerTitle {
+  color: #e0e0e0;
+}
+
+/* ==========================================================================
+ * 画像ボックス
+ * ========================================================================== */
+.ImageBox {
+  width: 150px;
+  height: 110px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.ImageBox:hover {
+  border-color: #3498db;
+}
+
+.ImageBox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.ImageBoxPlaceholder {
+  color: #999;
+  text-align: center;
+}
+
+.ImageBoxPlaceholder i {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+/* ==========================================================================
+ * チェックボックス
+ * ========================================================================== */
+.CheckboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.CheckboxInput {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+ * トグルスイッチ（チェックボックス連動型・ダークモードトグルとUI共通）
+ * ========================================================================== */
+.ToggleSwitchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ToggleSwitchControl {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.ToggleSwitchControl input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ToggleSwitchSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #34495e;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.ToggleSwitchSlider::before {
+  position: absolute;
+  content: '';
+  width: 16px;
+  height: 16px;
+  top: 2px;
+  left: 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.ToggleSwitchControl input:checked + .ToggleSwitchSlider {
+  background-color: #3498db;
+}
+
+.ToggleSwitchControl input:checked + .ToggleSwitchSlider::before {
+  transform: translateX(20px);
+}
+
+/* ==========================================================================
+ * ユーティリティ
+ * ========================================================================== */
+.MarginTop10 {
+  margin-top: 10px;
+}
+
+.MarginTop20 {
+  margin-top: 20px;
+}
+
+.MarginBottom20 {
+  margin-bottom: 20px;
+}
+
+.Hidden {
+  display: none !important;
+}
+
+.LinkText {
+  color: #3498db;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.LinkText:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+ * レスポンシブ対応
+ * ========================================================================== */
+@media screen and (max-width: 768px) {
+  .Sidebar {
+    position: fixed;
+    left: -250px;
+    height: 100%;
+    z-index: 100;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .Sidebar.Open {
+    left: 0;
+  }
+
+  /* サイドバー展開時、固定配置のハンバーガー(.MenuToggle: left15px/幅30px)と
+     システム名が重ならないよう、ヘッダ左に余白を確保する */
+  .SidebarHeader {
+    padding-left: 56px;
+  }
+
+  /* モバイルではサイドバーヘッダのアイコン（ロゴ）のみ非表示にして UI 崩れを防ぐ
+     （システム名ラベル「作品管理」は表示を維持） */
+  .SidebarHeader h1 i {
+    display: none;
+  }
+
+  .SidebarMenu {
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .MainContentWrapper {
+    padding: 15px;
+  }
+
+  .Card {
+    padding: 20px;
+  }
+
+  .ContentHeader {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .ButtonGroup {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .ButtonGroup > .ButtonClass {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .DialogContainer {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .PaginationContainer {
+    flex-wrap: wrap;
+  }
+
+  /* 一覧下部フッタ（モバイルは縦積み：件数=左端／ページネーション=中央） */
+  .ListFooter {
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+    justify-items: center;
+  }
+
+  .ListFooter #RecordCountArea {
+    justify-self: start;
+  }
+
+  .ListFooter #PaginationArea {
+    grid-column: 1;
+  }
+
+  /* モバイル用ソート・フィルタツールバー */
+  .MobileTableToolbar {
+    display: flex;
+    margin-bottom: 12px;
+  }
+
+  /* テーブルの縦型リスト表示（モバイル対応） */
+  .TableContainer {
+    overflow-x: visible;
+  }
+
+  .DataTable {
+    display: block;
+    box-shadow: none;
+  }
+
+  .DataTable thead {
+    display: none;
+  }
+
+  .ColumnResizer {
+    display: none;
+  }
+
+  .DataTable tbody {
+    display: block;
+  }
+
+  .DataTable tbody tr {
+    display: block;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .DataTable tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .DataTable td {
+    display: block;
+    text-align: left;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid #eee;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .DataTable td:last-child {
+    border-bottom: none;
+  }
+
+  /* カード表示ではカード幅に収める（PC向けの最大幅解除を打ち消す） */
+  .DataTable td.ActionCol {
+    max-width: 100%;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .DataTable td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .DataTable td:empty::before {
+    display: none;
+  }
+
+  /* 操作列ボタンを3列1行で左揃え表示 */
+  td[data-label='操作'] {
+    display: grid !important;
+    grid-template-columns: repeat(3, auto);
+    justify-content: start;
+    gap: 4px;
+    border-bottom: none;
+  }
+
+  td[data-label='操作']::before {
+    display: none;
+  }
+
+  td[data-label='操作'] .ButtonSmall {
+    white-space: nowrap;
+  }
+}
+
+/* ダークモード時のモバイルテーブル */
+@media screen and (max-width: 768px) {
+  body.DarkMode .DataTable tbody tr {
+    background-color: #16213e;
+    border-color: #3a3a5a;
+  }
+
+  body.DarkMode .DataTable tbody tr:hover {
+    background-color: #2a2a4a;
+  }
+
+  body.DarkMode .DataTable td {
+    border-bottom-color: #3a3a5a;
+  }
+
+  body.DarkMode .DataTable td::before {
+    color: #8a8aaa;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .InputForm,
+  .SelectForm,
+  .TextAreaForm {
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+
+  .ButtonClass {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+/* ==========================================================================
+ * メニュートグルボタン（モバイル用）
+ * ========================================================================== */
+.MenuToggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 101;
+  background-color: #2c3e50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 12px;
+  cursor: pointer;
+  height: 30px;
+  width: 30px;
+}
+
+@media screen and (max-width: 768px) {
+  .MenuToggle {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+ * オーバーレイ（モバイルメニュー用）
+ * ========================================================================== */
+.SidebarOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+.SidebarOverlay.Open {
+  display: block;
+}
+
+/* ==========================================================================
+ * 作品管理画面
+ * ========================================================================== */
+/* 1. 作品タイトル */
+.WorkTitle {
+  font-size: 18px;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  padding: 10px 15px;
+  background-color: #ecf0f1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.WorkTitle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.WorkTitle i {
+  color: #3498db;
+  flex-shrink: 0;
+}
+
+/* 2. サイドバー区切り線 */
+.SidebarDivider {
+  height: 1px;
+  background-color: #34495e;
+  margin: 10px 15px;
+}
+
+/* 4. フォーム行 */
+.FormRow {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.FormRow .FormGroup {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+ * 相関図
+ * ========================================================================== */
+.RelationContainer {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+}
+
+.RelationSidebar {
+  width: 200px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.RelationSidebarTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+.RelationCharaListmWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.RelationCharaList {
+  width: 100%;
+  max-width: 320px;
+}
+.CharacterListItem {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: grab;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.CharacterListItem:hover {
+  background: #e3f2fd;
+  border-color: #3498db;
+}
+
+.CharacterListItem.dragging {
+  opacity: 0.5;
+}
+
+.RelationCanvasWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.RelationCanvas {
+  flex: 1;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  position: relative;
+  overflow: auto;
+}
+
+.RelationCanvasContent {
+  position: relative;
+  width: 3000px;
+  height: 3000px;
+  transform-origin: top left;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+body.DarkMode .RelationCanvasContent {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+}
+
+.RelationCanvasSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3000px;
+  height: 3000px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.RelationCanvasSvg line,
+.RelationCanvasSvg path {
+  pointer-events: none;
+}
+
+.RelationCanvasSvg rect,
+.RelationCanvasSvg text {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.RelationObject {
+  position: absolute;
+  background: #fff;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: move;
+  min-width: 80px;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.RelationObject.selected {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+}
+
+.RelationObject img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 5px;
+}
+
+.RelationGroupBox {
+  position: absolute;
+  border: 2px dashed #9b59b6;
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(155, 89, 182, 0.05);
+  z-index: 1;
+}
+
+.RelationGroupLabel {
+  position: absolute;
+  top: -12px;
+  left: 10px;
+  background: #9b59b6;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.RelationResizeHandle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #9b59b6;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: nwse-resize;
+  z-index: 10;
+}
+
+.RelationResizeHandle.resize-se {
+  right: -6px;
+  bottom: -6px;
+  cursor: nwse-resize;
+}
+
+.RelationResizeHandle.resize-sw {
+  left: -6px;
+  bottom: -6px;
+  cursor: nesw-resize;
+}
+
+.RelationResizeHandle.resize-ne {
+  right: -6px;
+  top: -6px;
+  cursor: nesw-resize;
+}
+
+.RelationResizeHandle.resize-nw {
+  left: -6px;
+  top: -6px;
+  cursor: nwse-resize;
+}
+
+.RelationResizeHandle.resize-e {
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.RelationResizeHandle.resize-w {
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.RelationResizeHandle.resize-n {
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.RelationResizeHandle.resize-s {
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.RelationGroupBox:hover .RelationResizeHandle {
+  opacity: 1;
+}
+
+.RelationGroupBox .RelationResizeHandle {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.RelationGroupBox.resizing .RelationResizeHandle {
+  opacity: 1;
+}
+
+.TrashZone {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border: 2px dashed #e74c3c;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #e74c3c;
+  font-size: 24px;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.TrashZone.active {
+  background: #fee;
+  border-style: solid;
+  transform: scale(1.1);
+}
+
+/* ズーム・ゴミ箱コントロール */
+.RelationCanvasControls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 50;
+}
+
+.RelationCanvasControls .TrashZone {
+  position: static;
+}
+
+.ZoomButton {
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #3498db;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ZoomButton:hover {
+  background: #e3f2fd;
+  border-color: #2980b9;
+}
+
+.ZoomButton:active {
+  transform: scale(0.95);
+}
+
+/* 関係性タイプ選択 */
+.RelationTypeSelector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+/* 相関図モバイル対応 */
+@media screen and (max-width: 768px) {
+  .RelationContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+
+  .RelationSidebar {
+    width: 100%;
+    height: 200px;
+    overflow-y: auto;
+  }
+
+  .RelationCanvasWrapper {
+    width: 100%;
+    height: calc(100vh - 400px);
+    min-height: 400px;
+  }
+
+  .RelationCanvas {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+/* ==========================================================================
+ * ストーリー・プロット
+ * ========================================================================== */
+.StoryList {
+  margin-top: 20px;
+}
+
+.StoryItem {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.StoryItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.StoryItem.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}
+
+.StoryNumber {
+  width: 30px;
+  height: 30px;
+  background: #3498db;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.StoryContent {
+  flex: 1;
+  /* flexアイテムは既定で内容幅より縮まないため、折り返しの前提として下限を外す */
+  min-width: 0;
+}
+
+/* プロット行の内容（ストーリー行の .StoryContent と同じ扱いとする） */
+.PlotRowContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.StoryNarrator {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.StoryText {
+  font-size: 14px;
+  line-height: 1.6;
+  /* 長い内容が .StoryItem からはみ出さないよう折り返す
+   * 改行を含む入力は入力時のとおりに表示する */
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 行リストの表示領域・配置
+ * ストーリー行／プロット行画面と掛け合い登録画面で共用する */
+.StoryListViewport {
+  max-height: min(50vh, 720px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+
+.StoryList .StoryItem {
+  align-items: center;
+  gap: 14px;
+  touch-action: pan-y;
+}
+
+.StoryList .StoryNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex: 0 0 30px;
+}
+
+.StoryList .StoryContent {
+  min-width: 0;
+}
+
+/* ==========================================================================
+ * 掛け合い行
+ *   行リストの枠・並び替えは .StoryItem を流用し、
+ *   ストーリー行と区別できるようアイコン・発言者名・吹き出しで会話らしく表示する
+ *   発言者ごとの色は --ExchangeSpeakerColor で行ごとに指定する
+ *   発言者による左右の振り分けは行わず、いずれの行も左寄せで表示する
+ * ========================================================================== */
+.ExchangeItem .ExchangeBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* アイコンと発言者名（アイコンは名前の左に置く） */
+.ExchangeSpeakerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+/* 発言者アイコン（キャラの画像が無い場合は既定のアイコンを表示する） */
+.ExchangeAvatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ecf0f1;
+  border: 2px solid var(--ExchangeSpeakerColor, #3498db);
+  color: #95a5a6;
+  font-size: 14px;
+}
+
+.ExchangeAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body.DarkMode .ExchangeAvatar {
+  background: #1a1a2e;
+  color: #7f8c8d;
+}
+
+.ExchangeSpeaker {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  /* 長いキャラ名で折り返した際に文字が角丸へ重ならないよう左右を広めに取る */
+  padding: 4px 14px;
+  /* 1行時は高さの半分（約11px）へ丸められ従来どおりのピル形状となり、
+     折り返して高さが増えた時だけ角丸長方形となる */
+  border-radius: 14px;
+  background: var(--ExchangeSpeakerColor, #3498db);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.ExchangeBubble {
+  position: relative;
+  margin-top: 8px;
+  /* 画面幅いっぱいに伸ばさず、会話らしく片側へ寄せる */
+  max-width: 80%;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #f8f9fa;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 吹き出しの尻尾（発言者アイコンの側を指す）
+ * 吹き出し本体と同じく枠線を付けるため、三角形を2枚重ねる
+ *   ::before … 枠線色の三角形（1px大きく、吹き出しの枠線の外側に接する）
+ *   ::after  … 背景色の三角形（内側に重ね、尻尾の付け根の枠線を隠す） */
+.ExchangeBubble::before,
+.ExchangeBubble::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.ExchangeBubble::before {
+  top: -9px;
+  left: 13px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #e0e0e0;
+}
+
+.ExchangeBubble::after {
+  top: -7px;
+  left: 14px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #f8f9fa;
+}
+
+/* 掛け合い行の心境（内容の補足として小さく表示する） */
+.ExchangeFeeling {
+  /* 親が align-items: flex-start のため、指定が無いと内容幅のまま行からはみ出す */
+  max-width: 100%;
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 8px;
+  /* 長文・改行を含む値でも吹き出しと同じ折り返しとする */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+body.DarkMode .ExchangeBubble {
+  background: #1a1a2e;
+  border-color: #3a3a5a;
+}
+
+/* 尻尾の枠線・背景の色はダークモードの吹き出しと揃える */
+body.DarkMode .ExchangeBubble::before {
+  border-bottom-color: #3a3a5a;
+}
+
+body.DarkMode .ExchangeBubble::after {
+  border-bottom-color: #1a1a2e;
+}
+
+body.DarkMode .ExchangeFeeling {
+  color: #a0a0a0;
+}
+
+.PlotBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.PlotBadge.ki {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.PlotBadge.sho {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.PlotBadge.ten {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.PlotBadge.ketsu {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+/* ==========================================================================
+ * カレンダー
+ * ========================================================================== */
+.CalendarContainer {
+  margin-top: 20px;
+}
+
+.CalendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #3498db;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.CalendarHeader h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.CalendarNavButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.CalendarNavButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.CalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  background-color: #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.CalendarDayHeader {
+  background-color: #34495e;
+  color: #fff;
+  text-align: center;
+  padding: 10px 5px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.CalendarDayHeader.Sunday {
+  color: #ff6b6b;
+}
+
+.CalendarDayHeader.Saturday {
+  color: #74b9ff;
+}
+
+.CalendarDay {
+  background-color: #fff;
+  min-height: 80px;
+  padding: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.CalendarDay:hover {
+  background-color: #ecf0f1;
+}
+
+.CalendarDay.OtherMonth {
+  background-color: #f8f9fa;
+  color: #aaa;
+}
+
+.CalendarDay.Today {
+  background-color: #fff9c4;
+}
+
+.CalendarDayNumber {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.CalendarDay.Sunday .CalendarDayNumber {
+  color: #e74c3c;
+}
+
+.CalendarDay.Saturday .CalendarDayNumber {
+  color: #3498db;
+}
+
+.CalendarEvent {
+  font-size: 10px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #fff;
+  background-color: #3498db;
+}
+
+.CalendarEvent:hover {
+  opacity: 0.8;
+}
+
+.CalendarMoreEvents {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.CalendarMoreEventsLink {
+  cursor: pointer;
+  color: #3498db;
+  text-decoration: underline;
+}
+
+.CalendarMoreEventsLink:hover {
+  color: #2980b9;
+}
+
+/* 日付スケジュール一覧 */
+.DayScheduleList {
+  overflow-x: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.DayScheduleItem {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.DayScheduleItem:hover {
+  background: #e9ecef;
+  transform: translateX(3px);
+}
+
+.DayScheduleTitle {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.DaySchedulePeriod {
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+/* スケジュール詳細モーダル */
+.ScheduleColorPicker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.ColorOption {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.ColorOption:hover {
+  transform: scale(1.1);
+}
+
+.ColorOption.Selected {
+  border-color: #2c3e50;
+}
+
+@media screen and (max-width: 768px) {
+  .CalendarDay {
+    min-height: 60px;
+    padding: 3px;
+  }
+  .CalendarDayNumber {
+    font-size: 10px;
+  }
+  .CalendarEvent {
+    font-size: 8px;
+    padding: 1px 2px;
+  }
+}
+
+/* ==========================================================================
+ * カード表示（中央ライン＋左右交互配置）
+ * --------------------------------------------------------------------------
+ * チャプター設定画面のカード表示で使用する。
+ * （年表画面のビジュアル表示は横軸チャート .TimelineChart〜 へ移行済み）
+ * ========================================================================== */
+.TimelineVisual {
+  position: relative;
+  padding: 20px 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.TimelineVisual::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #3498db 0%, #9b59b6 100%);
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.TimelineItem {
+  position: relative;
+  width: 50%;
+  padding: 10px 30px;
+  box-sizing: border-box;
+}
+
+.TimelineItem::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 4px solid #3498db;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.TimelineLeft {
+  left: 0;
+  padding-right: 40px;
+  text-align: right;
+}
+
+.TimelineLeft::before {
+  right: -8px;
+}
+
+.TimelineRight {
+  left: 50%;
+  padding-left: 40px;
+  text-align: left;
+}
+
+.TimelineRight::before {
+  left: -8px;
+}
+
+.TimelineContent {
+  text-align: left;
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #3498db;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.TimelineContent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.TimelineRight .TimelineContent {
+  border-left: none;
+  border-right: 4px solid #9b59b6;
+}
+
+.TimelineDate {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 5px;
+  /* 長文（関連年表のタイトル等）がカードからはみ出さないよう、
+   * 2行まで折り返し、以降は三点リーダーで省略する */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.TimelineRight .TimelineDate {
+  color: #9b59b6;
+}
+
+.TimelineTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  /* 長文タイトルがカードからはみ出さないよう、
+   * 2行まで折り返し、以降は三点リーダーで省略する（全文は title 属性で確認できる） */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.TimelineDesc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media screen and (max-width: 768px) {
+  .TimelineVisual::before {
+    left: 20px;
+  }
+
+  .TimelineItem {
+    width: 100%;
+    padding-left: 50px;
+    padding-right: 15px;
+    text-align: left;
+  }
+
+  .TimelineLeft,
+  .TimelineRight {
+    left: 0;
+  }
+
+  .TimelineLeft::before,
+  .TimelineRight::before {
+    left: 12px;
+    right: auto;
+  }
+
+  .TimelineContent,
+  .TimelineRight .TimelineContent {
+    border-left: 4px solid #3498db;
+    border-right: none;
+  }
+
+  .TimelineRight .TimelineDate {
+    color: #3498db;
+  }
+}
+
+/* ==========================================================================
+ * 年表ビジュアル表示（横軸チャート）
+ * --------------------------------------------------------------------------
+ * 出来事を「発生時期 〜 終了時期」の帯として時間軸上に配置し、
+ * 期間の長さと重なりを視覚的に把握できるようにする。
+ * 目盛り・罫線・帯の描画方式はWBS画面のガントチャート（.WbsChart〜）に準拠する。
+ * ========================================================================== */
+.TimelineChart {
+  padding: 10px 0 20px;
+}
+
+/* --- 横スクロール領域の先頭に置く操作パレット ---
+ * 相関図のパレット（.RelationCanvasControls）と同じく、
+ * チャートを横スクロールしても左端に留めるため position:sticky とする
+ * （絶対配置ではスクロール内容と一緒に流れてしまうため）
+ * 幅を内容なりにしないと sticky が効かないため width:max-content を指定する */
+.ChartFloatingControls {
+  position: sticky;
+  left: 10px;
+  width: max-content;
+  margin: 10px 10px 10px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 50;
+}
+
+/* 絞込中であることをパレット上のボタンで示す */
+.ButtonClass.FilterActive {
+  background-color: #3498db;
+}
+
+.ButtonClass.FilterActive:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+/* --- 凡例 --- */
+.TimelineChartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 0 4px 10px;
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.TimelineChartLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.TimelineChartLegendMark {
+  display: inline-block;
+  width: 26px;
+  height: 14px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  background-color: #eaf4fb;
+  border: 1px solid #bcdff5;
+  border-left: 4px solid #3498db;
+}
+
+.TimelineChartLegendMark.Point {
+  background-color: #f4ecf9;
+  border-color: #ddc9ea;
+  border-left-color: #9b59b6;
+  border-right-style: dashed;
+}
+
+/* --- 描画領域（時間軸が長い年表は横スクロールで閲覧する） --- */
+.TimelineChartScroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.TimelineChartInner {
+  position: relative;
+}
+
+/* --- 中央：時間軸の目盛り ---
+ * カードを軸の上下へ振り分けるため、目盛りは描画領域の中央に置く。
+ * 区切りは border-left で引く。明細側のグリッド線も同じく border-left のため、
+ * 双方の線が各目盛りの開始位置で揃う（WBSチャートと同一方針）。 */
+.TimelineChartHead {
+  position: relative;
+  height: 26px;
+  border-top: 1px solid #b0bec5;
+  border-bottom: 1px solid #b0bec5;
+  background-color: #f5f8fa;
+}
+
+.TimelineChartScaleLabel {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding-left: 6px;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7f8c8d;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 左端は領域の境界と重なるため罫線を引かない */
+.TimelineChartScaleLabel:first-child {
+  border-left: none;
+}
+
+/* --- 明細：レーン（行）と目盛りの罫線 --- */
+.TimelineChartBody {
+  position: relative;
+}
+
+.TimelineChartGrid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.TimelineChartGridUnit {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border-left: 1px solid #e0e0e0;
+}
+
+.TimelineChartGridUnit:first-child {
+  border-left: none;
+}
+
+/* --- 明細：出来事のカード ---
+ * top はレーン位置としてJS側で指定するため、レーン内の中央寄せは margin-top で行う。
+ * 配色は縦軸カード（.TimelineContent）と同じく、左端の色付きボーダーで種別を示す。 */
+.TimelineChartBar {
+  position: absolute;
+  height: 38px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  background-color: #eaf4fb;
+  border: 1px solid #bcdff5;
+  border-left: 4px solid #3498db;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    filter 0.2s,
+    box-shadow 0.2s;
+}
+
+.TimelineChartBar:hover {
+  filter: brightness(0.98);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* 終了時期なし（時点）は期間を持たないため、幅はタイトルの表示幅とし、
+ * 期間の終わりを表さないことを示すため右端を破線とする */
+.TimelineChartBar.Point {
+  background-color: #f4ecf9;
+  border-color: #ddc9ea;
+  border-left-color: #9b59b6;
+  border-right-style: dashed;
+}
+
+/* 年表詳細（親となる出来事の内訳）は、親カードの外側のレーンへ配置される。
+ * 位置だけでは親子が読み取りにくいため、左端の色と背景で下位であることを示す */
+.TimelineChartBar.Child {
+  background-color: #f2f7f4;
+  border-color: #cfe4d8;
+  border-left-color: #27ae60;
+}
+
+/* カード1行目：期間（発生時期 〜 終了時期） */
+.TimelineChartBarDate {
+  display: block;
+  padding: 0 8px;
+  line-height: 15px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #7f8c8d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* カード2行目：タイトル（区間幅の拡張によりカード幅は必ずタイトル幅以上となる。
+ * 上限幅を超える長文のみ三点リーダーで省略する） */
+.TimelineChartBarLabel {
+  display: block;
+  padding: 0 8px;
+  line-height: 19px;
+  font-size: 12px;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 期間・タイトルの表示幅を実測するための非表示要素（描画後に破棄する） */
+.TimelineChartMeasure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+}
+
+/* --- データなし・注意書き --- */
+.TimelineChartEmpty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999999;
+}
+
+.TimelineChartEmpty i {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.TimelineChartNote {
+  margin-top: 8px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: #e67e22;
+}
+
+body.DarkMode .TimelineChartScroll {
+  background-color: #16213e;
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .TimelineChartScaleLabel,
+body.DarkMode .TimelineChartGridUnit {
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .TimelineChartHead {
+  border-color: #4a5a7a;
+  background-color: #1a2744;
+}
+
+body.DarkMode .TimelineChartLegend,
+body.DarkMode .TimelineChartScaleLabel {
+  color: #a0a0a0;
+}
+
+body.DarkMode .TimelineChartBar,
+body.DarkMode .TimelineChartLegendMark {
+  background-color: #22314f;
+  border-color: #3a4a6a;
+  border-left-color: #3498db;
+}
+
+body.DarkMode .TimelineChartBar.Point,
+body.DarkMode .TimelineChartLegendMark.Point {
+  background-color: #2d2545;
+  border-color: #4a3a6a;
+  border-left-color: #9b59b6;
+}
+
+body.DarkMode .TimelineChartBar.Child {
+  background-color: #1f3329;
+  border-color: #365243;
+  border-left-color: #27ae60;
+}
+
+body.DarkMode .TimelineChartBarLabel {
+  color: #e0e0e0;
+}
+
+body.DarkMode .TimelineChartBarDate {
+  color: #94a3b8;
+}
+
+@media screen and (max-width: 768px) {
+  .TimelineChartLegend {
+    gap: 10px;
+    font-size: 11px;
+  }
+}
+
+/* ==========================================================================
+ * 階級組織図表示（階層図形式）
+ * ========================================================================== */
+.ClassChart {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  justify-content: start;
+}
+
+.ClassChartGroup {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+}
+
+.ClassChartGroupTitle {
+  background: #3498db;
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ClassChartGroupTitle i {
+  font-size: 18px;
+}
+
+.ClassChartHierarchy {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* 序列ごとの行（横並び） */
+.ClassChartRankRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  position: relative;
+  padding: 10px 0;
+}
+
+/* 行間の縦線 */
+.ClassChartRankRow:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(180deg, #3498db, #9b59b6);
+  border-radius: 2px;
+}
+
+/* 序列ラベル */
+.ClassChartRankLabel {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 5px;
+  padding: 3px 10px;
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.ClassChartItem {
+  position: relative;
+  cursor: pointer;
+  /* 階級名が長くても行（.ClassChartRankRow）の幅を超えないようにする
+   * flexアイテムは既定で内容幅より縮まないため min-width を外す */
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ClassChartNode {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  min-width: 150px;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.ClassChartNode:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.ClassChartRank {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 3px;
+}
+
+.ClassChartName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+  /* 階級名が長い場合に .ClassChartGroup からはみ出さないよう3点リーダーとする */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ClassChartDesc {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 768px) {
+  .ClassChart {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .ClassChartGroup {
+    max-width: 100%;
+    min-width: auto;
+  }
+}
+
+/* ==========================================================================
+ * 舞台ツリー表示
+ *   ノードは階級組織図のクラス（.ClassChartGroup / .ClassChartItem / .ClassChartNode など）を流用し、
+ *   最上位の舞台ごとにカード（.ClassChartGroup）を分け、異なる舞台の境界を明確にする。
+ *   本クラスでは階層の字下げと、親子をつなぐ縦線のみを表す。
+ *   線の色はカード見出し（.ClassChartGroupTitle）と揃え、ダークモードでも同色とする。
+ * ========================================================================== */
+/* ツリーの表示領域
+ * 一覧表示の表（.TableContainer）と同じく、切り替えボタンとの間に余白を取り、
+ * 階層が深く横幅を超える場合は横スクロールとする */
+.StageTreeArea {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.StageTreeChildren {
+  display: flex;
+  flex-direction: column;
+  /* ノードを舞台名の幅に留め、行全体へ伸ばさない */
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 0 0 12px;
+  padding-left: 20px;
+  border-left: 2px solid #3498db;
+}
+
+/* 最上位の舞台（カード見出し）はクリックで選択できるため、ノードと同じくホバーで示す */
+.StageTreeRootTitle:hover {
+  opacity: 0.85;
+}
+
+.StageTreeRootType {
+  flex: 0 0 auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 舞台名が長い場合はカードからはみ出さないよう3点リーダーとする */
+.StageTreeRootName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 最上位の階層はカードの内側に余白を取る */
+.ClassChartGroup > .StageTreeChildren {
+  margin: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  /* 画面幅が狭い場合は階層ごとの字下げを詰める */
+  .StageTreeChildren {
+    margin-left: 6px;
+    padding-left: 12px;
+  }
+
+  .ClassChartGroup > .StageTreeChildren {
+    margin: 12px;
+  }
+}
+
+/* ==========================================================================
+ * AI相談チャットUI
+ * ========================================================================== */
+/* 1. メインコンテナ */
+.AIConversationContainer {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 180px);
+  min-height: 700px;
+}
+
+/* 2. 会話履歴パネル（左側） */
+.ConversationListPanel {
+  width: 300px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ConversationListHeader {
+  padding: 15px;
+  background: #34495e;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ConversationListHeader h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ConversationListBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.ConversationListItem {
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.ConversationListItem:hover {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.ConversationListItem.Active {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.ConversationListItem.Archived {
+  opacity: 0.6;
+  background: #f5f5f5;
+}
+
+.ConversationListItemTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ConversationListItemMeta {
+  font-size: 11px;
+  color: #7f8c8d;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ConversationListFooter {
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* 3. チャットパネル（右側） */
+.ChatPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.ChatHeader {
+  padding: 15px;
+  background: #3498db;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ChatHeader h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ChatHeaderActions {
+  display: flex;
+  gap: 8px;
+}
+
+.ChatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #e5ddd5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 4. メッセージバブル */
+.MessageBubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  position: relative;
+}
+
+.MessageBubble.User {
+  align-self: flex-end;
+  background: #dcf8c6;
+  border-bottom-right-radius: 4px;
+}
+
+.MessageBubble.AI {
+  align-self: flex-start;
+  background: #fff;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.MessageBubble pre {
+  background: #f4f4f4;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+.MessageBubble code {
+  background: #f4f4f4;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.MessageTime {
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* 5. タイプライターカーソル */
+.TypewriterCursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: #333;
+  margin-left: 2px;
+  animation: TypewriterBlink 0.7s infinite;
+}
+
+@keyframes TypewriterBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 6. 入力エリア */
+.ChatInputArea {
+  padding: 15px;
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.ChatInputArea .TextAreaForm {
+  flex: 1;
+}
+
+/* 8. ローディング表示 */
+.ChatLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.ChatLoadingDots {
+  display: flex;
+  gap: 4px;
+}
+
+.ChatLoadingDots span {
+  width: 8px;
+  height: 8px;
+  background: #bdc3c7;
+  border-radius: 50%;
+  animation: ChatLoadingBounce 1.4s infinite ease-in-out both;
+}
+
+.ChatLoadingDots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.ChatLoadingDots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.ChatLoadingDots span:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes ChatLoadingBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* 9. 空状態表示 */
+.ChatEmptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  text-align: center;
+  padding: 40px;
+}
+
+.ChatEmptyState i {
+  font-size: 60px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.ChatEmptyState p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+/* 10. ダークモード対応 */
+body.DarkMode .ConversationListPanel {
+  background: #1a1a2e;
+}
+
+body.DarkMode .ConversationListItem {
+  background: #16213e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .ConversationListItem:hover,
+body.DarkMode .ConversationListItem.Active {
+  background: #2a2a4a;
+  border-color: #3498db;
+}
+
+body.DarkMode .ConversationListItemTitle {
+  color: #e0e0e0;
+}
+
+body.DarkMode .ConversationListItemMeta {
+  color: #8a8aaa;
+}
+
+body.DarkMode .ConversationListFooter {
+  border-top-color: #3a3a5a;
+}
+
+body.DarkMode .ChatPanel {
+  background: #16213e;
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .ChatMessages {
+  background: #1a1a2e;
+}
+
+body.DarkMode .MessageBubble.User {
+  background: #075e54;
+  color: #e0e0e0;
+}
+
+body.DarkMode .MessageBubble.AI {
+  background: #2a2a4a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .MessageBubble pre,
+body.DarkMode .MessageBubble code {
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+body.DarkMode .ChatInputArea {
+  background: #16213e;
+  border-top-color: #3a3a5a;
+}
+
+body.DarkMode .ChatInputArea .TextAreaForm {
+  background: #1a1a2e;
+  border-color: #3a3a5a;
+  color: #e0e0e0;
+}
+
+body.DarkMode .ChatInputArea .TextAreaForm:focus {
+  border-color: #3498db;
+}
+
+body.DarkMode .ChatPanel .CheckboxWrapper {
+  background: #16213e;
+  border-top-color: #3a3a5a;
+  color: #a0a0a0;
+}
+
+body.DarkMode .ChatLoading {
+  background: #2a2a4a;
+}
+
+body.DarkMode .TypewriterCursor {
+  background: #e0e0e0;
+}
+
+/* 12. レスポンシブ対応 */
+@media screen and (max-width: 768px) {
+  .AIConversationContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+
+  .ConversationListPanel {
+    width: 100%;
+    height: 400px;
+  }
+
+  .ChatPanel {
+    height: calc(100vh - 600px);
+    min-height: 600px;
+  }
+
+  .MessageBubble {
+    max-width: 85%;
+  }
+}
+
+/* ==========================================================================
+ * 13. 汎用アコーディオン（入力欄の開閉表示）
+ * ========================================================================== */
+.AccordionContainer {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.AccordionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.AccordionHeader:hover {
+  background: #ececec;
+}
+
+.AccordionContainer.Collapsed .AccordionHeader {
+  border-bottom: none;
+}
+
+.AccordionTitle {
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.AccordionIcon {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.AccordionBody {
+  padding: 16px;
+}
+
+.AccordionContainer.Collapsed .AccordionBody {
+  display: none;
+}
+
+body.DarkMode .AccordionContainer {
+  background: #1a1a2e;
+  border-color: #3a3a5e;
+}
+
+body.DarkMode .AccordionHeader {
+  background: #16213e;
+  border-bottom-color: #3a3a5e;
+}
+
+body.DarkMode .AccordionHeader:hover {
+  background: #1f2a48;
+}
+
+body.DarkMode .AccordionTitle {
+  color: #e0e0e0;
+}
+
+body.DarkMode .AccordionIcon {
+  color: #a0a0a0;
+}
+
+/* ==========================================================================
+ * キーワード検索：画面内インライン戻るボタン
+ *
+ * 各画面の render テンプレートに `.KeywordSearchBackButtonArea` を埋め込み、
+ * body にキーワード検索の遷移ターゲットが active な間だけ表示する。
+ * （個別画面の Show*Setting に介入せず CSS のみで表示制御）
+ * ========================================================================== */
+.KeywordSearchBackButtonArea {
+  display: none;
+}
+
+body.KeywordSearchTargetActive .KeywordSearchBackButtonArea {
+  display: flex;
+}
+
+/* ==========================================================================
+ * キーワード検索：対象画面チェックボックスグリッド
+ * デスクトップ: auto-fill で複数列、モバイル(<=768px)では 2 列固定
+ * ========================================================================== */
+.KeywordSearchScreenCheckboxesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+}
+
+@media screen and (max-width: 768px) {
+  .KeywordSearchScreenCheckboxesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+ * 更新履歴：差分ダイアログ（git 風の −修正前 / ＋修正後 表示）
+ * ShowHistoryDetailDialog がインフォダイアログを土台に描画する。
+ * ========================================================================== */
+.HistoryDiffBody {
+  width: 100%;
+  text-align: left;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* 「<名称>のデータを更新」見出し */
+.HistoryDiffHead {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* 変更列ごとのブロック */
+.HistoryDiffField {
+  margin-bottom: 14px;
+}
+.HistoryDiffField:last-child {
+  margin-bottom: 0;
+}
+
+/* 列名ラベル */
+.HistoryDiffLabel {
+  font-weight: 600;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+/* 差分1行（−旧 / ＋新）。マーク＋値の横並び。 */
+.HistoryDiffRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.HistoryDiffRow + .HistoryDiffRow {
+  margin-top: 3px;
+}
+
+/* 修正前（削除）＝赤系 */
+.HistoryDiffOld {
+  background-color: #ffebe9;
+  border-left: 3px solid #cf222e;
+  color: #82071e;
+}
+/* 修正後（追加）＝緑系 */
+.HistoryDiffNew {
+  background-color: #e6ffec;
+  border-left: 3px solid #1a7f37;
+  color: #116329;
+}
+
+/* 行頭の − / ＋ 記号 */
+.HistoryDiffMark {
+  flex: 0 0 auto;
+  font-weight: 700;
+  width: 1em;
+  text-align: center;
+  user-select: none;
+}
+
+/* 値（長文・改行・記号をそのまま保持） */
+.HistoryDiffVal {
+  flex: 1 1 auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 変更なし・詳細なしの案内文 */
+.HistoryDiffEmpty {
+  color: #999;
+  font-size: 13px;
+  padding: 6px 0;
+}
+
+/* 旧形式（プレーンテキスト）フォールバック表示 */
+.HistoryDiffPlain {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* ---- ダークモード ---- */
+body.DarkMode .HistoryDiffHead {
+  color: #e6e6e6;
+  border-bottom-color: #444;
+}
+body.DarkMode .HistoryDiffLabel {
+  color: #bbb;
+}
+body.DarkMode .HistoryDiffOld {
+  background-color: rgba(248, 81, 73, 0.15);
+  border-left-color: #f85149;
+  color: #ffb0a8;
+}
+body.DarkMode .HistoryDiffNew {
+  background-color: rgba(46, 160, 67, 0.15);
+  border-left-color: #3fb950;
+  color: #7ee787;
+}
+body.DarkMode .HistoryDiffPlain {
+  color: #e0e0e0;
+}
+
+/* ==========================================================================
+ * 並び替え（ドラッグ&ドロップ）共通スタイル
+ * ストーリー／プロット行（.StoryList）と章・編カード（.SortableCard）で共用する。
+ * ※ 元は StoryPlotModule.js の動的スタイル内で定義していたものを、
+ *   章・編設定画面と共用するため本ファイルへ集約した（セレクタ・値は当時のまま）。
+ * ========================================================================== */
+.StoryList .StoryItem.Dragging,
+.SortableCard.Dragging {
+  opacity: 0.92;
+  transform: scale(1.02);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+}
+
+.StoryList .StoryItem.DragOver,
+.SortableCard.DragOver {
+  background: rgba(70, 130, 255, 0.12);
+  outline: 2px solid rgba(70, 130, 255, 0.45);
+}
+
+.StoryList .StoryDragHandle,
+.DragHandle {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  min-height: 44px;
+  border: 1px dashed rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.82);
+  color: #475569;
+  cursor: grab;
+  touch-action: none;
+}
+
+.StoryList .StoryDragHandle i,
+.StoryList .StoryDragHandle span,
+.DragHandle i,
+.DragHandle span {
+  pointer-events: none;
+}
+
+.StoryList .StoryDragHandle span,
+.DragHandle span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.StoryList .StoryDragHandle:active,
+.DragHandle:active {
+  cursor: grabbing;
+}
+
+body.DarkMode .StoryList .StoryItem.Dragging,
+body.DarkMode .SortableCard.Dragging {
+  box-shadow: 0 14px 28px rgba(120, 170, 255, 0.28);
+}
+
+body.DarkMode .StoryList .StoryItem.DragOver,
+body.DarkMode .SortableCard.DragOver {
+  background: rgba(120, 170, 255, 0.18);
+  outline-color: rgba(145, 190, 255, 0.55);
+}
+
+body.DarkMode .StoryList .StoryDragHandle,
+body.DarkMode .DragHandle {
+  border-color: rgba(148, 163, 184, 0.32);
+  background: rgba(30, 41, 59, 0.88);
+  color: #e2e8f0;
+}
+
+/* ==========================================================================
+ * チャプター設定：カード表示
+ * 年表画面のビジュアル表示（.TimelineVisual / .TimelineItem / .TimelineContent）を
+ * そのまま流用し、中央ラインに沿って上から順にカードを配置する。
+ * ここでは連番バッジとセクション区切りのみを追加で定義する。
+ * ========================================================================== */
+/* カード見出し行（連番バッジ ＋ チャプター名 ＋ 並び替えハンドル） */
+.ChapterCardHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* 進行順を示す連番バッジ */
+.ChapterCardIndex {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #3498db;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.TimelineRight .ChapterCardIndex {
+  background: #9b59b6;
+}
+
+/* 見出し行内のチャプター名は既存の .TimelineTitle を流用するため余白のみ調整 */
+.ChapterCardHeaderRow .TimelineTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+  word-break: break-word;
+}
+
+/* 情報のセクション区切り（概要／関連年表／主要キャラ／メタ情報） */
+.ChapterCardSection {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.ChapterCardSectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7f8c8d;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.ChapterCardMeta {
+  font-size: 11px;
+  color: #7f8c8d;
+  line-height: 1.7;
+}
+
+/* 設定ダイアログの「メタ情報非表示」トグルに追随する（一覧のMetaColと同方針） */
+body.HideMetaColumns .ChapterCardMeta {
+  display: none;
+}
+
+.ChapterCardEmpty {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* チャプターカードは左右の色付きボーダーを表示しない（年表画面の .TimelineContent は従来どおり）
+ * 画面幅が狭い場合に左ボーダーを付け直す指定より優先させるため、.TimelineRight を含めて指定する */
+.ChapterNode .TimelineContent,
+.ChapterNode.TimelineRight .TimelineContent {
+  border-left: none;
+  border-right: none;
+}
+
+body.DarkMode .ChapterCardIndex {
+  background: #2563eb;
+}
+
+body.DarkMode .TimelineRight .ChapterCardIndex {
+  background: #7c3aed;
+}
+
+body.DarkMode .ChapterCardSection {
+  border-top-color: rgba(148, 163, 184, 0.18);
+}
+
+body.DarkMode .ChapterCardSectionLabel,
+body.DarkMode .ChapterCardMeta {
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+ * WBS：ツールバー
+ * ========================================================================== */
+.WbsToolbar {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 参加メンバー向けの権限説明（入力ダイアログ内） */
+.WbsPermissionNote {
+  margin-top: 10px;
+  color: #7f8c8d;
+  font-size: 13px;
+}
+
+body.DarkMode .WbsPermissionNote {
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+ * WBS：WBS一覧（親画面）
+ * タスクを束ねる単位をカード形式で並べる。
+ * ストーリー作成・プロット作成の各画面と操作感を揃えるため、
+ * 同じフォルダ風の見た目とし、WBS固有の情報（件数・期間・進捗率）を載せる。
+ * ========================================================================== */
+.WbsFolderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 240px));
+  justify-content: start;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.WbsFolderEmpty {
+  grid-column: 1 / -1;
+  padding: 50px;
+  text-align: center;
+  color: #999;
+}
+
+.WbsFolderCard {
+  position: relative;
+  border: 1px solid #dccb7a;
+  border-radius: 18px;
+  background: #fff6bf;
+  box-shadow: 0 10px 24px rgba(89, 72, 24, 0.12);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* フォルダの見出し部分（つまみ） */
+.WbsFolderTab {
+  height: 14px;
+  width: 120px;
+  margin-left: 18px;
+  background: #efd36c;
+  border-radius: 0 0 12px 0;
+}
+
+.WbsFolderBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 170px;
+  padding: 18px;
+}
+
+.WbsFolderName {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #4b3e12;
+  word-break: break-word;
+}
+
+.WbsFolderBadgeArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.WbsFolderBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #6b5615;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.WbsFolderBadge.Delayed {
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
+}
+
+/* 進捗率（バーの上に数値を重ねる） */
+.WbsFolderProgress {
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.WbsFolderProgressBar {
+  height: 100%;
+  background-color: #3498db;
+}
+
+.WbsFolderProgressText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  line-height: 18px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b3e12;
+}
+
+.WbsFolderActionArea {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+body.DarkMode .WbsFolderCard {
+  border-color: #4a4a2a;
+  background: #2a2a1a;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+body.DarkMode .WbsFolderTab {
+  background: #45401f;
+}
+
+body.DarkMode .WbsFolderName {
+  color: #f0e6c0;
+}
+
+body.DarkMode .WbsFolderBadge {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0e6c0;
+}
+
+body.DarkMode .WbsFolderBadge.Delayed {
+  background: rgba(255, 107, 107, 0.16);
+  color: #ff6b6b;
+}
+
+body.DarkMode .WbsFolderProgress {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.DarkMode .WbsFolderProgressText {
+  color: #f0e6c0;
+}
+
+/* 狭い画面ではカードを中央に寄せる */
+@media screen and (max-width: 768px) {
+  .WbsFolderGrid {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+ * WBS：タスク一覧テーブル＋チャート
+ * 左の見出し列とチャート列を1つのテーブルに持たせるため、行位置を揃える処理は不要。
+ * 横スクロール時に見出し列を固定するには position:sticky が必要だが、
+ * border-collapse:collapse では罫線がセルではなくテーブルに属し固定セルで消えるため、
+ * このテーブルに限り border-collapse:separate とし、罫線はセル側で引く。
+ * ========================================================================== */
+/* 表示単位プルダウン（ツールバー内に並べる） */
+.WbsChartViewModeSelect {
+  width: auto;
+  min-width: 90px;
+}
+
+.WbsTaskTableArea {
+  overflow-x: auto;
+}
+
+.WbsTaskTable {
+  /* 固定列の位置は列幅の累計で決まるため、幅を確定させる */
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-top: 1px solid #e0e0e0;
+  border-left: 1px solid #e0e0e0;
+  /* overflow:hidden があると sticky の基準がテーブル自身になり固定できなくなる */
+  overflow: visible;
+  border-radius: 0;
+}
+
+.WbsTaskTable th,
+.WbsTaskTable td {
+  border: none;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  max-width: none;
+}
+
+/* 列幅を固定しているため、ヘッダの内容（ラベル＋ソート・フィルタアイコン）が
+ * 隣の列へはみ出さないよう抑える */
+.WbsTaskTable th {
+  overflow: hidden;
+}
+
+body.DarkMode .WbsTaskTable {
+  border-color: #3a3a5a;
+}
+
+body.DarkMode .WbsTaskTable th,
+body.DarkMode .WbsTaskTable td {
+  border-color: #3a3a5a;
+}
+
+/* --- 左の見出し列（横スクロールしても隠れない） ---
+ * left の値は列幅の累計としてJS側から指定する */
+.WbsTaskTable .WbsFixedCol {
+  position: sticky;
+  z-index: 2;
+  background-color: #ffffff;
+}
+
+.WbsTaskTable thead .WbsFixedCol {
+  z-index: 3;
+  background-color: #34495e;
+}
+
+/* 固定列は自前の背景を持つため、行ホバーの色を個別に指定する */
+.WbsTaskTable tbody tr:hover .WbsFixedCol {
+  background-color: #f8f9fa;
+}
+
+body.DarkMode .WbsTaskTable .WbsFixedCol {
+  background-color: #16213e;
+}
+
+body.DarkMode .WbsTaskTable thead .WbsFixedCol {
+  background-color: #0f0f23;
+}
+
+body.DarkMode .WbsTaskTable tbody tr:hover .WbsFixedCol {
+  background-color: #2a2a4a;
+}
+
+/* --- 子タスクの開閉トグル（タスク名セル内） ---
+ * 汎用アコーディオン（.AccordionIcon）は入力欄の開閉用でセル内には置けないため、
+ * アイコンの規約（閉：angles-down／開：angles-up）のみ揃えた専用クラスとする */
+.WbsTaskToggle {
+  padding: 0;
+  margin-right: 6px;
+  border: none;
+  background: none;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.WbsTaskToggle:hover {
+  color: #2c3e50;
+}
+
+body.DarkMode .WbsTaskToggle {
+  color: #a0a0a0;
+}
+
+body.DarkMode .WbsTaskToggle:hover {
+  color: #e0e0e0;
+}
+
+/* --- チャート列のヘッダ（日付目盛り） --- */
+.WbsTaskTable .WbsChartHead {
+  padding: 0;
+  position: relative;
+  /* 下段の目盛りを明細の先頭行に隣接させる */
+  vertical-align: bottom;
+  font-weight: 400;
+}
+
+.WbsChartScaleUpper,
+.WbsChartScaleLower {
+  position: relative;
+  height: 25px;
+}
+
+.WbsChartScaleUpper {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 日付の区切りは罫線で示す
+ * 明細側のグリッド線は各目盛りの開始位置に引いているため、
+ * ずれが出ないよう border-right ではなく border-left を使う */
+.WbsChartScaleLabel {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 2px;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 左端は列の境界と重なるため罫線を引かない */
+.WbsChartScaleLabel:first-child {
+  border-left: none;
+}
+
+/* 上段（年月・年）は区切りの左端に寄せる */
+.WbsChartScaleUpper .WbsChartScaleLabel {
+  justify-content: flex-start;
+  padding-left: 6px;
+  font-weight: 600;
+}
+
+/* --- チャート列の明細 --- */
+.WbsTaskTable .WbsChartCell {
+  padding: 0;
+  position: relative;
+  background-color: #ffffff;
+}
+
+body.DarkMode .WbsTaskTable .WbsChartCell {
+  background-color: #16213e;
+}
+
+.WbsChartTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+/* --- 目盛り（罫線・土日・当日セル） ---
+ * 1目盛り＝1つの div として並べ、罫線は border-left で引く。
+ * ヘッダの .WbsChartScaleLabel も border-left で引いているため、
+ * 双方の線が同じ位置（各目盛りの開始位置）に揃う。 */
+.WbsChartGrid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.WbsChartGridUnit {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border-left: 1px solid #e0e0e0;
+}
+
+/* 左端はチャート列の境界と重なるため罫線を引かない */
+.WbsChartGridUnit:first-child {
+  border-left: none;
+}
+
+/* 土日・祝日は1目盛り＝1日となる【日】表示でのみ付与される */
+.WbsChartGridUnit.Weekend,
+.WbsChartGridUnit.Holiday {
+  background-color: #e3e9f1;
+}
+
+/* 当日（日＝当日／週＝今週／月＝今月）は休日より優先して塗る
+ * 色はスケジュール画面の .CalendarDay.Today と揃える */
+.WbsChartGridUnit.Today {
+  background-color: #fff9c4;
+}
+
+body.DarkMode .WbsChartGridUnit {
+  border-left-color: #3a3a5a;
+}
+
+body.DarkMode .WbsChartGridUnit.Weekend,
+body.DarkMode .WbsChartGridUnit.Holiday {
+  background-color: #26325a;
+}
+
+body.DarkMode .WbsChartGridUnit.Today {
+  background-color: #2a3a4a;
+}
+
+/* 本日線は目盛りの区切りと一致しないため、目盛りとは別に重ねる */
+.WbsChartTodayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #e74c3c;
+}
+
+body.DarkMode .WbsChartTodayLine {
+  background-color: #ff6b6b;
+}
+
+.WbsChartBar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  box-sizing: border-box;
+  background-color: #e8eff7;
+  border: 1px solid #cfd9e4;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* 進捗部分のみ状態で塗り分ける（通常=青／遅延=赤／完了=緑） */
+.WbsChartBarProgress {
+  height: 100%;
+  background-color: #3498db;
+}
+
+.WbsChartBarDelayed .WbsChartBarProgress {
+  background-color: #e74c3c;
+}
+
+.WbsChartBarDone .WbsChartBarProgress {
+  background-color: #27ae60;
+}
+
+body.DarkMode .WbsChartBar {
+  background-color: #223052;
+  border-color: #3a4a6a;
+}
+
+/* 遅延タスクの超過分（終了予定日の翌日〜本日）
+ * バーの続きとして斜線の帯で描き、遅延日数を長さで把握できるようにする */
+.WbsChartOverdue {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  box-sizing: border-box;
+  border: 1px solid #e74c3c;
+  border-left: none;
+  border-radius: 0 3px 3px 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(231, 76, 60, 0.45) 0,
+    rgba(231, 76, 60, 0.45) 4px,
+    rgba(231, 76, 60, 0.15) 4px,
+    rgba(231, 76, 60, 0.15) 8px
+  );
+}
+
+/* タスク名はバー内部の右端（末尾）に置く
+ * 幅に収まらない場合は先頭から表示して末尾を省略する */
+.WbsChartBarLabel {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  max-width: calc(100% - 8px);
+  font-size: 12px;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+body.DarkMode .WbsChartBarLabel {
+  color: #e0e0e0;
+}
+
+/* スマホ・タブレットでもカード表示に切り替えず、表形式のまま横スクロールさせる
+ * （カード表示では行とチャートが対応しなくなるため） */
+@media screen and (max-width: 768px) {
+  /* .TableContainer はモバイルで overflow-x:visible となるため、ここで戻す */
+  .WbsTaskTableArea {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- ここから .DataTable のカード表示指定の打ち消し --- */
+  .WbsTaskTableArea .WbsTaskTable {
+    display: table;
+  }
+
+  .WbsTaskTableArea .WbsTaskTable thead {
+    display: table-header-group;
+  }
+
+  .WbsTaskTableArea .WbsTaskTable tbody {
+    display: table-row-group;
+  }
+
+  .WbsTaskTableArea .WbsTaskTable tbody tr {
+    display: table-row;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .WbsTaskTableArea .WbsTaskTable td {
+    display: table-cell;
+    padding: 12px;
+    border: none;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  body.DarkMode .WbsTaskTableArea .WbsTaskTable td {
+    border-color: #3a3a5a;
+  }
+
+  .WbsTaskTableArea .WbsTaskTable .WbsChartCell {
+    padding: 0;
+  }
+
+  /* 項目名はヘッダ行に表示されるため、セル内の疑似要素ラベルは出さない */
+  .WbsTaskTableArea .WbsTaskTable td::before {
+    display: none;
+  }
+
+  /* 狭い画面で見出し列を4つ固定するとチャートが見えなくなるため、
+   * タスク名の列だけを固定する */
+  .WbsTaskTable thead .WbsFixedCol:not(:first-child),
+  .WbsTaskTable tbody .WbsFixedCol:not(:first-child) {
+    position: static;
+  }
+}
+
+/* ==========================================================================
+ * 旧 JS のインラインスタイルを Vue コンポーネントから使用するための定義
+ * ========================================================================== */
+.TableColumnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.TableColumnLabel { flex: 1; }
+.TableColumnLabel.Sortable { cursor: pointer; }
+.TableSortIcon { margin-left: 4px; }
+.TableFilterButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: #666;
+  font-size: 15px;
+  position: relative;
+}
+.TableFilterButton.Active { color: #007bff; }
+.TableFilterBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+}
+.FilterDropdown {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  max-height: 260px;
+  overflow-y: auto;
+  min-width: 180px;
+  max-width: 280px;
+}
+.FilterDropdownOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+.FilterDropdownOption input { cursor: pointer; flex-shrink: 0; }
+.FilterDropdownOption span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.FilterDropdownClear {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #e74c3c;
+  font: inherit;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+.FilterDropdownOption:hover, .MobileDropdownItem:hover { background: #f5f5f5; }
+.MobileDropdown { max-height: 300px; max-width: none; }
+.MobileDropdownItem {
+  width: 100%;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #eee;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.MobileSortIndicator, .MobileFilterSummary { color: #007bff; font-size: 12px; }
+.MobileFilterSummary {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.MobileTableToolbarButtons { display: flex; gap: 8px; align-items: center; }
+.MobileFilterButton { position: relative; }
+.MobileFilterCount {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.DarkMode .FilterDropdown { background: #1a1a2e; border-color: #3a3a5e; color: #e0e0e0; }
+body.DarkMode .FilterDropdownOption,
+body.DarkMode .FilterDropdownClear,
+body.DarkMode .MobileDropdownItem { border-bottom-color: #3a3a5e; }
+body.DarkMode .FilterDropdownOption:hover,
+body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
+.EmptyTableCell { text-align: center; color: #999; }
+.CenteredDialogActions { justify-content: center; }
+.DialogMessage { white-space: pre-wrap; }
+.InputAreaDialogText { min-height: 200px; }
+.DatePickerMode { margin-bottom: 15px; }
+.ImageDialogContent { text-align: center; }
+.ImageDialogImage { border-radius: 8px; max-width: 100%; max-height: 60vh; object-fit: contain; }
+.ChoiceGroup { display: flex; align-items: center; gap: 16px; }
+
+/* 旧 CloseDialogWithAnimation の終了アニメーション。 */
+.Dialog-leave-active { animation: DialogOverlayFadeOut 0.2s ease-in forwards; }
+.Dialog-leave-active .DialogContainer { animation: DialogContainerFadeOut 0.2s ease-in forwards; }
+
+/* ==========================================================================
+ * /test のコンポーネント配置（業務コンポーネントの見た目には適用しない）
+ * ========================================================================== */
+.ComponentList { max-width: 1200px; margin: auto; }
+.ComponentSection { background: #fff; padding: 24px; margin-bottom: 20px; border-radius: 8px; }
+.ComponentSection h2 { margin-bottom: 20px; }
+.ComponentGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.ComponentList h1 { margin-bottom: 20px; }
+.DialogExamples { display: flex; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 768px) {
+  .ComponentSection { padding: 16px; }
+  .ComponentGrid { grid-template-columns: minmax(0, 1fr); }
+}
