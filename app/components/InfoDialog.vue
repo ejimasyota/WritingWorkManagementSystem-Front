@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { messageDialogProps } from '../composables/componentProps';
+defineProps({
+  ...messageDialogProps,
+  title: {
+    type: String,
+    default: 'お知らせ'
+  }
+});
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
+
+/** 旧ダイアログの確定・キャンセルを親へ通知して閉じる。 */
+function finish(confirmed: boolean) {
+  emit('update:modelValue', false);
+  emit(confirmed ? 'confirm' : 'cancel');
+}
+</script>
+
+<template>
+  <BaseDialog
+    :model-value="modelValue"
+    :title="title"
+    title-icon="fas fa-info-circle"
+    icon-color="#3498db"
+    centered-actions
+    @update:model-value="finish(false)"
+  >
+    <div class="DialogMessage" :style="{ textAlign }">{{ message }}</div>
+    <img v-if="imageSrc" :src="imageSrc" :alt="title" class="DialogContentImage">
+    <template #actions>
+      <button type="button" class="ButtonClass PrimaryButton" @click="finish(true)">
+        <i class="fas fa-check" aria-hidden="true" /> OK
+      </button>
+    </template>
+  </BaseDialog>
+</template>

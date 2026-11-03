@@ -5527,3 +5527,24 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
   .ComponentSection { padding: 16px; }
   .ComponentGrid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* 旧 Index.js / Dialog.js のログイン・利用規約用インライン指定。 */
+.CountdownArea.Active { display: block; }
+.TermsContent { max-height: 400px; overflow-y: auto; text-align: left; line-height: 1.8; }
+.TermsContent h3 { color: #2c3e50; }
+.TermsContent h4 { margin: 15px 0 10px; color: #34495e; }
+.TermsContent p { margin-bottom: 5px; }
+.TermsContent ul { margin-left: 20px; margin-bottom: 5px; }
+.TermsImportant { color: #e74c3c; font-weight: bold; }
+.TermsContact { font-weight: bold; }
+.TermsContact a { color: #3498db; }
+
+/* 旧 Main.js / Dialog.js の作品一覧・設定・出力用インライン指定。 */
+.ProjectMoveButton { width: 100px; }
+.ProjectActionButton { width: 100px; margin-bottom: 4px; }
+.SettingsDarkModeRow { margin-bottom: 12px; }
+.ExportSelectAll { margin-bottom: 6px; }
+.ExportItemGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.ExportItemGrid .CheckboxWrapper, .ExportSelectAll { font-size: 13px; }
+.TemplateStoryChecks { display: flex; gap: 8px; flex-wrap: wrap; }
+.ClickableTableRow { cursor: pointer; }
