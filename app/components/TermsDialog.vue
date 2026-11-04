@@ -1,51 +1,7 @@
-<script setup lang="ts">
-import { ref, watch } from 'vue';
-import { errorMessage } from '../utils/backend';
-interface TermsSection {
-  SectionLabel?: string;
-  Info?: string;
-  Important?: string;
-  List?: {
-    Info?: string;
-  }[];
-  ContactEmail?: string;
-}
-const props = defineProps<{
-  modelValue: boolean;
-}>();
-const emit = defineEmits(['update:modelValue', 'error']);
-const sections = ref<TermsSection[]>([]);
-const loaded = ref(false);
-const loading = ref(false);
-
-/** 旧 LoadMessages のJSONをそのまま使用する。HTMLとして解釈せず描画する。 */
-watch(() => props.modelValue, async open => {
-  if (!open || loaded.value || loading.value) return;
-  loading.value = true;
-  try {
-    const response = await fetch('/config/Messages.json', {
-      cache: 'no-cache'
-    });
-    if (!response.ok) throw new Error('メッセージ定義の読込に失敗しました');
-    const messages = await response.json();
-    sections.value = Array.isArray(messages.Terms) ? messages.Terms : [];
-    loaded.value = true;
-  } catch (error) {
-    emit('update:modelValue', false);
-    emit('error', errorMessage(error, '利用規約の取得に失敗しました'));
-  } finally {
-    loading.value = false;
-  }
-});
-function close() {
-  emit('update:modelValue', false);
-}
-</script>
-
 <template>
   <BaseDialog
     :close-on-escape="false"
-    :model-value="modelValue && loaded"
+    :model-value="modelValue"
     title="利用規約"
     title-icon="fas fa-file-contract"
     icon-color="#3498db"
@@ -81,11 +37,57 @@ function close() {
       </section>
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass PrimaryButton" @click="close">
+      <button
+        type="button"
+        class="ButtonClass PrimaryButton"
+        @click="close"
+      >
         <i class="fas fa-check" aria-hidden="true" />
         確認しました
       </button>
     </template>
   </BaseDialog>
-  <SpinnerOverlay :visible="loading" />
 </template>
+
+<script setup lang="ts">
+/* ==========================================================
+ * モジュールインポート
+ * ========================================================== */
+// 1. 利用規約メッセージ
+import termsMessages from '../config/Messages.json'
+// 2. 利用規約型定義
+import type { TermsSection } from '../types/termsDialogType'
+
+/* ==========================================================
+ * Props定義
+ * ========================================================== */
+/**
+ * props定義
+ */
+defineProps<{
+  // 1. ダイアログ表示状態
+  modelValue: boolean
+}>()
+
+/**
+ * Emit定義
+ */
+const emit = defineEmits(['update:modelValue', 'error'])
+
+/* ==========================================================
+ * 事前定義
+ * ========================================================== */
+// 1. 利用規約メッセージを取得
+const sections: TermsSection[] = Array.isArray(termsMessages.Terms) ? termsMessages.Terms : []
+
+/**
+ * 利用規約ダイアログを閉じる
+ */
+const close = (): void => {
+  /* ==========================================================
+   * ダイアログを閉じる
+   * ========================================================== */
+  // 1. 親コンポーネントにダイアログを閉じるよう通知
+  emit('update:modelValue', false)
+}
+</script>
