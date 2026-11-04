@@ -42,8 +42,8 @@ export const minLength = (limit: number, message: string): ValidationRule => {
      * 1. 入力値が存在しない場合
      * ------------------------------*/
     if (!value) {
-        // 1. NULLを返却
-        return null
+      // 1. NULLを返却
+      return null
     }
 
     /* ------------------------------
@@ -61,5 +61,33 @@ export const matches = (otherKey: string, message: string): ValidationRule => {
   return (value, values) => {
     // 1. 入力値が一致する場合はNULLを返却、一致しない場合はエラーメッセージを返却
     return value === values[otherKey] ? null : message
+  }
+}
+
+/**
+ * 指定項目と異なる値であることを確認する
+ * @param otherKey 比較対象項目
+ * @param message エラーメッセージ
+ */
+export const notMatches = (
+  otherKey: string,
+  message: string
+): ValidationRule => {
+  return (value, values) => {
+    // 1. 入力値が一致しない場合はNULLを返却、一致する場合はエラーメッセージを返却
+    return value !== values[otherKey] ? null : message
+  }
+}
+
+/**
+ * 数値が含まれているか確認する
+ * @param message エラーメッセージ
+ */
+export const containsNumber = (
+  message: string
+): ValidationRule => {
+  return (value) => {
+    // 1. 数値が含まれていない場合はエラー
+    return /[0-9]/.test(value) ? null : message
   }
 }

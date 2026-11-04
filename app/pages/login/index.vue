@@ -91,7 +91,7 @@ import TextFieldComponent from '../../components/TextFieldComponent.vue';
 // 7. バリデーションチェック関連
 import { validateFields } from '../../utils/validation';
 // 8. 共通チェック関連
-import { required, maxLength } from '../../utils/utilCheck';
+import { required, minLength, maxLength, containsNumber, notMatches } from '../../utils/utilCheck'
 // 9. メッセージ関連
 import { messageFormat } from '../../utils/messages';
 //10. API通信関連
@@ -301,8 +301,8 @@ const loginEvent = async (): Promise<void> => {
    * ========================================================== */
   const checkInput = await validateFields([
     /* ------------------------------
-     * 1. ユーザーID
-     * ------------------------------*/
+    * 1. ユーザーID
+    * ------------------------------*/
     {
       // 1. キー
       key: 'userId',
@@ -311,12 +311,15 @@ const loginEvent = async (): Promise<void> => {
       // 3. バリデーションルール
       rules: [
         required(messageFormat('ERROR', 'E_0001', 'ユーザーID')),
-        maxLength(12, messageFormat('ERROR', 'E_0002', 'ユーザーID', 12))
+        minLength(8, messageFormat('ERROR', 'E_0005', 'ユーザーID', 8)),
+        maxLength(12, messageFormat('ERROR', 'E_0002', 'ユーザーID', 12)),
+        containsNumber(messageFormat('ERROR', 'E_0008', 'ユーザーID'))
       ]
     },
+
     /* ------------------------------
-     * 2. パスワード
-     * ------------------------------*/
+    * 2. パスワード
+    * ------------------------------*/
     {
       // 1. キー
       key: 'password',
@@ -324,7 +327,11 @@ const loginEvent = async (): Promise<void> => {
       field: RefPassword,
       // 3. バリデーションルール
       rules: [
-        required(messageFormat('ERROR', 'E_0001', 'パスワード'))
+        required(messageFormat('ERROR', 'E_0001', 'パスワード')),
+        minLength(8, messageFormat('ERROR', 'E_0005', 'パスワード', 8)),
+        maxLength(12, messageFormat('ERROR', 'E_0002', 'パスワード', 12)),
+        containsNumber(messageFormat('ERROR', 'E_0008', 'パスワード')),
+        notMatches('userId', messageFormat('ERROR', 'E_0007', 'パスワード', 'ユーザーID'))
       ]
     }
   ], errorInfo)
