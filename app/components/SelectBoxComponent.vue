@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import type { SelectOption } from '../types/components';
+import type { SelectOption } from '../types/utilType';
 import { fieldProps } from '../composables/componentProps';
 import { computed, ref, useId } from 'vue';
 defineOptions({

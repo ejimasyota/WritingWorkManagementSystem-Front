@@ -20,19 +20,21 @@ export const CONST_VARIABLE = {
    * 画面パス
    */
   DISPLAY_PATH: {
-    /**
-     * ログイン画面
-     */
+    // 1. ログイン画面
     LOGIN: "/login",
-
-    /**
-     * 会員登録画面
-     */
+    // 2. 会員登録画面
     REGISTER: "/regist",
-
-    /**
-     * メイン画面
-     */
+    // 3. メイン画面
     MAIN: "/main",
+    // 4. エラー画面
+    ERROR: "/"
+  },
+
+  /**
+   * セッションキー
+   */
+  SESSION_KEY: {
+    // 1. ログアウト前に表示されていた画面のパス
+    LAST_PATH: "LastPath"
   }
 }

@@ -1,4 +1,4 @@
-import type { SelectOption } from '../types/components'
+import type { SelectOption } from '../types/utilType'
 
 /** 旧 Common.js のジャンル区分。バックエンドの区分値を変更しない。 */
 export const genreOptions: SelectOption[] = [

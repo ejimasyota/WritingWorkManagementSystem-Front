@@ -18,3 +18,15 @@ export interface ApiResponse<T = unknown> {
     // 3. データ
     Data: T
 }
+
+/**
+ * セレクトボックス・ラジオボタンに渡す選択肢
+ */
+export interface SelectOption {
+    // 1. ラベル
+    label: string
+    // 2. 値
+    value: string | number
+    // 3. 画面の表示値
+    disabled?: boolean
+}

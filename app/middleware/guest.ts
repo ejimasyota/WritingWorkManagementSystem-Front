@@ -1,14 +1,61 @@
-import { stashPendingJoinToken } from '../utils/auth'
+/* ==========================================================
+ * 認証ミドルウェア
+ * ----------------------------------------------------------
+ * ・未ログインユーザー向けページへのアクセスを制御しつつ、招待・参
+ *   加用トークンを一時保存するミドルウェア
+ * ----------------------------------------------------------
+ * 更新履歴：
+ *  - 2026-11-04 作成
+ * ========================================================== */
 
+/* ==========================================================
+ * モジュールインポート
+ * ========================================================== */
+// 1. 認証管理
+import { stashPendingJoinToken } from '../utils/auth'
+// 2. 定数管理
+import { CONST_VARIABLE } from '~/config/Const'
+
+/**
+ * アクセスを制御ミドルウェア
+ */
 export default defineNuxtRouteMiddleware(async () => {
-  if (import.meta.server) return
-  stashPendingJoinToken()
-  const auth = useAuthSession()
-  if (auth.loggingOut.value || auth.notice.value) return
-  try {
-    const session = await auth.checkSession()
-    if (session && !auth.notice.value) return navigateTo('/main', { replace: true })
-  } catch {
-    // 未ログイン向けのページは、API障害時も入力・再試行できるよう表示する。
+  /* ------------------------------
+   * 1. サーバ側処理の場合
+   * ------------------------------*/
+  if (import.meta.server) {
+    // 1. 処理終了
+    return
   }
+
+  /* ------------------------------
+   * 2. 認証管理
+   * ------------------------------*/
+  // 1. 参加トークンの退避
+  stashPendingJoinToken()
+  // 2. 認証セッションの取得
+  const auth = useAuthSession()
+
+  /* ------------------------------
+   * 3. ログアウト処理中または通知表示中の場合
+   * ------------------------------*/
+  if (auth.loggingOut.value || auth.notice.value) {
+    // 1. 処理終了
+    return
+  }
+
+  /* ------------------------------
+   * 4. リダイレクト処理
+   * ------------------------------*/
+  try {
+    /* 1. 事前処理 */
+    // 1. セッション情報を取得
+    const session = await auth.checkSession()
+
+    /* 2. セッション情報が存在する又は通知表示が行われていない場合 */
+    if (session && !auth.notice.value) {
+      // 1. メイン画面へリダイレクト
+      return navigateTo(CONST_VARIABLE.DISPLAY_PATH.MAIN, { replace: true })
+    }
+  } catch { }
 })

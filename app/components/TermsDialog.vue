@@ -54,7 +54,7 @@
  * モジュールインポート
  * ========================================================== */
 // 1. 利用規約メッセージ
-import termsMessages from '../config/Messages.json'
+import termsMessages from '../config/messages.json'
 // 2. 利用規約型定義
 import type { TermsSection } from '../types/termsDialogType'
 
