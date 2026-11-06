@@ -35,6 +35,18 @@ export const CONST_VARIABLE = {
    */
   SESSION_KEY: {
     // 1. ログアウト前に表示されていた画面のパス
-    LAST_PATH: "LastPath"
+    LAST_PATH: "LastPath",
+    // 2. メイン画面のアクティブなメニューID
+    MAIN_ACTIVE_MENU_ID: "MainActiveMenuId"
+  },
+
+  /**
+   * ローカルストレージキー
+   */
+  LOCAL_STRAGE_KEY: {
+    // 1. ダークモードFLG
+    DARK_MODE_FLG: "DarkMode",
+    // 2. メタ情報非表示FLG
+    HIDE_META_FLG: "HideMetaColumns"
   }
 }

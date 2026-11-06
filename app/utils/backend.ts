@@ -1,7 +1,7 @@
 import type { ApiResponse } from '../types/backend'
 
 /** HTTPエラーでも、既存APIが返すロック情報・排他制御情報を保持する。 */
-export class BackendError extends Error {
+export class backendError extends Error {
   handled = false
   status: number
   data: unknown
@@ -12,7 +12,7 @@ export class BackendError extends Error {
     data: unknown = null,
   ) {
     super(message)
-    this.name = 'BackendError'
+    this.name = 'backendError'
     this.status = status
     this.data = data
   }
@@ -39,16 +39,16 @@ export async function requestBackend<T>(
     try {
       result = await response.json()
     } catch {
-      throw new BackendError('APIから正しい応答を取得できませんでした', response.status)
+      throw new backendError('APIから正しい応答を取得できませんでした', response.status)
     }
 
     if (!response.ok) {
-      throw new BackendError(result.Message || 'APIエラーが発生しました', response.status, result.Data)
+      throw new backendError(result.Message || 'APIエラーが発生しました', response.status, result.Data)
     }
     return result
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new BackendError('リクエストがタイムアウトしました（3分）。時間をおいて再度お試しください')
+      throw new backendError('リクエストがタイムアウトしました（3分）。時間をおいて再度お試しください')
     }
     throw error
   } finally {
@@ -58,7 +58,7 @@ export async function requestBackend<T>(
 
 /** Success:false をHTTP 200で返す既存APIも、呼出元で同じように扱えるようにする。 */
 export function requireSuccess<T>(response: ApiResponse<T>, fallback: string): T {
-  if (!response.Success) throw new BackendError(response.Message || fallback, 200, response.Data)
+  if (!response.Success) throw new backendError(response.Message || fallback, 200, response.Data)
   return response.Data
 }
 
@@ -72,6 +72,6 @@ export async function reportBackendError(
   error: unknown,
   fallback: string,
 ) {
-  if (error instanceof BackendError && error.handled) return
+  if (error instanceof backendError && error.handled) return
   await dialogs.error(errorMessage(error, fallback))
 }

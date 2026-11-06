@@ -109,6 +109,70 @@ const call = computed<BackendRequest>(() => {
   };
 });
 
+/**
+ * マウント時処理
+ */
+onMounted(async () => {
+  /* ------------------------------
+   * 1. 事前処理
+   * ------------------------------*/
+  // 1. トークンを退避
+  stashPendingJoinToken();
+  // 2. ダークモードの設定
+  document.body.classList.toggle('DarkMode', localStorage.getItem(CONST_VARIABLE.LOCAL_STRAGE_KEY.DARK_MODE_FLG) === 'true');
+  // 3. メタ情報非表示FLGを取得
+  hideMeta.value = localStorage.getItem(CONST_VARIABLE.LOCAL_STRAGE_KEY.HIDE_META_FLG) === 'true';
+  // 4. メタ情報の表示制御を設定
+  document.body.classList.toggle('HideMetaColumns', hideMeta.value);
+  // 5. 選択中メニューIDを取得
+  const savedMenu = sessionStorage.getItem(CONST_VARIABLE.SESSION_KEY.MAIN_ACTIVE_MENU_ID);
+
+  /* ------------------------------
+   * 2. 選択中メニューIDが存在する場合
+   * ------------------------------*/
+  if (savedMenu){
+    // 1. アクティブなメニューIDを設定
+    switchMenu(savedMenu);
+  }
+
+  /* ------------------------------
+   * 3. 終了時処理
+   * ------------------------------*/
+  await refreshBadge();
+  await pendingJoin();
+});
+
+onBeforeUnmount(() => {
+  document.body.classList.remove(CONST_VARIABLE.LOCAL_STRAGE_KEY.DARK_MODE_FLG, CONST_VARIABLE.LOCAL_STRAGE_KEY.HIDE_META_FLG);
+});
+
+// 降格・ユーザー切替時は、権限のない画面と前ユーザーの入力状態を破棄する。
+watch(auth.identityVersion, () => {
+  dialogs.cancelAll();
+  notificationsOpen.value = false;
+  settingsOpen.value = false;
+  notificationCount.value = 0;
+  if (!session.value || !canOpenMenu(activeMenu.value, session.value.IsAdmin)) {
+    activeMenu.value = 'MenuWorkManagement';
+    sessionStorage.removeItem(CONST_VARIABLE.SESSION_KEY.MAIN_ACTIVE_MENU_ID);
+  }
+});
+
+watch(() => session.value?.UserId, async (current, previous) => {
+  if (current && current !== previous) {
+    await nextTick();
+    await refreshBadge();
+  }
+});
+
+watch(auth.workAccessVersion, async () => {
+  dialogs.cancelAll();
+  switchMenu('MenuWorkManagement');
+  await nextTick();
+  await projectList.value?.load();
+});
+
+
 async function refreshBadge() {
   try {
     const data = requireSuccess(await call.value<{ TotalCnt: number }>('/GetNotificationSummary.php'), '通知サマリの取得に失敗しました');
@@ -118,10 +182,14 @@ async function refreshBadge() {
   }
 }
 
+/**
+ * 
+ * @param id 
+ */
 function switchMenu(id: string) {
   if (!session.value || !canOpenMenu(id, session.value.IsAdmin)) return;
   activeMenu.value = id;
-  sessionStorage.setItem('MainActiveMenuId', id);
+  sessionStorage.setItem(CONST_VARIABLE.SESSION_KEY.MAIN_ACTIVE_MENU_ID, id);
 }
 
 /** メニュー選択時にも再確認し、保存済みのメニューIDだけでは管理画面を開かない。 */
@@ -193,47 +261,6 @@ async function pendingJoin() {
     await reportBackendError(dialogs, error, 'プロジェクト参加中にエラーが発生しました');
   }
 }
-
-// 降格・ユーザー切替時は、権限のない画面と前ユーザーの入力状態を破棄する。
-watch(auth.identityVersion, () => {
-  dialogs.cancelAll();
-  notificationsOpen.value = false;
-  settingsOpen.value = false;
-  notificationCount.value = 0;
-  if (!session.value || !canOpenMenu(activeMenu.value, session.value.IsAdmin)) {
-    activeMenu.value = 'MenuWorkManagement';
-    sessionStorage.removeItem('MainActiveMenuId');
-  }
-});
-
-watch(() => session.value?.UserId, async (current, previous) => {
-  if (current && current !== previous) {
-    await nextTick();
-    await refreshBadge();
-  }
-});
-
-watch(auth.workAccessVersion, async () => {
-  dialogs.cancelAll();
-  switchMenu('MenuWorkManagement');
-  await nextTick();
-  await projectList.value?.load();
-});
-
-onMounted(async () => {
-  stashPendingJoinToken();
-  document.body.classList.toggle('DarkMode', localStorage.getItem('DarkMode') === 'true');
-  hideMeta.value = localStorage.getItem('HideMetaColumns') === 'true';
-  document.body.classList.toggle('HideMetaColumns', hideMeta.value);
-  const savedMenu = sessionStorage.getItem('MainActiveMenuId');
-  if (savedMenu) switchMenu(savedMenu);
-  await refreshBadge();
-  await pendingJoin();
-});
-
-onBeforeUnmount(() => {
-  document.body.classList.remove('DarkMode', 'HideMetaColumns');
-});
 </script>
 
 

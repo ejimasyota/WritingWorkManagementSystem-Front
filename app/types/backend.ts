@@ -10,12 +10,6 @@ export interface SessionInfo {
   IsAdmin: boolean
 }
 
-export interface LoginResult {
-  IsAdmin?: boolean
-  IsLocked?: boolean
-  RemainingMs?: number
-}
-
 export interface Project extends Record<string, unknown> {
   WorkId: string
   WorkTitle: string

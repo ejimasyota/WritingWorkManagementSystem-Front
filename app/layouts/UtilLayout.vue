@@ -1,3 +1,76 @@
+<template>
+  <div>
+    <button
+      id="MenuToggle"
+      type="button"
+      class="MenuToggle"
+      aria-label="メニュー"
+      :aria-expanded="open"
+      @click="toggleMenu"
+    >
+      <i class="fas fa-bars" aria-hidden="true" />
+    </button>
+    <div id="SidebarOverlay" class="SidebarOverlay" :class="{ Open: open }" @click="closeMenu" />
+
+    <div class="PageContainer">
+      <nav id="Sidebar" class="Sidebar" :class="{ Open: open }" aria-label="メインメニュー">
+        <div class="SidebarHeader">
+          <h1><i class="fas fa-book-open" aria-hidden="true" /> 創作管理</h1>
+          <button
+            id="NotificationBellButton"
+            type="button"
+            class="NotificationBellButton"
+            title="通知"
+            @click="emit('notifications')"
+          >
+            <i class="fas fa-bell" aria-hidden="true" />
+            <span
+              id="NotificationBadge"
+              class="NotificationBadge"
+              :class="{ Hidden: !notificationCount }"
+            >
+              {{ notificationCount >= 1000 ? '999+' : notificationCount }}
+            </span>
+          </button>
+          <button
+            id="SettingsButton"
+            type="button"
+            class="SettingsButton"
+            title="設定"
+            @click="emit('settings')"
+          >
+            <i class="fas fa-cog" aria-hidden="true" />
+          </button>
+        </div>
+        <div class="SidebarMenu">
+          <button
+            v-for="menu in visibleMenus"
+            :id="menu.id"
+            :key="menu.id"
+            type="button"
+            class="SidebarItem"
+            :class="{ Active: activeMenu === menu.id }"
+            :aria-current="activeMenu === menu.id ? 'page' : undefined"
+            @click="navigate(menu.id)"
+          >
+            <i class="fas" :class="menu.icon" aria-hidden="true" /> {{ menu.label }}
+          </button>
+        </div>
+        <div class="SidebarFooter">
+          <button id="MenuLogout" type="button" class="SidebarItem" @click="emit('logout')">
+            <i class="fas fa-sign-out-alt" aria-hidden="true" /> ログアウト
+          </button>
+          <div class="SidebarVersion">{{ version }}</div>
+        </div>
+      </nav>
+      <main class="MainContentWrapper">
+        <div id="ContentArea" class="ContentArea">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 interface SessionInfo {
@@ -75,77 +148,3 @@ function navigate(id: string) {
   closeMenu();
 }
 </script>
-
-<template>
-  <div>
-    <button
-      id="MenuToggle"
-      type="button"
-      class="MenuToggle"
-      aria-label="メニュー"
-      :aria-expanded="open"
-      @click="toggleMenu"
-    >
-      <i class="fas fa-bars" aria-hidden="true" />
-    </button>
-    <div id="SidebarOverlay" class="SidebarOverlay" :class="{ Open: open }" @click="closeMenu" />
-
-    <div class="PageContainer">
-      <nav id="Sidebar" class="Sidebar" :class="{ Open: open }" aria-label="メインメニュー">
-        <div class="SidebarHeader">
-          <h1><i class="fas fa-book-open" aria-hidden="true" /> 創作管理</h1>
-          <button
-            id="NotificationBellButton"
-            type="button"
-            class="NotificationBellButton"
-            title="通知"
-            @click="emit('notifications')"
-          >
-            <i class="fas fa-bell" aria-hidden="true" />
-            <span
-              id="NotificationBadge"
-              class="NotificationBadge"
-              :class="{ Hidden: !notificationCount }"
-            >
-              {{ notificationCount >= 1000 ? '999+' : notificationCount }}
-            </span>
-          </button>
-          <button
-            id="SettingsButton"
-            type="button"
-            class="SettingsButton"
-            title="設定"
-            @click="emit('settings')"
-          >
-            <i class="fas fa-cog" aria-hidden="true" />
-          </button>
-        </div>
-        <div class="SidebarMenu">
-          <button
-            v-for="menu in visibleMenus"
-            :id="menu.id"
-            :key="menu.id"
-            type="button"
-            class="SidebarItem"
-            :class="{ Active: activeMenu === menu.id }"
-            :aria-current="activeMenu === menu.id ? 'page' : undefined"
-            @click="navigate(menu.id)"
-          >
-            <i class="fas" :class="menu.icon" aria-hidden="true" /> {{ menu.label }}
-          </button>
-        </div>
-        <div class="SidebarFooter">
-          <button id="MenuLogout" type="button" class="SidebarItem" @click="emit('logout')">
-            <i class="fas fa-sign-out-alt" aria-hidden="true" /> ログアウト
-          </button>
-          <div class="SidebarVersion">{{ version }}</div>
-        </div>
-      </nav>
-      <main class="MainContentWrapper">
-        <div id="ContentArea" class="ContentArea">
-          <slot />
-        </div>
-      </main>
-    </div>
-  </div>
-</template>

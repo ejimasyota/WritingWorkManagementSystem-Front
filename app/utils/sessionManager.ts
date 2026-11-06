@@ -1,7 +1,9 @@
 import { computed, readonly, ref, shallowRef } from 'vue'
 import type { BackendRequest, SessionInfo } from '../types/backend'
-import { BackendError, errorMessage, requireSuccess } from './backend'
+import { backendError, errorMessage, requireSuccess } from './backend'
 import { isPublicEndpoint, requiresAdmin } from './permissions'
+// 2. 定数関連
+import { CONST_VARIABLE } from '../config/Const';
 
 export type SessionEvent = 'signed-in' | 'signed-out'
 export interface SessionNotice {
@@ -73,14 +75,14 @@ export function createSessionManager(dependencies: Dependencies) {
     }
   }
 
-  function handleWorkAccessLost(error: BackendError) {
+  function handleWorkAccessLost(error: backendError) {
     error.handled = true
     workAccessVersion.value += 1
     showNotice({ kind: 'work-access-lost', title: 'エラー', message: error.message, target: '/main' })
   }
 
-  function isWorkAccessLost(error: unknown): error is BackendError {
-    return error instanceof BackendError && error.status === 403
+  function isWorkAccessLost(error: unknown): error is backendError {
+    return error instanceof backendError && error.status === 403
       && (error.data as { Code?: string } | null)?.Code === 'WORK_ACCESS_LOST'
   }
 
@@ -107,7 +109,7 @@ export function createSessionManager(dependencies: Dependencies) {
         if (started !== generation) return null
         const data = requireSuccess(response, 'セッション情報の取得に失敗しました')
         if (!data || typeof data.UserId !== 'string' || !data.UserId || typeof data.IsAdmin !== 'boolean') {
-          throw new BackendError('セッション情報の形式が不正です', 502)
+          throw new backendError('セッション情報の形式が不正です', 502)
         }
         const previous = user.value
         const changed = previous && (previous.UserId !== data.UserId || previous.IsAdmin !== data.IsAdmin)
@@ -121,7 +123,7 @@ export function createSessionManager(dependencies: Dependencies) {
         return user.value
       } catch (error) {
         if (started !== generation) return null
-        if (error instanceof BackendError && error.status === 401) {
+        if (error instanceof backendError && error.status === 401) {
           error.handled = true
           expire()
           return null
@@ -136,7 +138,7 @@ export function createSessionManager(dependencies: Dependencies) {
         checkInFlight = null
         checking.value = false
       }
-    }).catch(() => {})
+    }).catch(() => { })
     return job
   }
 
@@ -145,23 +147,23 @@ export function createSessionManager(dependencies: Dependencies) {
     const started = generation
     const publicEndpoint = isPublicEndpoint(endpoint)
     if (!publicEndpoint && !authenticated.value) {
-      const error = new BackendError('認証が必要です', 401)
+      const error = new backendError('認証が必要です', 401)
       error.handled = true
       throw error
     }
     if (requiresAdmin(endpoint) && !isAdmin.value) {
-      throw new BackendError('管理者権限が必要です', 403)
+      throw new backendError('管理者権限が必要です', 403)
     }
     try {
       const response = await dependencies.send<T>(endpoint, method, data)
       if (!publicEndpoint && started !== generation) {
-        const stale = new BackendError('認証状態が変更されました', 401)
+        const stale = new backendError('認証状態が変更されました', 401)
         stale.handled = true
         throw stale
       }
       return response
     } catch (error) {
-      if (!publicEndpoint && error instanceof BackendError && !error.handled) {
+      if (!publicEndpoint && error instanceof backendError && !error.handled) {
         if (started !== generation) {
           error.handled = true
         } else if (error.status === 401) {
@@ -181,7 +183,7 @@ export function createSessionManager(dependencies: Dependencies) {
     invalidate()
     notice.value = null
     const session = await checkSession()
-    if (!session) throw new BackendError('ログイン状態を確認できませんでした', 401)
+    if (!session) throw new backendError('ログイン状態を確認できませんでした', 401)
     dependencies.publish('signed-in')
     return session
   }
@@ -200,13 +202,13 @@ export function createSessionManager(dependencies: Dependencies) {
           requireSuccess(await dependencies.send('/Logout.php', 'POST'), 'ログアウトに失敗しました')
         } catch (error) {
           // 既にサーバー側が失効している場合も、ローカル状態を破棄できる。
-          if (!(error instanceof BackendError && error.status === 401)) throw error
+          if (!(error instanceof backendError && error.status === 401)) throw error
         }
         invalidate()
         notice.value = null
         dependencies.clearClientState('logout')
         dependencies.publish('signed-out')
-        await dependencies.navigate('/')
+        await dependencies.navigate(CONST_VARIABLE.DISPLAY_PATH.LOGIN)
       } finally {
         loggingOut.value = false
         logoutInFlight = null
@@ -257,7 +259,7 @@ export function createSessionManager(dependencies: Dependencies) {
   function startMonitoring(isVisible: () => boolean = () => true) {
     if (timer || !authenticated.value) return
     timer = setInterval(() => {
-      if (isVisible()) void checkAfterActivity().catch(() => {})
+      if (isVisible()) void checkAfterActivity().catch(() => { })
     }, 60_000)
   }
 
