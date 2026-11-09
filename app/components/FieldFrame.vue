@@ -1,16 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import { fieldProps } from '../composables/componentProps';
-defineProps({
-  ...fieldProps,
-  inputId: String
-});
-const infoOpen = ref(false);
-function openInfo() {
-  infoOpen.value = true;
-}
-</script>
-
 <template>
   <div class="FormGroup">
     <label :for="inputId" class="LabelStyle" :class="{ Required: required }">
@@ -25,7 +12,6 @@ function openInfo() {
         @keydown.enter.prevent="openInfo"
         @keydown.space.prevent="openInfo"
       />
-      <!-- 旧 ShowFieldError と同じく、ラベル末尾のアイコンに説明を表示する。 -->
       <span v-if="error" class="FieldErrorIcon" tabindex="0" :data-for="inputId">
         <i class="fas fa-triangle-exclamation" aria-hidden="true" />
         <span class="ErrorTooltip" role="alert">{{ error }}</span>
@@ -36,3 +22,18 @@ function openInfo() {
     <InfoDialog v-model="infoOpen" :title="infoTitle" :message="infoMessage" />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { fieldProps } from '../composables/componentProps';
+defineProps({
+  ...fieldProps,
+  inputId: String
+});
+const infoOpen = ref(false);
+function openInfo() {
+  infoOpen.value = true;
+}
+</script>
+
+

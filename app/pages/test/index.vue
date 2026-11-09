@@ -205,7 +205,7 @@ function handleNavigate(menuId: string) {
           v-model="image"
           src="/images/sample.png"
           alt="サンプル画像"
-          can-delete
+          img-delete-flg
           @delete="message = '画像削除イベント'"
         />
       </section>

@@ -1,21 +1,3 @@
-<script setup lang="ts">
-import { messageDialogProps } from '../composables/componentProps';
-defineProps({
-  ...messageDialogProps,
-  title: {
-    type: String,
-    default: '確認'
-  }
-});
-const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
-
-/** 旧ダイアログの確定・キャンセルを親へ通知して閉じる。 */
-function finish(confirmed: boolean) {
-  emit('update:modelValue', false);
-  emit(confirmed ? 'confirm' : 'cancel');
-}
-</script>
-
 <template>
   <BaseDialog
     :model-value="modelValue"
@@ -37,3 +19,40 @@ function finish(confirmed: boolean) {
     </template>
   </BaseDialog>
 </template>
+<script setup lang="ts">
+/* ==========================================================
+ * モジュールインポート
+ * ========================================================== */
+// 1. メッセージ表示系ダイアログの共通宣言
+import { messageDialogProps } from '../composables/componentProps';
+
+/* ==========================================================
+ * props定義
+ * ========================================================== */
+defineProps({
+  // 1. 共通宣言
+  ...messageDialogProps,
+  // 2. ダイアログタイトル
+  title: {
+    type: String,
+    default: '確認'
+  }
+});
+
+/* ==========================================================
+ * emit定義
+ * ========================================================== */
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
+
+/** 
+ * 確定・キャンセルを親へ通知
+ */
+const finish = (confirmed: boolean) => {
+  // 1. 親のプロパティを更新
+  emit('update:modelValue', false);
+  // 2. 確定・キャンセルを実行
+  emit(confirmed ? 'confirm' : 'cancel');
+}
+</script>
+
+

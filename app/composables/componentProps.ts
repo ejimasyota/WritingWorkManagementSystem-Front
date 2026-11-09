@@ -18,7 +18,7 @@ export const fieldProps = {
 };
 
 /**
- * メッセージ本文・画像・文字寄せなどのダイアログ共通宣言
+ * メッセージ表示系ダイアログの共通宣言
  */
 export const messageDialogProps = {
   modelValue: Boolean,
