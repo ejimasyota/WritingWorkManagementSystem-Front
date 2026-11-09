@@ -15,13 +15,13 @@
       class="DialogContentImage"
     />
     <template #actions>
-      <button
+      <ButtonComponent
         type="button"
-        class="ButtonClass CloseButton"
+        variant="CloseButton"
         @click="finish(true)"
       >
         <i class="fas fa-times" aria-hidden="true" /> 閉じる
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

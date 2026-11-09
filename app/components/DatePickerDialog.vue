@@ -13,7 +13,7 @@ const mode = ref<DateMode>('date');
 const year = ref('');
 const month = ref('');
 const day = ref('');
-const yearInput = ref<HTMLInputElement>();
+const yearInput = ref<{ focus: () => void }>();
 
 // 開くたびに元の値を読み込み、閉じた場合は編集中の変更を破棄する。
 watch(() => props.modelValue, open => {
@@ -23,17 +23,19 @@ watch(() => props.modelValue, open => {
   month.value = parsed.month;
   day.value = parsed.day;
   mode.value = props.fixedMode || parsed.mode;
-});
+}, { immediate: true });
 
 /** 旧 DatePicker と同じく数字以外を除去し、年月日それぞれの桁数に制限する。 */
-function updateField(event: Event, field: 'year' | 'month' | 'day') {
-  const input = event.target as HTMLInputElement;
+function updateField(value: string, field: 'year' | 'month' | 'day') {
   const maxLength = field === 'year' ? 4 : 2;
-  const digits = input.value.replace(/[^0-9]/g, '').slice(0, maxLength);
-  input.value = digits;
+  const digits = value.replace(/[^0-9]/g, '').slice(0, maxLength);
   if (field === 'year') year.value = digits;
   if (field === 'month') month.value = digits;
   if (field === 'day') day.value = digits;
+}
+function updateMode(value: string | number) {
+  mode.value = value as DateMode;
+  void changeMode();
 }
 async function changeMode() {
   if (mode.value === 'year') month.value = '';
@@ -61,71 +63,61 @@ function commit() {
 <template>
   <BaseDialog :model-value="modelValue" title="日付選択" @update:model-value="close">
     <label class="LabelStyle">入力モード</label>
-    <select
-      v-model="mode"
-      class="SelectForm DatePickerMode"
-      aria-label="入力モード"
-      :disabled="readonly || !!fixedMode"
-      @change="changeMode"
-    >
-      <option value="year">年</option>
-      <option value="year-month">年月</option>
-      <option value="date">年月日</option>
-    </select>
+    <SelectBoxComponent inline hide-list-button :model-value="mode" class="DatePickerMode" aria-label="入力モード" :disabled="readonly || !!fixedMode" :options="[{ value: 'year', label: '年' }, { value: 'year-month', label: '年月' }, { value: 'date', label: '年月日' }]" @update:model-value="updateMode" />
     <label class="LabelStyle">日付</label>
     <div class="DatePickerFieldsRow">
       <div class="DatePickerField">
-        <input
+        <TextFieldComponent inline numeric-only
           ref="yearInput"
-          :value="year"
-          class="InputForm DatePickerFieldInput"
+          :model-value="year"
+          class="DatePickerFieldInput"
           aria-label="年"
           placeholder="YYYY"
           inputmode="numeric"
           maxlength="4"
           :readonly="readonly"
-          @input="updateField($event, 'year')"
-        >
+          @update:model-value="value => updateField(value, 'year')"
+        />
         <span class="DatePickerSep">年</span>
       </div>
       <div v-if="mode !== 'year'" class="DatePickerField">
-        <input
-          :value="month"
-          class="InputForm DatePickerFieldInput"
+        <TextFieldComponent inline numeric-only
+          :model-value="month"
+          class="DatePickerFieldInput"
           aria-label="月"
           placeholder="MM"
           inputmode="numeric"
           maxlength="2"
           :readonly="readonly"
-          @input="updateField($event, 'month')"
-        >
+          @update:model-value="value => updateField(value, 'month')"
+        />
         <span class="DatePickerSep">月</span>
       </div>
       <div v-if="mode === 'date'" class="DatePickerField">
-        <input
-          :value="day"
-          class="InputForm DatePickerFieldInput"
+        <TextFieldComponent inline numeric-only
+          :model-value="day"
+          class="DatePickerFieldInput"
           aria-label="日"
           placeholder="DD"
           inputmode="numeric"
           maxlength="2"
           :readonly="readonly"
-          @input="updateField($event, 'day')"
-        >
+          @update:model-value="value => updateField(value, 'day')"
+        />
         <span class="DatePickerSep">日</span>
       </div>
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" aria-hidden="true" /> 閉じる
-      </button>
+      </ButtonComponent>
       <template v-if="!readonly">
-        <button type="button" class="ButtonClass ClearButton" @click="clear">
+        <ButtonComponent type="button" variant="ClearButton" @click="clear">
           <i class="fas fa-sync" aria-hidden="true" /> クリア
-        </button>
-        <button type="button" class="ButtonClass SaveButton" @click="commit">
+        </ButtonComponent>
+        <ButtonComponent type="button" variant="SaveButton" @click="commit">
           <i class="fas fa-save" aria-hidden="true" /> 決定
-        </button>
+        </ButtonComponent>
       </template>
     </template>
   </BaseDialog>

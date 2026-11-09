@@ -52,7 +52,6 @@
       @refresh="refreshBadge"
       @move="moveToWork"
     />
-    <SpinnerOverlay :visible="busy" />
     <PageDialogHost :dialogs="dialogs" />
   </div>
 </template>
@@ -60,6 +59,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import UtilLayout from '../../layouts/UtilLayout.vue';
 import type { BackendRequest } from '../../types/backend';
+import type { ApiResponse } from '../../types/utilType';
+import { useApi } from '../../utils/useApi';
 import { backendError, reportBackendError, requireSuccess } from '../../utils/backend';
 import { stashPendingJoinToken } from '../../utils/auth';
 import { canOpenMenu, type MainMenuId } from '../../utils/mainMenus';
@@ -84,10 +85,9 @@ definePageMeta({
   requiresAuth: true,
 });
 
-const config = useRuntimeConfig();
 const auth = useAuthSession();
 const session = auth.user;
-const { request, busy } = useBackendApi();
+const nuxtApp = useNuxtApp();
 const dialogs = usePageDialogs();
 const activeMenu = ref<MainMenuId>('MenuWorkManagement');
 const hideMeta = ref(false);
@@ -105,7 +105,7 @@ const call = computed<BackendRequest>(() => {
       error.handled = true;
       throw error;
     }
-    return await request<T>(endpoint, method, data);
+    return await nuxtApp.runWithContext(() => useApi<ApiResponse<T>>(endpoint, method, data));
   };
 });
 
@@ -208,12 +208,15 @@ async function navigateMenu(id: string) {
 }
 
 async function moveToWork(workId: unknown, menuId?: string) {
+  if (menuId && !['MenuWorkInfo', 'MenuCharacter'].includes(menuId)) {
+    await dialogs.info('お知らせ', 'この画面はまだ利用できません');
+    return;
+  }
   try {
     requireSuccess(await call.value('/SetCurrentWork.php', 'POST', { WorkId: workId }), '作品セッションの設定に失敗しました');
-    if (menuId) sessionStorage.setItem('ActiveMenuId', menuId);
-    window.location.assign(config.public.legacyWorkPath);
+    await navigateTo(menuId === 'MenuCharacter' ? '/work?menu=MenuCharacter' : '/work');
   } catch (error) {
-    await reportBackendError(dialogs, error, '作品セッションの設定に失敗したため、画面遷移を中止しました');
+    await reportBackendError(dialogs, error, '作品の移動に失敗しました');
   }
 }
 

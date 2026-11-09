@@ -6,6 +6,8 @@ import type { PropType } from "vue";
 export const fieldProps = {
   // 1. ラベル
   label: { type: String, default: "" },
+  // 表セルや既存ラベル内では、外側の余白・見出しを追加しない。
+  inline: Boolean,
   hint: String,
   disabled: Boolean,
   readonly: Boolean,

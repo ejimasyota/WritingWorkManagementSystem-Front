@@ -214,42 +214,41 @@ defineExpose({
     <!-- 旧 CreateMobileTableToolbar：アイコンボタンから列の選択リストを開く。 -->
     <div v-if="sortableColumns.length || filterableColumns.length" class="MobileTableToolbar">
       <div class="MobileTableToolbarButtons">
-        <button
+        <ButtonComponent
           v-if="sortableColumns.length"
           type="button"
-          class="ButtonClass SecondaryButton ButtonSmall"
+          variant="SecondaryButton ButtonSmall"
           aria-label="並び替え"
           @click.stop="openDropdown($event, 'sort-columns')"
         >
           <i class="fas" :class="sortIcon()" aria-hidden="true" />
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent
           v-if="filterableColumns.length"
           type="button"
-          class="ButtonClass SecondaryButton ButtonSmall MobileFilterButton"
+          variant="SecondaryButton ButtonSmall MobileFilterButton"
           aria-label="絞り込み"
           @click.stop="openDropdown($event, 'filter-columns')"
         >
           <i class="fas fa-filter" aria-hidden="true" />
           <span v-if="activeFilterCount" class="MobileFilterCount">{{ activeFilterCount }}</span>
-        </button>
+        </ButtonComponent>
       </div>
     </div>
 
-    <p v-if="loading" role="status">読み込み中...</p>
     <div class="TableContainer">
       <table class="DataTable">
         <thead>
           <tr>
             <th v-if="selectable">
-              <input
-                type="checkbox"
+              <CheckBoxComponent
+                inline
                 aria-label="このページをすべて選択"
-                :checked="allPageSelected"
+                :model-value="allPageSelected"
                 :indeterminate="somePageSelected && !allPageSelected"
                 :disabled="!visible.length"
                 @change="selectPage"
-              >
+              />
             </th>
             <th
               v-for="column in columns"
@@ -276,7 +275,7 @@ defineExpose({
                     aria-hidden="true"
                   />
                 </span>
-                <button
+                <ButtonComponent unstyled
                   v-if="column.filterable"
                   type="button"
                   class="TableFilterButton"
@@ -286,7 +285,7 @@ defineExpose({
                 >
                   <i class="fas fa-filter" aria-hidden="true" />
                   <span v-if="filters[column.key]?.length" class="TableFilterBadge" />
-                </button>
+                </ButtonComponent>
               </div>
               <div class="ColumnResizer" @pointerdown.stop.prevent="resize($event, column)" />
             </th>
@@ -296,12 +295,7 @@ defineExpose({
         <tbody>
           <tr v-for="row in visible" :key="String(row[rowKey])" :class="{ ClickableTableRow: rowClickable }" @click="emit('row-click', row)">
             <td v-if="selectable" data-label="選択" @click.stop>
-              <input
-                type="checkbox"
-                aria-label="行を選択"
-                :checked="isSelected(row)"
-                @change="selectRow(row, $event)"
-              >
+              <CheckBoxComponent inline aria-label="行を選択" :model-value="isSelected(row)" @change="selectRow(row, $event)" />
             </td>
             <td
               v-for="column in columns"
@@ -316,12 +310,12 @@ defineExpose({
             </td>
             <td v-if="canEdit" class="ActionCol" data-label="操作" @click.stop>
               <slot name="actions" :row="row">
-                <button type="button" class="ButtonClass EditButton" @click="emit('edit', row)">
+                <ButtonComponent type="button" variant="EditButton" @click="emit('edit', row)">
                   <i class="fas fa-edit" aria-hidden="true" /> 編集
-                </button>
-                <button type="button" class="ButtonClass DeleteButton" @click="emit('delete', row)">
+                </ButtonComponent>
+                <ButtonComponent type="button" variant="DeleteButton" @click="emit('delete', row)">
                   <i class="fas fa-trash" aria-hidden="true" /> 削除
-                </button>
+                </ButtonComponent>
               </slot>
             </td>
           </tr>
@@ -341,7 +335,7 @@ defineExpose({
     <div class="ListFooter">
       <div class="RecordCount">{{ result.length.toLocaleString('ja-JP') }}件</div>
       <nav v-if="pages > 1" class="PaginationContainer" aria-label="ページ切替">
-        <button
+        <ButtonComponent unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === 1"
@@ -349,8 +343,8 @@ defineExpose({
           @click="changePage(1)"
         >
           <i class="fas fa-angle-double-left" aria-hidden="true" />
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === 1"
@@ -358,8 +352,8 @@ defineExpose({
           @click="changePage(page - 1)"
         >
           <i class="fas fa-chevron-left" aria-hidden="true" />
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent unstyled
           v-for="number in pageNumbers"
           :key="number"
           type="button"
@@ -367,8 +361,8 @@ defineExpose({
           :class="{ Active: page === number }"
           :disabled="page === number"
           @click="changePage(number)"
-        >{{ number }}</button>
-        <button
+        >{{ number }}</ButtonComponent>
+        <ButtonComponent unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === pages"
@@ -376,8 +370,8 @@ defineExpose({
           @click="changePage(page + 1)"
         >
           <i class="fas fa-chevron-right" aria-hidden="true" />
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === pages"
@@ -385,7 +379,7 @@ defineExpose({
           @click="changePage(pages)"
         >
           <i class="fas fa-angle-double-right" aria-hidden="true" />
-        </button>
+        </ButtonComponent>
       </nav>
     </div>
 
@@ -396,25 +390,20 @@ defineExpose({
     >
       <!-- 旧フィルタは検索・下書き・適用ボタンを持たず、チェックで即時反映する。 -->
       <template v-if="dropdownKind === 'values'">
-        <button
+        <ButtonComponent unstyled
           v-if="activeFilter && filters[activeFilter.key]?.length"
           type="button"
           class="FilterDropdownClear"
           @click="clearColumnFilter"
         >
           <i class="fas fa-times" aria-hidden="true" /> クリア
-        </button>
-        <label v-for="option in filterOptions" :key="option" class="FilterDropdownOption">
-          <input
-            type="checkbox"
-            :checked="activeFilter && filters[activeFilter.key]?.includes(option)"
-            @change="toggleFilter(option, $event)"
-          >
+        </ButtonComponent>
+        <CheckBoxComponent v-for="option in filterOptions" :key="option" inline wrapper-class="FilterDropdownOption" :model-value="!!(activeFilter && filters[activeFilter.key]?.includes(option))" @change="toggleFilter(option, $event)">
           <span :title="option || '(未設定)'">{{ option || '(未設定)' }}</span>
-        </label>
+        </CheckBoxComponent>
       </template>
       <template v-else-if="dropdownKind === 'sort-columns'">
-        <button
+        <ButtonComponent unstyled
           v-for="column in sortableColumns"
           :key="column.key"
           type="button"
@@ -427,10 +416,10 @@ defineExpose({
             class="fas MobileSortIndicator"
             :class="sortIcon(column)"
           />
-        </button>
+        </ButtonComponent>
       </template>
       <template v-else>
-        <button
+        <ButtonComponent unstyled
           v-for="column in filterableColumns"
           :key="column.key"
           type="button"
@@ -439,15 +428,15 @@ defineExpose({
         >
           <span>{{ column.label }}</span>
           <span v-if="filters[column.key]?.length" class="MobileFilterSummary">{{ filterSummary(column) }}</span>
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent unstyled
           v-if="activeFilterCount"
           type="button"
           class="FilterDropdownClear"
           @click="clearFilters"
         >
           フィルタをクリア
-        </button>
+        </ButtonComponent>
       </template>
     </AnchoredDropdown>
   </section>

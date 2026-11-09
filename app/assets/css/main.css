@@ -922,6 +922,7 @@ body.DarkMode .NotificationPanelItem:hover {
 
 .InputWithButton .InputForm {
   flex: 1;
+  min-width: 0;
 }
 
 .InputWithButton .SelectForm {
@@ -1656,8 +1657,10 @@ body.DarkMode .OptionSearchEmpty {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 30px;
   position: relative;
   animation: DialogContainerFadeIn 0.25s ease-out;
@@ -1719,6 +1722,7 @@ body.DarkMode .OptionSearchEmpty {
 }
 
 .DialogTitle {
+  flex: 0 0 auto;
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
@@ -1726,10 +1730,14 @@ body.DarkMode .OptionSearchEmpty {
   text-align: center;
 }
 
+/* 本文だけをスクロールさせ、見出しと操作ボタンを常に表示する。 */
 .DialogContent {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* インフォダイアログ本文の下に表示する画像（ShowInfoDialog の Options.ImageSrc）
@@ -1771,7 +1779,9 @@ body.DarkMode .DialogContentImage {
 }
 
 .DialogButtonArea {
+  flex: 0 0 auto;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
@@ -5514,23 +5524,9 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
 .Dialog-leave-active { animation: DialogOverlayFadeOut 0.2s ease-in forwards; }
 .Dialog-leave-active .DialogContainer { animation: DialogContainerFadeOut 0.2s ease-in forwards; }
 
-/* ==========================================================================
- * /test のコンポーネント配置（業務コンポーネントの見た目には適用しない）
- * ========================================================================== */
-.ComponentList { max-width: 1200px; margin: auto; }
-.ComponentSection { background: #fff; padding: 24px; margin-bottom: 20px; border-radius: 8px; }
-.ComponentSection h2 { margin-bottom: 20px; }
-.ComponentGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
-.ComponentList h1 { margin-bottom: 20px; }
-.DialogExamples { display: flex; gap: 12px; flex-wrap: wrap; }
-@media (max-width: 768px) {
-  .ComponentSection { padding: 16px; }
-  .ComponentGrid { grid-template-columns: minmax(0, 1fr); }
-}
-
 /* 旧 Index.js / Dialog.js のログイン・利用規約用インライン指定。 */
 .CountdownArea.Active { display: block; }
-.TermsContent { max-height: 400px; overflow-y: auto; text-align: left; line-height: 1.8; }
+.TermsContent { text-align: left; line-height: 1.8; }
 .TermsContent h3 { color: #2c3e50; }
 .TermsContent h4 { margin: 15px 0 10px; color: #34495e; }
 .TermsContent p { margin-bottom: 5px; }
@@ -5548,3 +5544,80 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
 .ExportItemGrid .CheckboxWrapper, .ExportSelectAll { font-size: 13px; }
 .TemplateStoryChecks { display: flex; gap: 8px; flex-wrap: wrap; }
 .ClickableTableRow { cursor: pointer; }
+
+
+/* ==========================================================================
+ * 作品画面・設定ダイアログの共通レイアウト
+ * ========================================================================== */
+.WorkContentHeader {
+  gap: 12px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.WorkContentHeader .ContentTitle {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.WorkRoleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #eef6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.FormSection + .FormSection { margin-top: 28px; }
+.FormSectionTitle {
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #3498db;
+  font-size: 18px;
+}
+.FormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+.FormGridItem { min-width: 0; }
+.FormGridFullWidth { grid-column: 1 / -1; }
+.TagChipList { display: flex; gap: 4px; flex-wrap: wrap; }
+.TagChip { padding: 3px 8px; border-radius: 12px; white-space: nowrap; }
+.TagNameButton {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 12px;
+  width: 100%;
+}
+.PreserveLines { white-space: pre-wrap; }
+@media (max-width: 768px) {
+  .FormGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 既存レイアウト内でも共通入力部品を使えるよう、外枠だけを透過させる。 */
+.InlineField { display: contents; }
+
+/* 説明アイコンの操作は全項目で共通化し、既存ラベル内の配置を保つ。 */
+.InfoIconButton {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}

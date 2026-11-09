@@ -1,13 +1,12 @@
 import { watch } from 'vue'
-import type { ApiResponse } from '../types/backend'
+import type { ApiTransport, HttpMethod, ResponseType } from '../types/utilType'
 import { createSessionManager, type SessionEvent } from '../utils/sessionManager'
-import { requestBackend } from '../utils/backend'
+import { useApi } from '../utils/useApi'
 
 const EVENT_KEY = 'AuthSessionEvent'
 
 /** 静的生成時にもインスタンスは作るが、通信・ブラウザ監視はクライアントでのみ行う。 */
 export default defineNuxtPlugin((nuxtApp) => {
-  const config = useRuntimeConfig()
   const router = useRouter()
 
   function clearClientState(reason: 'logout' | 'expired' | 'identity') {
@@ -25,10 +24,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (lastPath) sessionStorage.setItem('LastPath', lastPath)
   }
 
+  // 認証制御の内側の送信もuseApiに集約する。認証の再帰呼出しとスピナーの二重計上を避ける。
+  const send: ApiTransport = <T, R extends ResponseType = 'json'>(
+    endpoint: string, method: HttpMethod = 'GET', data?: unknown, responseType: R = 'json' as R,
+  ) => nuxtApp.runWithContext(() => useApi<T, R>(endpoint, method, data, responseType, {
+    authorize: false,
+    showSpinner: false,
+  }))
+
   const authSession = createSessionManager({
-    send: <T>(endpoint: string, method: 'GET' | 'POST' = 'GET', data?: unknown): Promise<ApiResponse<T>> => {
-      return requestBackend<T>(config.public.apiBase, endpoint, method, data)
-    },
+    send,
     navigate: path => nuxtApp.runWithContext(() => navigateTo(path, { replace: true })),
     clearClientState,
     publish: (type) => {

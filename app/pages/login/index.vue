@@ -45,27 +45,27 @@
         </div>
 
         <div class="LoginButtonGroup">
-          <button
+          <ButtonComponent
             id="LoginButton"
             type="button"
-            class="ButtonClass PrimaryButton ButtonFull"
+            variant="PrimaryButton ButtonFull"
             :disabled="userLockFlg"
             @click="loginEvent"
           >
             <i class="fas fa-sign-in-alt" aria-hidden="true" />
             ログイン
-          </button>
+          </ButtonComponent>
 
-          <button
+          <ButtonComponent
             id="RegisterButton"
             type="button"
-            class="ButtonClass SuccessButton ButtonFull"
+            variant="SuccessButton ButtonFull"
             :disabled="userLockFlg"
             @click="openRegistration"
           >
             <i class="fas fa-user-plus" aria-hidden="true" />
             会員登録
-          </button>
+          </ButtonComponent>
         </div>
       </div>
     </div>

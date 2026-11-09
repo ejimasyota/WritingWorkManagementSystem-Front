@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../types/backend'
+import type { ApiResponse } from '../types/utilType'
 
 /** HTTPエラーでも、既存APIが返すロック情報・排他制御情報を保持する。 */
 export class backendError extends Error {
@@ -15,44 +15,6 @@ export class backendError extends Error {
     this.name = 'backendError'
     this.status = status
     this.data = data
-  }
-}
-
-export async function requestBackend<T>(
-  baseUrl: string,
-  endpoint: string,
-  method: 'GET' | 'POST' = 'GET',
-  data?: unknown,
-): Promise<ApiResponse<T>> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 180_000)
-
-  try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`, {
-      method,
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: method === 'POST' && data !== undefined ? JSON.stringify(data) : undefined,
-      signal: controller.signal,
-    })
-    let result: ApiResponse<T>
-    try {
-      result = await response.json()
-    } catch {
-      throw new backendError('APIから正しい応答を取得できませんでした', response.status)
-    }
-
-    if (!response.ok) {
-      throw new backendError(result.Message || 'APIエラーが発生しました', response.status, result.Data)
-    }
-    return result
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new backendError('リクエストがタイムアウトしました（3分）。時間をおいて再度お試しください')
-    }
-    throw error
-  } finally {
-    clearTimeout(timeout)
   }
 }
 

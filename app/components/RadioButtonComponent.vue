@@ -1,5 +1,6 @@
 <template>
   <FieldFrame
+    :inline="inline"
     :label="label"
     :input-id="id"
     :required="required"
@@ -7,8 +8,9 @@
     :info-title="infoTitle"
     :info-message="infoMessage"
     :error="error"
+    :hint="hint"
   >
-    <div class="ChoiceGroup">
+    <div class="ChoiceGroup" v-bind="$attrs">
       <label v-for="(option, i) in options" :key="option.value" class="CheckboxWrapper">
         <input
           :id="i === 0 ? id : id + i"

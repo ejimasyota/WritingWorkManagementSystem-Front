@@ -27,6 +27,23 @@ export interface ValidationFieldHandle {
 }
 
 /**
+ * Vueのコールバックrefを、公開されたfocusメソッドの有無を確認して登録する。
+ * DOM要素・コンポーネントを強制的に同じ型へ変換せず、解除時は参照も破棄する。
+ */
+export function setFieldHandle(
+  handles: Record<string, Pick<ValidationFieldHandle, 'focus'>>,
+  key: string,
+  instance: unknown,
+): void {
+  if (instance && typeof instance === 'object' && 'focus' in instance && typeof instance.focus === 'function') {
+    const focus = instance.focus;
+    handles[key] = { focus: () => { focus.call(instance); } };
+  } else {
+    delete handles[key];
+  }
+}
+
+/**
  * 入力チェックルール
  */
 export type ValidationRule = (

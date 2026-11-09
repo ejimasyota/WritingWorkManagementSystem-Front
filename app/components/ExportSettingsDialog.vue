@@ -59,85 +59,53 @@ function submit() {
       <label class="DialogSectionTitle" for="ExportType">
         出力形式
       </label>
-      <select id="ExportType" v-model="type" class="InputForm">
-        <option value="word">
-          Word（.docx）
-        </option>
-        <option value="html">
-          HTML（.html）
-        </option>
-      </select>
+      <SelectBoxComponent v-model="type" inline input-id="ExportType" hide-list-button :options="[{ value: 'word', label: 'Word（.docx）' }, { value: 'html', label: 'HTML（.html）' }]" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         出力する項目の選択
       </label>
-      <label class="CheckboxWrapper ExportSelectAll">
-        <input type="checkbox" :checked="selected.length === items.length" @change="selectAll">
-        すべて選択
-      </label>
+      <CheckBoxComponent inline wrapper-class="ExportSelectAll" :model-value="selected.length === items.length" @change="selectAll">すべて選択</CheckBoxComponent>
       <div class="ExportItemGrid">
-        <label v-for="item in items" :key="item.key" class="CheckboxWrapper">
-          <input v-model="selected" type="checkbox" :value="item.key">
-          {{ item.label }}
-        </label>
+        <CheckBoxComponent v-for="item in items" :key="item.key" v-model="selected" inline :option-value="item.key">{{ item.label }}</CheckBoxComponent>
       </div>
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         改行コードの認識
       </label>
-      <label class="CheckboxWrapper">
-        <input v-model="newLine" type="checkbox">
-        改行コードを認識して出力する
-      </label>
+      <CheckBoxComponent v-model="newLine" inline>改行コードを認識して出力する</CheckBoxComponent>
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         出力データの並び順
       </label>
-      <div class="ChoiceGroup">
-        <label class="CheckboxWrapper">
-          <input v-model="sortOrder" type="radio" value="asc">
-          昇順
-        </label>
-        <label class="CheckboxWrapper">
-          <input v-model="sortOrder" type="radio" value="desc">
-          降順
-        </label>
-      </div>
+      <RadioButtonComponent v-model="sortOrder" inline :options="[{ value: 'asc', label: '昇順' }, { value: 'desc', label: '降順' }]" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle" for="ExportFont">
         出力時の文字フォント
       </label>
-      <select id="ExportFont" v-model="font" class="InputForm">
-        <option v-for="item in fonts" :key="item">
-          {{ item }}
-        </option>
-      </select>
+      <SelectBoxComponent v-model="font" inline input-id="ExportFont" hide-list-button :options="fonts.map(item => ({ value: item, label: item }))" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         表紙の出力
       </label>
-      <label class="CheckboxWrapper">
-        <input v-model="cover" type="checkbox">
-        表紙を含めて出力する
-      </label>
+      <CheckBoxComponent v-model="cover" inline>表紙を含めて出力する</CheckBoxComponent>
     </div>
     <p v-if="error" role="alert">
       {{ error }}
     </p>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />
         閉じる
-      </button>
-      <button type="button" class="ButtonClass SuccessButton" @click="submit">
+      </ButtonComponent>
+      <ButtonComponent type="button" variant="SuccessButton" @click="submit">
         <i class="fas fa-file-export" />
         出力
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

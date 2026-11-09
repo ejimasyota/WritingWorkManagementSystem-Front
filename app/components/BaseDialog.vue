@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { activateDialog, dialogLayer, isTopDialog, releaseDialog } from '../utils/dialogStack';
 interface Props {
   modelValue: boolean;
   title?: string;
@@ -17,7 +18,9 @@ const props = withDefaults(defineProps<Props>(), {
   closeOnEscape: true
 });
 const emit = defineEmits(['update:modelValue', 'close']);
-const overlay = ref<HTMLElement>();
+const dialogId = Symbol('dialog');
+const layer = computed(() => dialogLayer(dialogId));
+let disposed = false;
 const container = ref<HTMLElement>();
 let previousFocus: HTMLElement | null = null;
 function close() {
@@ -27,8 +30,7 @@ function close() {
 
 /** 多重表示時は最前面のダイアログだけが Escape・Tab を処理する。 */
 function handleKeydown(event: KeyboardEvent) {
-  const overlays = document.querySelectorAll('.DialogOverlay');
-  if (overlays[overlays.length - 1] !== overlay.value) return;
+  if (!props.modelValue || !isTopDialog(dialogId)) return;
   if (event.key === 'Escape') {
     if (props.closeOnEscape) {
       event.preventDefault();
@@ -60,27 +62,30 @@ watch(() => props.modelValue, async open => {
   document.removeEventListener('keydown', handleKeydown);
   if (!open) return;
   previousFocus = document.activeElement as HTMLElement;
+  activateDialog(dialogId);
   await nextTick();
+  if (disposed || !props.modelValue) return;
   document.addEventListener('keydown', handleKeydown);
   const firstInput = container.value?.querySelector<HTMLElement>('input:not(:disabled), textarea:not(:disabled), select:not(:disabled), button:not(:disabled)');
-  (firstInput || container.value)?.focus();
+  if (isTopDialog(dialogId)) (firstInput || container.value)?.focus();
 }, {
   immediate: true,
   flush: 'post'
 });
 function restoreFocus() {
-  previousFocus?.focus();
+  if (releaseDialog(dialogId)) previousFocus?.focus();
 }
 onBeforeUnmount(() => {
-  document.removeEventListener('keydown', handleKeydown);
-  if (props.modelValue) restoreFocus();
+  disposed = true;
+  if (typeof document !== 'undefined') document.removeEventListener('keydown', handleKeydown);
+  restoreFocus();
 });
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="Dialog" @after-leave="restoreFocus">
-      <div v-if="modelValue" ref="overlay" class="DialogOverlay">
+      <div v-if="modelValue" class="DialogOverlay" :style="{ zIndex: layer }">
         <div
           ref="container"
           class="DialogContainer"
@@ -104,9 +109,9 @@ onBeforeUnmount(() => {
           </div>
           <div class="DialogButtonArea" :class="{ CenteredDialogActions: centeredActions }">
             <slot name="actions" :close="close">
-              <button type="button" class="ButtonClass CloseButton" @click="close">
+              <ButtonComponent type="button" variant="CloseButton" @click="close">
                 <i class="fas fa-times" aria-hidden="true" /> 閉じる
-              </button>
+              </ButtonComponent>
             </slot>
           </div>
         </div>

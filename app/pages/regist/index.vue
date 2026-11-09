@@ -48,48 +48,32 @@
         />
 
         <div class="FormGroup">
-          <div class="CheckboxWrapper">
-            <input
-              id="TermsCheckbox"
-              v-model="agreedFlg"
-              type="checkbox"
-              class="CheckboxInput"
-            >
-            <label for="TermsCheckbox">
-              <a
-                id="TermsLink"
-                href="#"
-                class="LinkText"
-                @click.prevent="openTerms"
-              >
-                利用規約
-              </a>
-              に同意する
-            </label>
-          </div>
+          <CheckBoxComponent v-model="agreedFlg" inline input-id="TermsCheckbox" class="CheckboxInput">
+            <span><a id="TermsLink" href="#" class="LinkText" @click.stop.prevent="openTerms">利用規約</a>に同意する</span>
+          </CheckBoxComponent>
         </div>
 
         <div class="RegistrationButtonGroup">
-          <button
+          <ButtonComponent
             id="RegisterButton"
             type="button"
-            class="ButtonClass SuccessButton ButtonFull"
+            variant="SuccessButton ButtonFull"
             :disabled="!agreedFlg"
             @click="registerEvent"
           >
             <i class="fas fa-check" aria-hidden="true" />
             登録
-          </button>
+          </ButtonComponent>
 
-          <button
+          <ButtonComponent
             id="BackToLoginButton"
             type="button"
-            class="ButtonClass PrimaryButton ButtonFull"
+            variant="PrimaryButton ButtonFull"
             @click="backToLogin"
           >
             <i class="fas fa-arrow-left" aria-hidden="true" />
             ログインへ
-          </button>
+          </ButtonComponent>
         </div>
       </div>
     </div>

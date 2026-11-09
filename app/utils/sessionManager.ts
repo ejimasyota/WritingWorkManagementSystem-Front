@@ -1,5 +1,6 @@
 import { computed, readonly, ref, shallowRef } from 'vue'
-import type { BackendRequest, SessionInfo } from '../types/backend'
+import type { SessionInfo } from '../types/backend'
+import type { ApiResponse, ApiTransport, HttpMethod, ResponseType } from '../types/utilType'
 import { backendError, errorMessage, requireSuccess } from './backend'
 import { isPublicEndpoint, requiresAdmin } from './permissions'
 // 2. 定数関連
@@ -14,7 +15,7 @@ export interface SessionNotice {
 }
 
 interface Dependencies {
-  send: BackendRequest
+  send: ApiTransport
   navigate: (path: string) => unknown | Promise<unknown>
   clearClientState: (reason: 'logout' | 'expired' | 'identity') => void
   publish: (event: SessionEvent) => void
@@ -70,7 +71,7 @@ export function createSessionManager(dependencies: Dependencies) {
       dependencies.clearClientState('expired')
       showNotice({
         kind: 'expired', title: 'セッションタイムアウト',
-        message: '一定時間操作がなかったため、ログアウトしました。', target: '/',
+        message: '一定時間操作がなかったため、ログアウトしました。', target: CONST_VARIABLE.DISPLAY_PATH.LOGIN,
       })
     }
   }
@@ -98,13 +99,13 @@ export function createSessionManager(dependencies: Dependencies) {
       try {
         let response
         try {
-          response = await dependencies.send<SessionInfo>('/GetSessionInfo.php')
+          response = await dependencies.send<ApiResponse<SessionInfo>>('/GetSessionInfo.php')
         } catch (error) {
           if (started !== generation) return null
           if (!isWorkAccessLost(error)) throw error
           handleWorkAccessLost(error)
           // Auth.phpが作品選択を解除した後、認証確認(GET)だけを一度再実行する。
-          response = await dependencies.send<SessionInfo>('/GetSessionInfo.php')
+          response = await dependencies.send<ApiResponse<SessionInfo>>('/GetSessionInfo.php')
         }
         if (started !== generation) return null
         const data = requireSuccess(response, 'セッション情報の取得に失敗しました')
@@ -143,7 +144,7 @@ export function createSessionManager(dependencies: Dependencies) {
   }
 
   /** 保護APIの401を統一処理し、通常の403・排他エラー等は画面へ返す。 */
-  const request: BackendRequest = async <T>(endpoint: string, method: 'GET' | 'POST' = 'GET', data?: unknown) => {
+  const request: ApiTransport = async <T, R extends ResponseType = 'json'>(endpoint: string, method: HttpMethod = 'GET', data?: unknown, responseType: R = 'json' as R) => {
     const started = generation
     const publicEndpoint = isPublicEndpoint(endpoint)
     if (!publicEndpoint && !authenticated.value) {
@@ -155,7 +156,7 @@ export function createSessionManager(dependencies: Dependencies) {
       throw new backendError('管理者権限が必要です', 403)
     }
     try {
-      const response = await dependencies.send<T>(endpoint, method, data)
+      const response = await dependencies.send<T, R>(endpoint, method, data, responseType)
       if (!publicEndpoint && started !== generation) {
         const stale = new backendError('認証状態が変更されました', 401)
         stale.handled = true
@@ -199,7 +200,7 @@ export function createSessionManager(dependencies: Dependencies) {
     const job = (async () => {
       try {
         try {
-          requireSuccess(await dependencies.send('/Logout.php', 'POST'), 'ログアウトに失敗しました')
+          requireSuccess(await dependencies.send<ApiResponse<null>>('/Logout.php', 'POST'), 'ログアウトに失敗しました')
         } catch (error) {
           // 既にサーバー側が失効している場合も、ローカル状態を破棄できる。
           if (!(error instanceof backendError && error.status === 401)) throw error
@@ -225,7 +226,7 @@ export function createSessionManager(dependencies: Dependencies) {
   }
 
   function navigationFailed(error: unknown) {
-    showNotice({ kind: 'unavailable', title: 'エラー', message: errorMessage(error, '認証情報を確認できませんでした'), target: '/' })
+    showNotice({ kind: 'unavailable', title: 'エラー', message: errorMessage(error, '認証情報を確認できませんでした'), target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
   }
 
   function forbidden() {
@@ -238,7 +239,7 @@ export function createSessionManager(dependencies: Dependencies) {
       const hadSession = user.value !== null
       invalidate()
       dependencies.clearClientState('logout')
-      if (hadSession) showNotice({ kind: 'signed-out', title: 'ログアウト', message: '別のタブでログアウトしたため、ログイン画面へ移動します。', target: '/' })
+      if (hadSession) showNotice({ kind: 'signed-out', title: 'ログアウト', message: '別のタブでログアウトしたため、ログイン画面へ移動します。', target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
       return null
     }
     invalidate()

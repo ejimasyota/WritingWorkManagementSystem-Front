@@ -1,9 +1,4 @@
-/** 既存 Response.php のJSON形式。プロパティ名の大文字・小文字も維持する。 */
-export interface ApiResponse<T = unknown> {
-  Success: boolean
-  Message: string
-  Data: T
-}
+import type { ApiResponse } from './utilType'
 
 export interface SessionInfo {
   UserId: string

@@ -1,5 +1,6 @@
 <template>
   <FieldFrame
+    :inline="inline"
     :label="label"
     :input-id="id"
     :required="required"
@@ -7,8 +8,9 @@
     :info-title="infoTitle"
     :info-message="infoMessage"
     :error="error"
+    :hint="hint"
   >
-    <div class="InputWithButton">
+    <div :class="inline && hideListButton ? 'InlineField' : 'InputWithButton'">
       <select
         ref="inputElement"
         :id="id"
@@ -44,7 +46,7 @@
 
     <BaseDialog v-model="listDialogOpenFlg" :title="listTitle" size="DialogMedium">
       <div class="OptionSearchArea">
-        <input v-model="searchKeyWord" aria-label="検索" placeholder="検索" class="InputForm">
+        <TextFieldComponent v-model="searchKeyWord" inline aria-label="検索" placeholder="検索" />
       </div>
       <div class="OptionSearchList">
         <div
@@ -102,6 +104,8 @@ const props = defineProps({
   ...fieldProps,
   // 2. 値
   modelValue: [String, Number],
+  // 呼出元が入力要素のIDを指定する場合に使用
+  inputId: String,
   // 3. リストダイアログ表示ボタン表示制御FLG
   hideListButton: Boolean,
   // 4. 項目
@@ -123,7 +127,8 @@ const emit = defineEmits<{
  * 定義
  * ========================================================== */
 // 1. 一意のIDを生成
-const id = useId();
+const generatedId = useId();
+const id = computed(() => props.inputId || generatedId);
 // 2. 共通処理群を取得
 const { value, setValue, getValue } = useFieldValue<string | number>(props, emit, '');
 // 3. リストダイアログ表示制御FLG
@@ -139,6 +144,7 @@ const inputElement = ref<HTMLSelectElement>();
 /**
  * 選択可能な項目が存在するかを判定するFLG
  */
+// 数値の0は有効な選択肢として扱う。
 const hasOptionFlg = computed(() => {
   // 1. 選択肢の配列を確認し、空文字列ではない値を持つ項目が1つでもあればTRUE、なければFALSEを返却する
   return props.options.some(option => String(option.value) !== '')
@@ -177,7 +183,8 @@ function openListDialog() {
   /* ------------------------------
    * 1. 選択不可の項目が存在する場合
    * ------------------------------*/
-  if (!hasOptionFlg.value){
+  // 非活性・読み取り専用の場合も一覧を開かない
+  if (readOnlyFlg.value || !hasOptionFlg.value){
     // 1. 処理終了
     return;
   }
@@ -207,6 +214,7 @@ function selectOption(option: SelectOption) {
   /* ------------------------------
    * 2. 終了時処理
    * ------------------------------*/
+  // 通常の選択欄と一覧ダイアログで更新処理を共用する。
   // 1. 選択された値の設定
   setValue(option.value);
   // 2. リストダイアログを削除
@@ -221,6 +229,7 @@ function updateSelect(event: Event) {
   /* ------------------------------
    * 1. 値の設定処理
    * ------------------------------*/
+  // DOMの文字列値ではなく元の選択肢を使い、数値型を維持する。
   // 1. 選択された項目のインデックスを取得
   const index = (event.target as HTMLSelectElement).selectedIndex;
   // 2. 選択された項目を保持
@@ -255,5 +264,3 @@ defineExpose({
   getValue
 });
 </script>
-
-

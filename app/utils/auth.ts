@@ -78,7 +78,6 @@ export const loginDestination = (
 
     // 4. 復帰を許可する画面を判定
     if (path === CONST_VARIABLE.DISPLAY_PATH.MAIN) return CONST_VARIABLE.DISPLAY_PATH.MAIN
-    if (path === '/test') return '/test'
 
   } catch {
     // 不正なURLの場合はメイン画面へ遷移

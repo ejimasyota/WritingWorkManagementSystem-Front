@@ -19,7 +19,7 @@ const createOpen = ref(false);
 const exportOpen = ref(false);
 const exportProject = ref<Project>();
 const restoreProject = ref<Project>();
-const fileInput = ref<HTMLInputElement>();
+const fileInput = ref<{ openFilePicker: () => void }>();
 const table = ref<{
   reset: () => void;
 }>();
@@ -81,7 +81,7 @@ async function issueUrl(project: Project) {
     }>('/IssueParticipationUrl.php', 'POST', {
       WorkId: project.WorkId
     }), '参加URLの発行に失敗しました');
-    const url = `${window.location.origin}/?token=${encodeURIComponent(data.Token)}`;
+    const url = `${window.location.origin}/login?token=${encodeURIComponent(data.Token)}`;
     if (!(await copyToClipboard(url))) throw new Error('クリップボードへのコピーに失敗しました');
     await props.dialogs.info('URL発行', 'プロジェクト参加URLをクリップボードに保存しました。\nプロジェクトに参加を行うメンバーへ共有を行ってください。');
   } catch (error) {
@@ -129,8 +129,7 @@ async function chooseRestore(project: Project) {
   if (!(await props.dialogs.confirm('バックアップCSVから復元しますか？'))) return;
   restoreProject.value = project;
   if (fileInput.value) {
-    fileInput.value.value = '';
-    fileInput.value.click();
+    fileInput.value.openFilePicker();
   }
 }
 async function restore(event: Event) {
@@ -177,15 +176,15 @@ defineExpose({
       </p>
     </div>
     <div class="MarginBottom20">
-      <button
+      <ButtonComponent
         id="CreateWorkButton"
         type="button"
-        class="ButtonClass SuccessButton"
+        variant="SuccessButton"
         @click="createOpen = true"
       >
         <i class="fas fa-plus" />
         作成
-      </button>
+      </ButtonComponent>
     </div>
     <TableComponent
       ref="table"
@@ -195,59 +194,59 @@ defineExpose({
       :hide-meta="hideMeta"
     >
       <template #cell-Action="{ row }">
-        <button
+        <ButtonComponent
           type="button"
-          class="ButtonClass ButtonSmall PrimaryButton ProjectMoveButton"
+          variant="ButtonSmall PrimaryButton ProjectMoveButton"
           @click.stop="emit('move', row.WorkId)"
         >
           <i class="fas fa-arrow-right" />
           移動
-        </button>
+        </ButtonComponent>
         <template v-if="isCreator(row as Project)">
-          <button
+          <ButtonComponent
             type="button"
-            class="ButtonClass ButtonSmall SuccessButton ProjectActionButton"
+            variant="ButtonSmall SuccessButton ProjectActionButton"
             @click.stop="openExport(row as Project)"
           >
             <i class="fas fa-file-word" />
             出力
-          </button>
-          <button
+          </ButtonComponent>
+          <ButtonComponent
             type="button"
-            class="ButtonClass ButtonSmall WarningButton ProjectActionButton"
+            variant="ButtonSmall WarningButton ProjectActionButton"
             @click.stop="issueUrl(row as Project)"
           >
             <i class="fas fa-link" />
             URL
-          </button>
-          <button
+          </ButtonComponent>
+          <ButtonComponent
             type="button"
-            class="ButtonClass ButtonSmall BackupButton ProjectActionButton"
+            variant="ButtonSmall BackupButton ProjectActionButton"
             @click.stop="backup(row as Project)"
           >
             <i class="fas fa-file-csv" />
             CSV
-          </button>
-          <button
+          </ButtonComponent>
+          <ButtonComponent
             type="button"
-            class="ButtonClass ButtonSmall RestoreButton ProjectActionButton"
+            variant="ButtonSmall RestoreButton ProjectActionButton"
             @click.stop="chooseRestore(row as Project)"
           >
             <i class="fas fa-upload" />
             復元
-          </button>
+          </ButtonComponent>
         </template>
-        <button
+        <ButtonComponent
           type="button"
-          class="ButtonClass ButtonSmall DeleteButton ProjectActionButton"
+          variant="ButtonSmall DeleteButton ProjectActionButton"
           @click.stop="deleteProject(row as Project)"
         >
           <i class="fas fa-trash" />
           {{ isCreator(row as Project) ? '削除' : '退出' }}
-        </button>
+        </ButtonComponent>
       </template>
     </TableComponent>
-    <input ref="fileInput" type="file" class="Hidden" accept=".csv" @change="restore">
+    <TextFieldComponent inline ref="fileInput" type="file" class="Hidden" accept=".csv" @change="restore" />
     <WorkCreateDialog v-model="createOpen" @create="createWork" />
     <ExportSettingsDialog v-model="exportOpen" @export="exportDocument" />
   </div>

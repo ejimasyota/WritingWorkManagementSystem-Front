@@ -16,12 +16,12 @@
       <img v-else :src="src" :alt="alt" class="ImageDialogImage" @error="failedFlg = true">
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" aria-hidden="true" /> 閉じる
-      </button>
-      <button v-if="imgDeleteFlg" type="button" class="ButtonClass DeleteButton" @click="deleteImage">
+      </ButtonComponent>
+      <ButtonComponent v-if="imgDeleteFlg" type="button" variant="DeleteButton" @click="deleteImage">
         <i class="fas fa-trash" aria-hidden="true" /> 削除
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

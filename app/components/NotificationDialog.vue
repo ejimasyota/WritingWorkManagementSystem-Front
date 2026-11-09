@@ -108,14 +108,14 @@ function move(work: WorkNotification) {
           <div class="NotificationPanelItemDate">
             {{ formatShortDate(notification.RegistDate) }}
           </div>
-          <button
+          <ButtonComponent unstyled
             type="button"
             class="NotificationPanelDismiss"
             title="削除"
             @click.stop="dismiss(notification)"
           >
             <i class="fas fa-times" />
-          </button>
+          </ButtonComponent>
         </div>
         <div v-if="!systemCount" class="NotificationPanelEmpty">
           通知はありません
@@ -148,10 +148,10 @@ function move(work: WorkNotification) {
       </div>
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />
         閉じる
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

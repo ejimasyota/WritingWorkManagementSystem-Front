@@ -1,5 +1,6 @@
 <template>
   <FieldFrame
+    :inline="inline"
     :label="label"
     :input-id="id"
     :required="required"
@@ -7,18 +8,22 @@
     :info-title="infoTitle"
     :info-message="infoMessage"
     :error="error"
+    :hint="hint"
   >
-    <label class="ToggleSwitchControl">
-      <input
-        :id="id"
-        type="checkbox"
-        role="switch"
-        :checked="value"
-        :disabled="disabled || readonly"
-        v-bind="$attrs"
-        @change="updateChecked"
-      />
-      <span class="ToggleSwitchSlider" />
+    <label :class="wrapperClass">
+      <slot />
+      <span class="ToggleSwitchControl">
+        <input
+          :id="id"
+          type="checkbox"
+          role="switch"
+          :checked="value"
+          :disabled="disabled || readonly"
+          v-bind="$attrs"
+          @change="updateChecked"
+        />
+        <span class="ToggleSwitchSlider" />
+      </span>
     </label>
   </FieldFrame>
 </template>
@@ -35,9 +40,11 @@ defineOptions({
 const props = defineProps({
   ...fieldProps,
   modelValue: Boolean,
+  wrapperClass: String,
 });
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
+  change: [event: Event];
 }>();
 const id = useId();
 const { value, setValue, getValue } = useFieldValue<boolean>(
@@ -51,6 +58,8 @@ defineExpose({
   getValue,
 });
 function updateChecked(event: Event) {
+  if (props.disabled || props.readonly) return;
   setValue((event.target as HTMLInputElement).checked);
+  emit("change", event);
 }
 </script>

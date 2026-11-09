@@ -105,36 +105,24 @@ async function changePassword() {
       <div class="SettingsSectionTitle">
         表示設定
       </div>
-      <label class="SettingsRow SettingsDarkModeRow">
-        <span class="SettingsRowLabel">
-          ダークモード
-        </span>
-        <span class="ToggleSwitchControl">
-          <input v-model="dark" type="checkbox" @change="appearance">
-          <span class="ToggleSwitchSlider" />
-        </span>
-      </label>
-      <label class="SettingsRow">
-        <span class="SettingsRowLabel">
-          メタ情報非表示
-        </span>
-        <span class="ToggleSwitchControl">
-          <input v-model="hideMeta" type="checkbox" @change="appearance">
-          <span class="ToggleSwitchSlider" />
-        </span>
-      </label>
+      <ToogleComponent v-model="dark" inline wrapper-class="SettingsRow SettingsDarkModeRow" aria-label="ダークモード" @change="appearance">
+        <span class="SettingsRowLabel">ダークモード</span>
+      </ToogleComponent>
+      <ToogleComponent v-model="hideMeta" inline wrapper-class="SettingsRow" aria-label="メタ情報非表示" @change="appearance">
+        <span class="SettingsRowLabel">メタ情報非表示</span>
+      </ToogleComponent>
     </div>
     <div class="SettingsSection">
-      <button type="button" class="ButtonClass PrimaryButton ButtonFull" @click="openPassword">
+      <ButtonComponent type="button" variant="PrimaryButton ButtonFull" @click="openPassword">
         <i class="fas fa-key" />
         パスワード変更
-      </button>
+      </ButtonComponent>
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />
         閉じる
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
   <BaseDialog v-model="passwordOpen" title="パスワード変更">
@@ -168,14 +156,14 @@ async function changePassword() {
       />
     </form>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="passwordOpen = false">
+      <ButtonComponent type="button" variant="CloseButton" @click="passwordOpen = false">
         <i class="fas fa-times" />
         閉じる
-      </button>
-      <button type="submit" form="ChangePasswordForm" class="ButtonClass SaveButton">
+      </ButtonComponent>
+      <ButtonComponent type="submit" form="ChangePasswordForm" variant="SaveButton">
         <i class="fas fa-key" />
         変更
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

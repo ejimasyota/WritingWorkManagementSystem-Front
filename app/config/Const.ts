@@ -16,6 +16,9 @@ export const CONST_VARIABLE = {
    */
   SYSTEM_NAME: "創作管理システム",
 
+  /** 色コードが未設定の場合のピッカー初期色（旧実装と同じ）。 */
+  COLOR_PICKER_INITIAL_VALUE: "#9b59b6",
+
   /**
    * 画面パス
    */
@@ -27,7 +30,7 @@ export const CONST_VARIABLE = {
     // 3. メイン画面
     MAIN: "/main",
     // 4. エラー画面
-    ERROR: "/"
+    ERROR: "/login"
   },
 
   /**

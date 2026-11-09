@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button
+    <ButtonComponent unstyled
       id="MenuToggle"
       type="button"
       class="MenuToggle"
@@ -9,14 +9,14 @@
       @click="toggleMenu"
     >
       <i class="fas fa-bars" aria-hidden="true" />
-    </button>
+    </ButtonComponent>
     <div id="SidebarOverlay" class="SidebarOverlay" :class="{ Open: open }" @click="closeMenu" />
 
     <div class="PageContainer">
       <nav id="Sidebar" class="Sidebar" :class="{ Open: open }" aria-label="メインメニュー">
         <div class="SidebarHeader">
           <h1><i class="fas fa-book-open" aria-hidden="true" /> 創作管理</h1>
-          <button
+          <ButtonComponent unstyled
             id="NotificationBellButton"
             type="button"
             class="NotificationBellButton"
@@ -31,8 +31,8 @@
             >
               {{ notificationCount >= 1000 ? '999+' : notificationCount }}
             </span>
-          </button>
-          <button
+          </ButtonComponent>
+          <ButtonComponent unstyled
             id="SettingsButton"
             type="button"
             class="SettingsButton"
@@ -40,10 +40,10 @@
             @click="emit('settings')"
           >
             <i class="fas fa-cog" aria-hidden="true" />
-          </button>
+          </ButtonComponent>
         </div>
         <div class="SidebarMenu">
-          <button
+          <ButtonComponent unstyled
             v-for="menu in visibleMenus"
             :id="menu.id"
             :key="menu.id"
@@ -54,12 +54,12 @@
             @click="navigate(menu.id)"
           >
             <i class="fas" :class="menu.icon" aria-hidden="true" /> {{ menu.label }}
-          </button>
+          </ButtonComponent>
         </div>
         <div class="SidebarFooter">
-          <button id="MenuLogout" type="button" class="SidebarItem" @click="emit('logout')">
+          <ButtonComponent unstyled id="MenuLogout" type="button" class="SidebarItem" @click="emit('logout')">
             <i class="fas fa-sign-out-alt" aria-hidden="true" /> ログアウト
-          </button>
+          </ButtonComponent>
           <div class="SidebarVersion">{{ version }}</div>
         </div>
       </nav>
@@ -77,13 +77,22 @@ interface SessionInfo {
   UserId?: string;
   IsAdmin?: boolean;
 }
+interface SidebarMenu {
+  id: string;
+  label: string;
+  icon: string;
+  admin?: boolean;
+}
 interface Props {
+  /** メニュー項目の定義は共通レイアウトが保持し、ページは画面の区分だけを指定する。 */
+  menuType?: 'main' | 'work';
   session?: SessionInfo;
   activeMenu?: string;
   version?: string;
   notificationCount?: number;
 }
 const props = withDefaults(defineProps<Props>(), {
+  menuType: 'main',
   activeMenu: 'MenuWorkManagement',
   version: 'ver_1.0.0',
   notificationCount: 0
@@ -92,7 +101,7 @@ const emit = defineEmits(['navigate', 'logout', 'settings', 'notifications']);
 const open = ref(false);
 
 // 旧 Main.html の表示順・アイコンを維持する。
-const menus = [{
+const defaultMenus: SidebarMenu[] = [{
   id: 'MenuWorkManagement',
   label: '作品管理',
   icon: 'fa-folder-open'
@@ -132,8 +141,24 @@ const menus = [{
   admin: true
 }];
 
+// 作品画面で実装済みのメニュー。表示名・アイコン・順序をここで管理する。
+const workMenus: SidebarMenu[] = [{
+  id: 'MenuBackToMain',
+  label: 'メインへ戻る',
+  icon: 'fa-arrow-left'
+}, {
+  id: 'MenuWorkInfo',
+  label: '作品共通情報',
+  icon: 'fa-info-circle'
+}, {
+  id: 'MenuCharacter',
+  label: 'キャラ設定',
+  icon: 'fa-user'
+}];
+
 // 旧 Main.js の IsAdmin 判定を踏襲し、セッション未取得時も管理者メニューを表示しない。
 const visibleMenus = computed(() => {
+  const menus = props.menuType === 'work' ? workMenus : defaultMenus;
   return menus.filter(menu => !menu.admin || props.session?.IsAdmin === true);
 });
 function toggleMenu() {

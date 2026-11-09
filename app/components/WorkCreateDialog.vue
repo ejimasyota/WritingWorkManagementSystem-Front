@@ -46,14 +46,14 @@ function create() {
     />
     <SelectBoxComponent v-model="genre" label="ジャンル" :options="genreOptions" />
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />
         閉じる
-      </button>
-      <button type="button" class="ButtonClass SaveButton" @click="create">
+      </ButtonComponent>
+      <ButtonComponent type="button" variant="SaveButton" @click="create">
         <i class="fas fa-plus" />
         作成
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

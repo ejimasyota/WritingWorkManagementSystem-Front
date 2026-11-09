@@ -263,24 +263,24 @@ onMounted(load);
       />
     </div>
     <div v-if="notificationForm || eraForm" class="ButtonGroup">
-      <button type="button" class="ButtonClass ClearButton" @click="clear">
+      <ButtonComponent type="button" variant="ClearButton" @click="clear">
         <i class="fas fa-sync" />
         クリア
-      </button>
-      <button type="button" class="ButtonClass SaveButton" @click="save">
+      </ButtonComponent>
+      <ButtonComponent type="button" variant="SaveButton" @click="save">
         <i class="fas fa-save" />
         保存
-      </button>
-      <button v-if="selected" type="button" class="ButtonClass DeleteButton" @click="remove">
+      </ButtonComponent>
+      <ButtonComponent v-if="selected" type="button" variant="DeleteButton" @click="remove">
         <i class="fas fa-trash" />
         削除
-      </button>
+      </ButtonComponent>
     </div>
     <div v-if="menuId === 'MenuTemplateMaster'" class="MarginBottom20">
-      <button type="button" class="ButtonClass SuccessButton" @click="openTemplate()">
+      <ButtonComponent type="button" variant="SuccessButton" @click="openTemplate()">
         <i class="fas fa-plus" />
         追加
-      </button>
+      </ButtonComponent>
     </div>
     <TableComponent
       ref="table"
@@ -292,18 +292,18 @@ onMounted(load);
       @row-click="selectRow"
     >
       <template #cell-Action="{ row }">
-        <button
+        <ButtonComponent
           v-if="menuId === 'MenuProjectManagement'"
           type="button"
-          class="ButtonClass ButtonSmall PrimaryButton ProjectMoveButton"
+          variant="ButtonSmall PrimaryButton ProjectMoveButton"
           @click.stop="emit('move', row.WorkId)"
         >
           <i class="fas fa-arrow-right" />
           移動
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent
           type="button"
-          class="ButtonClass ButtonSmall ProjectMoveButton"
+          variant="ButtonSmall ProjectMoveButton"
           :class="(menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? 'SuccessButton' : 'DangerButton'"
           @click.stop="toggleLock(row)"
         >
@@ -312,16 +312,16 @@ onMounted(load);
             :class="(menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? 'fa-unlock' : 'fa-lock'"
           />
           {{ (menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? '復旧' : 'ロック' }}
-        </button>
+        </ButtonComponent>
       </template>
       <template #cell-Edit="{ row }">
-        <button
+        <ButtonComponent
           type="button"
-          class="ButtonClass PrimaryButton ButtonSmall"
+          variant="PrimaryButton ButtonSmall"
           @click.stop="openTemplate(row)"
         >
           <i class="fas fa-edit" />
-        </button>
+        </ButtonComponent>
       </template>
     </TableComponent>
     <TemplateMasterDialog

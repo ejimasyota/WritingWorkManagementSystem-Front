@@ -7,6 +7,7 @@
  *  - 2026-11-04 作成
  * ========================================================== */
 
+/** 既存 Response.php のJSON形式。プロパティ名の大文字・小文字も維持する。 */
 /**
  * 共通のAPIレスポンス型定義
  */
@@ -18,6 +19,30 @@ export interface ApiResponse<T = unknown> {
     // 3. データ
     Data: T
 }
+
+/**
+ * HTTPメソッド
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+/**
+ * レスポンス形式
+ */
+export type ResponseType = 'json' | 'text' | 'blob' | 'arrayBuffer'
+/**
+ * レスポンス型
+ */
+export type ResponseData<T, R extends ResponseType> =
+    R extends 'text' ? string :
+    R extends 'blob' ? Blob :
+    R extends 'arrayBuffer' ? ArrayBuffer : T
+
+/** useApiと認証制御で共用する通信の型。Tはレスポンス全体の型を指定する。 */
+export type ApiTransport = <T = unknown, R extends ResponseType = 'json'>(
+    endpoint: string,
+    method?: HttpMethod,
+    data?: unknown,
+    responseType?: R,
+) => Promise<ResponseData<T, R>>
 
 /**
  * セレクトボックス・ラジオボタンに渡す選択肢

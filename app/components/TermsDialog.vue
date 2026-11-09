@@ -37,14 +37,14 @@
       </section>
     </div>
     <template #actions>
-      <button
+      <ButtonComponent
         type="button"
-        class="ButtonClass PrimaryButton"
+        variant="PrimaryButton"
         @click="close"
       >
         <i class="fas fa-check" aria-hidden="true" />
         確認しました
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

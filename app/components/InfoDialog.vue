@@ -28,9 +28,9 @@ function finish(confirmed: boolean) {
     <div class="DialogMessage" :style="{ textAlign }">{{ message }}</div>
     <img v-if="imageSrc" :src="imageSrc" :alt="title" class="DialogContentImage">
     <template #actions>
-      <button type="button" class="ButtonClass PrimaryButton" @click="finish(true)">
+      <ButtonComponent type="button" variant="PrimaryButton" @click="finish(true)">
         <i class="fas fa-check" aria-hidden="true" /> OK
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

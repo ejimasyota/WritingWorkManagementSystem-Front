@@ -259,14 +259,8 @@ async function remove() {
         />
       </label>
       <div v-if="!isPlot" class="TemplateStoryChecks">
-        <label class="CheckboxWrapper">
-          <input v-model="form.freeInput" type="checkbox">
-          自由入力
-        </label>
-        <label class="CheckboxWrapper">
-          <input v-model="form.monologue" type="checkbox">
-          モノローグ
-        </label>
+        <CheckBoxComponent v-model="form.freeInput" inline>自由入力</CheckBoxComponent>
+        <CheckBoxComponent v-model="form.monologue" inline>モノローグ</CheckBoxComponent>
       </div>
       <div class="FormRow">
         <TextFieldComponent
@@ -296,28 +290,28 @@ async function remove() {
         required
       />
       <div class="ButtonGroup">
-        <button type="button" class="ButtonClass ClearButton" @click="clearRow">
+        <ButtonComponent type="button" variant="ClearButton" @click="clearRow">
           <i class="fas fa-sync" />
           クリア
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent
           v-if="editingIndex >= 0"
           type="button"
-          class="ButtonClass DeleteButton"
+          variant="DeleteButton"
           @click="removeRow"
         >
           <i class="fas fa-trash" />
           行削除
-        </button>
-        <button
+        </ButtonComponent>
+        <ButtonComponent
           type="button"
-          class="ButtonClass PrimaryButton"
+          variant="PrimaryButton"
           :disabled="!division"
           @click="applyRow"
         >
           <i class="fas" :class="editingIndex >= 0 ? 'fa-check' : 'fa-plus'" />
           {{ editingIndex >= 0 ? '行更新' : '行追加' }}
-        </button>
+        </ButtonComponent>
       </div>
     </div>
     <div class="DialogSection">
@@ -335,18 +329,18 @@ async function remove() {
       />
     </div>
     <template #actions>
-      <button type="button" class="ButtonClass CloseButton" @click="close">
+      <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />
         閉じる
-      </button>
-      <button v-if="editing" type="button" class="ButtonClass DeleteButton" @click="remove">
+      </ButtonComponent>
+      <ButtonComponent v-if="editing" type="button" variant="DeleteButton" @click="remove">
         <i class="fas fa-trash" />
         削除
-      </button>
-      <button type="button" class="ButtonClass SaveButton" @click="save">
+      </ButtonComponent>
+      <ButtonComponent type="button" variant="SaveButton" @click="save">
         <i class="fas fa-save" />
         保存
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

@@ -1,5 +1,6 @@
 <template>
   <FieldFrame
+    :inline="inline"
     :label="label"
     :input-id="id"
     :required="required"
@@ -7,8 +8,10 @@
     :info-title="infoTitle"
     :info-message="infoMessage"
     :error="error"
+    :hint="hint"
   >
     <textarea
+      ref="inputElement"
       :id="id"
       class="TextAreaForm"
       :class="{ HasError: error }"
@@ -29,7 +32,7 @@
  * モジュールインポート
  * ========================================================== */
 // 1. vue関連
-import { useId } from 'vue';
+import { ref, useId } from 'vue';
 // 2. フォーム共通定義
 import { fieldProps } from '../composables/componentProps';
 
@@ -66,6 +69,8 @@ const emit = defineEmits<{
  * ========================================================== */
 // 1. 一意のIDを生成
 const id = useId();
+const inputElement = ref<HTMLTextAreaElement>();
+function focus() { inputElement.value?.focus(); }
 // 2. 共通処理群を取得
 const { value, setValue, getValue } = useFieldValue<string>(props, emit, '');
 
@@ -73,6 +78,7 @@ const { value, setValue, getValue } = useFieldValue<string>(props, emit, '');
  * 公開メソッド
  * ========================================================== */
 defineExpose({
+  focus,
   // 1. セット処理
   setValue,
   // 2. 取得処理

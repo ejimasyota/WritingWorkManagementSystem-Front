@@ -10,12 +10,12 @@
     <div class="DialogMessage" :style="{ textAlign }">{{ message }}</div>
     <img v-if="imageSrc" :src="imageSrc" :alt="title" class="DialogContentImage">
     <template #actions>
-      <button type="button" class="ButtonClass SecondaryButton" @click="finish(false)">
+      <ButtonComponent type="button" variant="SecondaryButton" @click="finish(false)">
         <i class="fas fa-times" aria-hidden="true" /> いいえ
-      </button>
-      <button type="button" class="ButtonClass PrimaryButton" @click="finish(true)">
+      </ButtonComponent>
+      <ButtonComponent type="button" variant="PrimaryButton" @click="finish(true)">
         <i class="fas fa-check" aria-hidden="true" /> はい
-      </button>
+      </ButtonComponent>
     </template>
   </BaseDialog>
 </template>

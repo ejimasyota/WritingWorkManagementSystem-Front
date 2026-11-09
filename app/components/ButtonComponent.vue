@@ -1,8 +1,7 @@
 <template>
   <button
     :type="type"
-    class="ButtonClass"
-    :class="variant"
+    :class="unstyled ? undefined : ['ButtonClass', variant]"
     :disabled="disabled"
     @click="emit('click', $event)"
   >
@@ -12,9 +11,13 @@
   </button>
 </template>
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
+
 const props = withDefaults(defineProps<{
   modelValue?: string;
   disabled?: boolean;
+  /** メニュー・表操作等は既存の専用CSSを適用する。 */
+  unstyled?: boolean;
   variant?: string;
   type?: 'button' | 'submit' | 'reset';
 }>(), {
@@ -29,7 +32,7 @@ const {
   value,
   setValue,
   getValue
-} = useFieldValue(props, emit, '');
+} = useFieldValue<string>(props, emit, '');
 defineExpose({
   setValue,
   getValue
