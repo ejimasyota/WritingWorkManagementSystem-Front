@@ -8,8 +8,9 @@ import type { BackendRequest } from '../../types/backend';
 import type { WorkInfo, WorkPermission, WorkInfoForm } from '../../types/work';
 import type { PageDialogs } from '../../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../../utils/backend';
-import { genreOptions } from '../../utils/mainView';
+import { createUtilPulldown } from '../../utils/utilMethod';
 import type { SelectOption } from '../../types/utilType';
+import { CONST_VARIABLE } from '~/config/Const';
 const spinner = useOperationSpinner();
 
 
@@ -148,7 +149,7 @@ function settingDateConfirmation(before: string, after: string) {
          :ref="el => inputFields.register('WorkTitle', el, form.WorkTitle)" label="作品名" required maxlength="100"
         :error="titleError" :disabled="!canEdit"
       />
-      <SelectBoxComponent :ref="el => inputFields.register('Genre', el, form.Genre)" label="ジャンル" :options="genreOptions" :disabled="!canEdit" />
+      <SelectBoxComponent v-model="form.Genre" label="ジャンル" :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)" :disabled="!canEdit" />
       <TextFieldComponent
         :ref="el => inputFields.register('SettingDate', el, form.SettingDate)" label="舞台設定日" input-readonly
         :date-picker-flg="canEdit" :disabled="!canEdit"

@@ -8,7 +8,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import type { TableColumn, TableRow } from '../composables/tableData';
-import { genreOptions } from '../utils/mainView';
+import { createUtilPulldown } from '../utils/utilMethod';
+import { CONST_VARIABLE } from '~/config/Const';
 import { reportBackendError, requireSuccess } from '../utils/backend';
 const spinner = useOperationSpinner();
 
@@ -50,10 +51,10 @@ function availableDivisions(value: string | number) {
   const used = props.templates.filter(item => String(item.Genre) === String(value)).map(item => Number(item.DivisionType));
   return divisionOptions.filter(option => !used.includes(option.value));
 }
-const genres = computed(() => editing.value ? genreOptions : [{
+const genres = computed(() => editing.value ? createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE) : [{
   value: '',
   label: ''
-}, ...genreOptions.filter(option => option.value !== 0 && availableDivisions(option.value).length)]);
+}, ...createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE).filter(option => option.value !== 0 && availableDivisions(option.value).length)]);
 const divisions = computed(() => [{
   value: '',
   label: ''

@@ -8,7 +8,8 @@ import type { BackendRequest, SessionInfo } from '../../types/backend';
 import type { PageDialogs } from '../../composables/usePageDialogs';
 import type { TableRow, TableColumn } from '../../composables/tableData';
 import { mainMenus, type MainMenuId } from '../../utils/mainMenus';
-import { formatDateTime, genreLabel, unformatDate } from '../../utils/mainView';
+import { unformatDate, getUtilPulldownLabel } from '../../utils/utilMethod';
+import { CONST_VARIABLE } from '~/config/Const';
 import { reportBackendError, requireSuccess } from '../../utils/backend';
 const spinner = useOperationSpinner();
 
@@ -320,8 +321,8 @@ const table = ref<{
 }>();
 const menu = computed(() => mainMenus[props.menuId]);
 const columns = computed(() => mainColumns(props.menuId));
-const notificationForm = computed(() => props.menuId === 'MenuSystemNotificationAdmin');
-const eraForm = computed(() => props.menuId === 'MenuEraMaster');
+const notificationForm = computed(() => props.menuId === CONST_VARIABLE.MENU_ID.NOTIFICATION_ADMIN);
+const eraForm = computed(() => props.menuId === CONST_VARIABLE.MENU_ID.ERA_MASTER);
 async function load() {
   try {
     const finished = await spinner.run(async () => {
@@ -329,7 +330,7 @@ async function load() {
       rows.value = normalizeMainList(props.menuId, data).map(row => props.menuId === 'MenuTemplateMaster' ? {
         ...row,
         DivisionLabel: Number(row.DivisionType) === 2 ? 'プロット' : 'ストーリー',
-        GenreLabel: genreLabel(row.Genre)
+        GenreLabel: getUtilPulldownLabel(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE, row.Genre)
       } : row);
       table.value?.reset();
       return true;
@@ -353,7 +354,7 @@ function clear() {
   errors.value = {};
 }
 async function selectRow(row: TableRow) {
-  if (props.menuId === 'MenuSystemNotificationList') {
+  if (props.menuId === CONST_VARIABLE.MENU_ID.NOTIFICATION_LIST) {
     await props.dialogs.info(String(row.Title || ''), String(row.Message || ''), 'left');
     return;
   }
@@ -375,7 +376,7 @@ async function selectRow(row: TableRow) {
   });
 }
 async function toggleLock(row: TableRow) {
-  const member = props.menuId === 'MenuMemberList';
+  const member = props.menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST;
   const locked = member ? row.AccountLockFlg : row.LockFlg;
   const action = locked ? '復旧' : 'ロック';
   if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0005', member ? 'アカウント' : '作品', action)))) return;
@@ -512,7 +513,7 @@ function mainColumns(menuId: MainMenuId): TableColumn[] {
     meta: ['登録年月日', '更新年月日', '登録者', '更新者'].includes(column.label),
     style: column.style ? Object.fromEntries(column.style.split(';').filter(Boolean).map(part => part.split(':'))) : undefined,
     format: (value: unknown) => {
-      if (column.key === 'Genre') return genreLabel(value)
+      if (column.key === 'Genre') return getUtilPulldownLabel(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE, value)
       if (column.key === 'ExpireDate') return value ? String(value).split(' ')[0].replace(/-/g, '/') : '無期限'
       if (column.key.endsWith('Date')) return formatDateTime(value) || '未設定'
       return value === null || value === undefined || value === '' ? '未設定' : value
@@ -603,7 +604,7 @@ function mainColumns(menuId: MainMenuId): TableColumn[] {
         削除
       </ButtonComponent>
     </div>
-    <div v-if="menuId === 'MenuTemplateMaster'" class="MarginBottom20">
+    <div v-if="menuId === CONST_VARIABLE.MENU_ID.TEMPLATE_MASTER" class="MarginBottom20">
       <ButtonComponent type="button" variant="SuccessButton" @click="openTemplate()">
         <i class="fas fa-plus" />
         追加
@@ -615,12 +616,12 @@ function mainColumns(menuId: MainMenuId): TableColumn[] {
       :columns="columns"
       :row-key="menu.key"
       :hide-meta="hideMeta"
-      :row-clickable="notificationForm || eraForm || menuId === 'MenuSystemNotificationList'"
+      :row-clickable="notificationForm || eraForm || menuId === CONST_VARIABLE.MENU_ID.NOTIFICATION_LIST"
       @row-click="selectRow"
     >
       <template #cell-Action="{ row }">
         <ButtonComponent
-          v-if="menuId === 'MenuProjectManagement'"
+          v-if="menuId === CONST_VARIABLE.MENU_ID.PROJECT_MANAGEMENT"
           type="button"
           variant="ButtonSmall PrimaryButton ProjectMoveButton"
           @click.stop="emit('move', row.WorkId)"
@@ -631,14 +632,14 @@ function mainColumns(menuId: MainMenuId): TableColumn[] {
         <ButtonComponent
           type="button"
           variant="ButtonSmall ProjectMoveButton"
-          :class="(menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? 'SuccessButton' : 'DangerButton'"
+          :class="(menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST ? row.AccountLockFlg : row.LockFlg) ? 'SuccessButton' : 'DangerButton'"
           @click.stop="toggleLock(row)"
         >
           <i
             class="fas"
-            :class="(menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? 'fa-unlock' : 'fa-lock'"
+            :class="(menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST ? row.AccountLockFlg : row.LockFlg) ? 'fa-unlock' : 'fa-lock'"
           />
-          {{ (menuId === 'MenuMemberList' ? row.AccountLockFlg : row.LockFlg) ? '復旧' : 'ロック' }}
+          {{ (menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST ? row.AccountLockFlg : row.LockFlg) ? '復旧' : 'ロック' }}
         </ButtonComponent>
       </template>
       <template #cell-Edit="{ row }">

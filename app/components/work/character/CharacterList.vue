@@ -1,19 +1,49 @@
+<template>
+  <div>
+    <WorkContentHeader title="キャラ設定" icon="fa-user" :work-title="work?.WorkTitle" :role="work ? role : undefined" />
+    <div v-if="canEdit" class="ButtonGroup">
+      <ButtonComponent type="button" variant="SuccessButton" @click="open()"><i class="fas fa-plus" aria-hidden="true" /> 追加</ButtonComponent>
+    </div>
+    <TableComponent :rows="rows" :columns="columns" row-key="CharaId" :hide-meta="hideMeta" :loading="loading">
+      <template #cell-Detail="{ row }"><ButtonComponent type="button" variant="PrimaryButton ButtonSmall" @click.stop="open(row as CharacterRow)"><i class="fas fa-eye" aria-hidden="true" /> 詳細</ButtonComponent></template>
+      <template #cell-Gender="{ value }">{{ value || '未設定' }}</template>
+      <template #cell-Age="{ value }">{{ value === null || value === undefined || value === '' ? '未設定' : `${value}歳` }}</template>
+      <template #cell-TagInfo="{ row }">
+        <div class="TagChipList">
+          <span v-for="tag in tags(row.TagInfo)" :key="String(tag.TagId)" class="TagChip" :style="tagStyle(resolveTag(tag))">{{ tag.TagName }}</span>
+          <span v-if="!tags(row.TagInfo).length">未設定</span>
+        </div>
+      </template>
+    </TableComponent>
+    <CharacterDialog
+      v-if="opened" :key="dialogVersion" v-model="opened" :row="selected" :masters="masters"
+      :setting-date="work?.SettingDate || ''" :can-edit="canEdit" :saving="saving" :dialogs="dialogs"
+      @save="save" @delete="remove" @clear="clear" @refresh-tags="refreshTags"
+    />
+  </div>
+</template>
 <script setup lang="ts">
-import { useOperationSpinner } from '../../../composables/useOperationSpinner';
-
-import { messageFormat } from '../../../utils/messages';
+/* ==========================================================
+ * モジュールインポート
+ * ========================================================== */
+// 1. vue関連
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import type { BackendRequest } from '../../../types/backend';
+// 2. キャラ設定型定義
 import type { CharacterMasters, CharacterRow, CharacterMaster } from '../../../types/character';
+// 3. 作品情報型定義
 import type { WorkInfo, WorkPermission } from '../../../types/work';
+// 4. テーブル型定義
 import type { TableColumn } from '../../../composables/tableData';
+// 5. ダイアログ共通型定義
 import type { PageDialogs } from '../../../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../../../utils/backend';
-import { formatDateTime } from '../../../utils/mainView';
+import { formatDateTime } from '../../../utils/utilMethod.ts';
 // この一覧画面が取得するマスタ。入力欄の定義には依存させない。
 const masterKeys = ['Organization', 'Team', 'Race', 'Class', 'Power', 'Weapon', 'Move', 'Tag', 'Stage'] as const;
 import { tagStyle } from '../../../utils/tagStyle';
 import CharacterDialog from './CharacterDialog.vue';
+import { useOperationSpinner } from '../../../composables/useOperationSpinner';
+import { messageFormat } from '../../../utils/messages';
 const spinner = useOperationSpinner();
 
 const props = defineProps<{ request: BackendRequest; dialogs: PageDialogs; isAdmin: boolean; hideMeta?: boolean }>();
@@ -203,27 +233,4 @@ function refreshTagsOnReturn() { if (opened.value && !saving.value) void refresh
 onMounted(() => { void load(); window.addEventListener('focus', refreshTagsOnReturn); });
 </script>
 
-<template>
-  <div>
-    <WorkContentHeader title="キャラ設定" icon="fa-user" :work-title="work?.WorkTitle" :role="work ? role : undefined" />
-    <div v-if="canEdit" class="ButtonGroup">
-      <ButtonComponent type="button" variant="SuccessButton" @click="open()"><i class="fas fa-plus" aria-hidden="true" /> 追加</ButtonComponent>
-    </div>
-    <TableComponent :rows="rows" :columns="columns" row-key="CharaId" :hide-meta="hideMeta" :loading="loading">
-      <template #cell-Detail="{ row }"><ButtonComponent type="button" variant="PrimaryButton ButtonSmall" @click.stop="open(row as CharacterRow)"><i class="fas fa-eye" aria-hidden="true" /> 詳細</ButtonComponent></template>
-      <template #cell-Gender="{ value }">{{ value || '未設定' }}</template>
-      <template #cell-Age="{ value }">{{ value === null || value === undefined || value === '' ? '未設定' : `${value}歳` }}</template>
-      <template #cell-TagInfo="{ row }">
-        <div class="TagChipList">
-          <span v-for="tag in tags(row.TagInfo)" :key="String(tag.TagId)" class="TagChip" :style="tagStyle(resolveTag(tag))">{{ tag.TagName }}</span>
-          <span v-if="!tags(row.TagInfo).length">未設定</span>
-        </div>
-      </template>
-    </TableComponent>
-    <CharacterDialog
-      v-if="opened" :key="dialogVersion" v-model="opened" :row="selected" :masters="masters"
-      :setting-date="work?.SettingDate || ''" :can-edit="canEdit" :saving="saving" :dialogs="dialogs"
-      @save="save" @delete="remove" @clear="clear" @refresh-tags="refreshTags"
-    />
-  </div>
-</template>
+

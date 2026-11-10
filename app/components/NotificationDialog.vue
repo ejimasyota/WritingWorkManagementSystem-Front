@@ -7,9 +7,8 @@ import { computed, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../utils/backend';
-import { formatShortDate } from '../utils/mainView';
+import { formatShortDate } from '../utils/utilMethod';
 const spinner = useOperationSpinner();
-
 interface SystemNotification {
   NotificationId: string;
   Title: string;

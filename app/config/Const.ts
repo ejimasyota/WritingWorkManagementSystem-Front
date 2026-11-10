@@ -16,7 +16,9 @@ export const CONST_VARIABLE = {
    */
   SYSTEM_NAME: "創作管理システム",
 
-  /** 色コードが未設定の場合のピッカー初期色（旧実装と同じ）。 */
+  /** 
+   * 色コードが未設定の場合のピッカー初期色
+   */
   COLOR_PICKER_INITIAL_VALUE: "#9b59b6",
 
   /**
@@ -64,6 +66,49 @@ export const CONST_VARIABLE = {
     // 1. ダークモードFLG
     DARK_MODE_FLG: "DarkMode",
     // 2. メタ情報非表示FLG
-    HIDE_META_FLG: "HideMetaColumns",
+    HIDE_META_FLG: "HideMetaColumns"
   },
-};
+
+  /**
+   * プルダウン種別
+   */
+  PULLDOWN_TYPE: {
+    // 1. ジャンル
+    TYPE_GENRE: "GENRE"
+  },
+
+  /**
+   * メニューID
+   */
+  MENU_ID: {
+    /* ------------------------------
+     * 1. メイン画面
+     * ------------------------------*/
+    // 1. 作品一覧管理
+    PROJECT_MANAGEMENT: "MenuProjectManagement",
+    // 2. 作品管理
+    WORK_MANAGEMENT: "MenuWorkManagement",
+    // 3. システム通知一覧
+    NOTIFICATION_LIST: "MenuSystemNotificationList",
+    // 4. 会員一覧
+    MEMBER_LIST: "MenuMemberList",
+    // 5. 管理者一覧
+    ADMIN_LIST: "MenuAdminList",
+    // 6. システム通知管理
+    NOTIFICATION_ADMIN: "MenuSystemNotificationAdmin",
+    // 7. 元号マスタ
+    ERA_MASTER: "MenuEraMaster",
+    // 8. テンプレートマスタ
+    TEMPLATE_MASTER: "MenuTemplateMaster",
+
+    /* ------------------------------
+     * 2. 作品管理画面
+     * ------------------------------*/
+    // 1. メインへ戻る
+    BACK_TO_MAIN: "MenuBackToMain",
+    // 2. 作品共通情報
+    WORK_INFO: "MenuWorkInfo",
+    // 3. キャラ設定
+    CHARA_INFO: "MenuCharacter",
+  }
+}

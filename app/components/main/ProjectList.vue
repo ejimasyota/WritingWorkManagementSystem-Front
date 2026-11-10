@@ -6,7 +6,8 @@ import { onMounted, ref } from 'vue';
 import type { BackendRequest, DownloadData, Project, SessionInfo } from '../../types/backend';
 import type { PageDialogs } from '../../composables/usePageDialogs';
 import type { TableColumn } from '../../composables/tableData';
-import { formatDateTime, genreLabel } from '../../utils/mainView';
+import { formatDateTime, getUtilPulldownLabel } from '../../utils/utilMethod';
+import { CONST_VARIABLE } from '~/config/Const';
 import { copyToClipboard, downloadBase64, fileAsBase64 } from '../../utils/files';
 import { reportBackendError, requireSuccess } from '../../utils/backend';
 const spinner = useOperationSpinner();
@@ -81,7 +82,7 @@ const columns: TableColumn[] = projectColumns.map(column => ({
   meta: ['登録年月日', '更新年月日', '登録者', '更新者'].includes(column.label),
   style: column.style ? Object.fromEntries(column.style.split(';').filter(Boolean).map(part => part.split(':'))) : undefined,
   format: (value: unknown) => {
-    if (column.key === 'Genre') return genreLabel(value);
+    if (column.key === 'Genre') return getUtilPulldownLabel(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE, value);
     if (column.key.endsWith('Date')) return formatDateTime(value) || '未設定';
     return value || '未設定';
   }

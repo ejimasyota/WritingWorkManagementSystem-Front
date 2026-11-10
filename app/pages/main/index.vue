@@ -12,7 +12,7 @@
       @notifications="notificationsOpen = !notificationsOpen"
     >
       <MainProjectList
-        v-if="activeMenu === 'MenuWorkManagement'"
+        v-if="activeMenu === CONST_VARIABLE.MENU_ID.WORK_MANAGEMENT"
         ref="projectList"
         :session="session"
         :request="call"

@@ -1,3 +1,51 @@
+<template>
+  <div>
+    <UtilLayout
+      v-if="session"
+      :session="session"
+      menu-type="work"
+      :active-menu="activeMenu || undefined"
+      :notification-count="notificationCount"
+      @navigate="navigateMenu"
+      @settings="settingsOpen = true"
+      @notifications="notificationsOpen = !notificationsOpen"
+      @logout="logout"
+    >
+      <component
+        :is="workViews[activeMenu]"
+        v-if="workAvailable && activeMenu"
+        :key="auth.identityVersion.value + ':' + workRevision + ':' + activeMenu"
+        :request="call"
+        :dialogs="dialogs"
+        :is-admin="session.IsAdmin"
+        :hide-meta="hideMeta"
+        @unavailable="unavailable"
+        @navigate="navigateMenu"
+      />
+      <p v-else-if="!activeMenu">{{ messageFormat('INFO', 'I_0036') }}</p>
+    </UtilLayout>
+    <SettingsDialog
+      v-if="session"
+      :key="'settings-' + auth.identityVersion.value"
+      v-model="settingsOpen"
+      :user-id="session.UserId"
+      :request="call"
+      :dialogs="dialogs"
+      @appearance="hideMeta = $event"
+    />
+    <NotificationDialog
+      v-if="session"
+      :key="'notifications-' + auth.identityVersion.value"
+      v-model="notificationsOpen"
+      :request="call"
+      :dialogs="dialogs"
+      @count="notificationCount = $event"
+      @refresh="refreshBadge"
+      @move="moveToWork"
+    />
+    <PageDialogHost :dialogs="dialogs" />
+  </div>
+</template>
 <script setup lang="ts">
 import { useOperationSpinner } from '../../composables/useOperationSpinner';
 
@@ -211,51 +259,3 @@ async function moveToWork(workId: unknown, menuId?: string) {
 
 </script>
 
-<template>
-  <div>
-    <UtilLayout
-      v-if="session"
-      :session="session"
-      menu-type="work"
-      :active-menu="activeMenu || undefined"
-      :notification-count="notificationCount"
-      @navigate="navigateMenu"
-      @settings="settingsOpen = true"
-      @notifications="notificationsOpen = !notificationsOpen"
-      @logout="logout"
-    >
-      <component
-        :is="workViews[activeMenu]"
-        v-if="workAvailable && activeMenu"
-        :key="auth.identityVersion.value + ':' + workRevision + ':' + activeMenu"
-        :request="call"
-        :dialogs="dialogs"
-        :is-admin="session.IsAdmin"
-        :hide-meta="hideMeta"
-        @unavailable="unavailable"
-        @navigate="navigateMenu"
-      />
-      <p v-else-if="!activeMenu">{{ messageFormat('INFO', 'I_0036') }}</p>
-    </UtilLayout>
-    <SettingsDialog
-      v-if="session"
-      :key="'settings-' + auth.identityVersion.value"
-      v-model="settingsOpen"
-      :user-id="session.UserId"
-      :request="call"
-      :dialogs="dialogs"
-      @appearance="hideMeta = $event"
-    />
-    <NotificationDialog
-      v-if="session"
-      :key="'notifications-' + auth.identityVersion.value"
-      v-model="notificationsOpen"
-      :request="call"
-      :dialogs="dialogs"
-      @count="notificationCount = $event"
-      @refresh="refreshBadge"
-      @move="moveToWork"
-    />
-    <PageDialogHost :dialogs="dialogs" />
-  </div>
-</template>

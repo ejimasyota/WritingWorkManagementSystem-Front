@@ -8,7 +8,7 @@ import { reactive, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../utils/backend';
-import { formatDateWithWeekday } from '../utils/mainView';
+import { formatDateWithWeekday } from '../utils/utilMethod';
 const spinner = useOperationSpinner();
 
 

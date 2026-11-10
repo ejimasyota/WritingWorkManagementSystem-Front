@@ -3,12 +3,12 @@ import { messageFormat } from '../utils/messages';
 
 import { useInputFields } from '../composables/useInputFields';
 import { ref, watch } from 'vue';
-import { genreOptions } from '../utils/mainView';
-
-const inputFields = useInputFields();
+import { createUtilPulldown } from '../utils/utilMethod';
+import { CONST_VARIABLE } from '~/config/Const';
 const props = defineProps<{
   modelValue: boolean;
 }>();
+const inputFields = useInputFields();
 const emit = defineEmits(['update:modelValue', 'create']);
 const title = ref('');
 const genre = ref<string | number>(0);
@@ -49,7 +49,7 @@ function create() {
       :error="error"
       required
     />
-    <SelectBoxComponent :ref="el => inputFields.register('genre', el, genre)" label="ジャンル" :options="genreOptions" />
+    <SelectBoxComponent v-model="genre" label="ジャンル" :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)" />
     <template #actions>
       <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />

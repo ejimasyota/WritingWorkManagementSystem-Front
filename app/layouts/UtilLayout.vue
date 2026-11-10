@@ -94,7 +94,7 @@ interface Props {
 }
 const props = withDefaults(defineProps<Props>(), {
   menuType: 'main',
-  activeMenu: 'MenuWorkManagement',
+  activeMenu: CONST_VARIABLE.MENU_ID.WORK_MANAGEMENT,
   version: 'ver_1.0.0',
   notificationCount: 0
 });
@@ -103,40 +103,40 @@ const open = ref(false);
 
 // 旧 Main.html の表示順・アイコンを維持する。
 const defaultMenus: SidebarMenu[] = [{
-  id: 'MenuWorkManagement',
+  id: CONST_VARIABLE.MENU_ID.WORK_MANAGEMENT,
   label: '作品管理',
   icon: 'fa-folder-open'
 }, {
-  id: 'MenuSystemNotificationList',
+  id: CONST_VARIABLE.MENU_ID.NOTIFICATION_LIST,
   label: 'システム通知一覧',
   icon: 'fa-bell'
 }, {
-  id: 'MenuMemberList',
+  id: CONST_VARIABLE.MENU_ID.MEMBER_LIST,
   label: '会員一覧',
   icon: 'fa-users',
   admin: true
 }, {
-  id: 'MenuAdminList',
+  id: CONST_VARIABLE.MENU_ID.ADMIN_LIST,
   label: '管理者一覧',
   icon: 'fa-user-shield',
   admin: true
 }, {
-  id: 'MenuSystemNotificationAdmin',
+  id: CONST_VARIABLE.MENU_ID.NOTIFICATION_ADMIN,
   label: 'システム通知管理',
   icon: 'fa-bullhorn',
   admin: true
 }, {
-  id: 'MenuEraMaster',
+  id: CONST_VARIABLE.MENU_ID.ERA_MASTER,
   label: '元号マスタ',
   icon: 'fa-calendar-alt',
   admin: true
 }, {
-  id: 'MenuTemplateMaster',
+  id: CONST_VARIABLE.MENU_ID.TEMPLATE_MASTER,
   label: 'テンプレートマスタ',
   icon: 'fa-file-lines',
   admin: true
 }, {
-  id: 'MenuProjectManagement',
+  id: CONST_VARIABLE.MENU_ID.PROJECT_MANAGEMENT,
   label: '作品一覧管理',
   icon: 'fa-cogs',
   admin: true
@@ -144,7 +144,7 @@ const defaultMenus: SidebarMenu[] = [{
 
 // 作品内の表示名・ID・アイコンはルーティングと同じ定義を使用する。
 const workMenus: SidebarMenu[] = [
-  { id: 'MenuBackToMain', label: 'メインへ戻る', icon: 'fa-arrow-left' },
+  { id: CONST_VARIABLE.MENU_ID.BACK_TO_MAIN, label: 'メインへ戻る', icon: 'fa-arrow-left' },
   ...Object.entries(CONST_VARIABLE.WORK_MENUS).map(([id, menu]) => ({ id, label: menu.label, icon: menu.icon })),
 ];
 
