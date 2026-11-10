@@ -1,5 +1,5 @@
 /** 旧 Common.js の ParseDateStr / CalculateAge を移植。年のみは1月1日、年月は1日として扱う。 */
-export function parseCharacterDate(DateStr: string): Date | null {
+export function parseFlexibleDate(DateStr: string): Date | null {
   if (!DateStr) return null
   const Str = String(DateStr).trim()
 
@@ -82,22 +82,35 @@ export function calculateAge(ReferenceDate: Date, BirthDate: Date): number {
   return Age
 }
 
-/** 旧 CalculateAgeFromBirthDate：死亡日と舞台設定日のうち過去の日時を基準にする。 */
-export function characterAge(birthText: string, deathText: string, settingText: string): string {
-  const birth = parseCharacterDate(birthText)
-  if (!birth) return ''
-  const setting = parseCharacterDate(settingText)
-  const death = parseCharacterDate(deathText)
-  const reference = death ? (setting && death > setting ? setting : death) : setting
-  if (!reference) return ''
-  const age = calculateAge(reference, birth)
-  return age >= 0 ? String(age) : ''
+
+/** 粒度が異なる日付は粗い側に揃えて比較する。年と年月の組み合わせでは年だけを見る。 */
+export function compareFlexibleDates(left: string, right: string): number | null {
+  const first = parseFlexibleDate(left);
+  const second = parseFlexibleDate(right);
+  if (!first || !second) return null;
+  const precision = (text: string) => {
+    const length = text.replace(/[^0-9]/g, '').length;
+    if (length >= 8) return 3;
+    if (length >= 6) return 2;
+    return 1;
+  };
+  const level = Math.min(precision(left), precision(right));
+  const comparable = (date: Date) => {
+    let value = date.getFullYear();
+    if (level >= 2) value = value * 100 + date.getMonth() + 1;
+    if (level >= 3) value = value * 100 + date.getDate();
+    return value;
+  };
+  return Math.sign(comparable(first) - comparable(second));
 }
 
-/** 保存前の旧判定も維持する。粒度を補完した日付比較へ勝手に変更しない。 */
-export function characterDateError(birth: string, death: string): string {
-  const birthNumber = birth.replace(/[^0-9]/g, '')
-  const deathNumber = death.replace(/[^0-9]/g, '')
-  return birthNumber && deathNumber && deathNumber < birthNumber
-    ? '没年月日は生年月日より後の日付を設定してください' : ''
+/** 保存されている日付の表記を、既存画面と同じ年月日表記で表示する。 */
+export function formatSettingDate(text: string): string {
+  if (!text) return '';
+  const digits = text.replace(/[^0-9]/g, '');
+  const year = String(Number.parseInt(digits.slice(0, 4), 10));
+  if (digits.length === 8) return year + '年' + digits.slice(4, 6) + '月' + digits.slice(6, 8) + '日';
+  if (digits.length === 6) return year + '年' + digits.slice(4, 6) + '月';
+  if (digits.length === 4) return year + '年';
+  return text;
 }

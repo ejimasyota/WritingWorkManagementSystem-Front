@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -51,7 +52,6 @@ const props = defineProps({
   // 1. フォーム共通定義
   ...fieldProps,
   // 2. 値
-  modelValue: String,
   // 3. 行数
   rows: Number
 });
@@ -61,7 +61,7 @@ const props = defineProps({
  * ========================================================== */
 const emit = defineEmits<{
   // 1. 入力値
-  'update:modelValue': [value: string];
+  'value-change': [];
 }>();
 
 /* ==========================================================
@@ -72,7 +72,7 @@ const id = useId();
 const inputElement = ref<HTMLTextAreaElement>();
 function focus() { inputElement.value?.focus(); }
 // 2. 共通処理群を取得
-const { value, setValue, getValue } = useFieldValue<string>(props, emit, '');
+const { value, setValue, getValue, updateValue } = useFieldValue<string>('', () => emit('value-change'));
 
 /* ==========================================================
  * 公開メソッド
@@ -91,6 +91,6 @@ defineExpose({
  */
 function updateInput(event: Event) {
   // 1. 入力内容のセット
-  setValue((event.target as HTMLTextAreaElement).value);
+  updateValue((event.target as HTMLTextAreaElement).value);
 }
 </script>

@@ -1,9 +1,15 @@
 <script setup lang="ts">
+import { useOperationSpinner } from '../composables/useOperationSpinner';
+
+import { messageFormat } from '../utils/messages';
+
 import { computed, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../utils/backend';
 import { formatShortDate } from '../utils/mainView';
+const spinner = useOperationSpinner();
+
 interface SystemNotification {
   NotificationId: string;
   Title: string;
@@ -42,7 +48,7 @@ watch(() => props.modelValue, async open => {
     WorkUpdateNotifications: []
   };
   try {
-    data.value = requireSuccess(await props.request<NotificationData>('/GetNotificationList.php'), '通知の取得に失敗しました');
+    data.value = requireSuccess(await spinner.run(() => props.request<NotificationData>('/GetNotificationList.php')), messageFormat('ERROR', 'E_0003', '通知の取得'));
   } catch {
     // 旧 ShowNotificationPanel と同じく、取得失敗時も空のリストを表示する。
   } finally {
@@ -55,16 +61,20 @@ function close() {
 }
 async function dismiss(notification: SystemNotification) {
   try {
-    requireSuccess(await props.request('/DismissSystemNotification.php', 'POST', {
-      NotificationId: notification.NotificationId
-    }), '削除に失敗しました');
-    const count = Math.max(0, systemCount.value - 1);
-    data.value.SystemNotifications = data.value.SystemNotifications.filter(item => item.NotificationId !== notification.NotificationId);
-    data.value.SystemTotalCnt = count;
-    emit('count', Math.min(count + workCount.value, 1000));
-    emit('refresh');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/DismissSystemNotification.php', 'POST', {
+        NotificationId: notification.NotificationId
+      }), messageFormat('ERROR', 'E_0003', '削除'));
+      const count = Math.max(0, systemCount.value - 1);
+      data.value.SystemNotifications = data.value.SystemNotifications.filter(item => item.NotificationId !== notification.NotificationId);
+      data.value.SystemTotalCnt = count;
+      emit('count', Math.min(count + workCount.value, 1000));
+      emit('refresh');
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '削除に失敗しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0003', '削除'));
   }
 }
 function move(work: WorkNotification) {
@@ -118,7 +128,7 @@ function move(work: WorkNotification) {
           </ButtonComponent>
         </div>
         <div v-if="!systemCount" class="NotificationPanelEmpty">
-          通知はありません
+          {{ messageFormat('INFO', 'I_0049') }}
         </div>
       </div>
       <div class="NotificationPanelSectionTitle">
@@ -143,7 +153,7 @@ function move(work: WorkNotification) {
           </span>
         </div>
         <div v-if="!workCount" class="NotificationPanelEmpty">
-          更新はありません
+          {{ messageFormat('INFO', 'I_0050') }}
         </div>
       </div>
     </div>

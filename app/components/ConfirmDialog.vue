@@ -20,6 +20,7 @@
   </BaseDialog>
 </template>
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -35,7 +36,7 @@ defineProps({
   // 2. ダイアログタイトル
   title: {
     type: String,
-    default: '確認'
+    default: () => messageFormat('CONFIRM', 'C_0010')
   }
 });
 

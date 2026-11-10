@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import { useOperationSpinner } from '../composables/useOperationSpinner';
+
+import { messageFormat } from '../utils/messages';
+
+import { useInputFields } from '../composables/useInputFields';
 import { computed, reactive, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import type { TableColumn, TableRow } from '../composables/tableData';
 import { genreOptions } from '../utils/mainView';
 import { reportBackendError, requireSuccess } from '../utils/backend';
+const spinner = useOperationSpinner();
+
+
+const inputFields = useInputFields();
 const props = defineProps<{
   modelValue: boolean;
   template: TableRow | null;
@@ -78,6 +87,7 @@ function clearRow() {
     freeInput: false,
     monologue: false
   });
+  inputFields.setValues(form);
   editingIndex.value = -1;
   errors.value = {};
 }
@@ -85,6 +95,7 @@ watch(() => props.modelValue, open => {
   if (!open) return;
   genre.value = props.template ? Number(props.template.Genre) : '';
   division.value = props.template ? Number(props.template.DivisionType) : '';
+  inputFields.setValues({ genre: genre.value, division: division.value });
   try {
     const text = props.template?.TemplateText;
     const parsed = typeof text === 'string' ? JSON.parse(text) : text;
@@ -97,26 +108,31 @@ watch(() => props.modelValue, open => {
   clearRow();
 });
 async function confirmDiscard() {
-  return !rows.value.length || (await props.dialogs.confirm('区分が変わるため、入力済みのテンプレート行は破棄されます。\nよろしいですか？'));
+  return !rows.value.length || (await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0003')));
 }
-async function changeGenre(value: string | number) {
+async function changeGenre() {
+  const value = inputFields.getValue<string | number>('genre', '');
   const previous = genre.value;
   genre.value = value;
   const keepsDivision = availableDivisions(value).some(option => String(option.value) === String(division.value));
   if (keepsDivision) return;
   if (!(await confirmDiscard())) {
     genre.value = previous;
+    inputFields.setValue('genre', previous);
     return;
   }
   division.value = '';
+  inputFields.setValue('division', '');
   rows.value = [];
   clearRow();
 }
-async function changeDivision(value: string | number) {
+async function changeDivision() {
+  const value = inputFields.getValue<string | number>('division', '');
   const previous = division.value;
   division.value = value;
   if (!(await confirmDiscard())) {
     division.value = previous;
+    inputFields.setValue('division', previous);
     return;
   }
   rows.value = [];
@@ -132,13 +148,15 @@ function selectRow(row: TableRow) {
     freeInput: !!row.FreeInput,
     monologue: !!row.Monologue
   });
+  inputFields.setValues(form);
   errors.value = {};
 }
 function applyRow() {
+  Object.assign(form, inputFields.getValues(form));
   errors.value = {};
-  if (!form.index) errors.value.index = '並び順を入力してください';
-  if (!form.content.trim()) errors.value.content = '内容を入力してください';
-  if (isPlot.value && Number(form.structure) < 1) errors.value.structure = '起承転結を選択してください';
+  if (!form.index) errors.value.index = messageFormat('ERROR', 'E_0001', '並び順');
+  if (!form.content.trim()) errors.value.content = messageFormat('ERROR', 'E_0001', '内容');
+  if (isPlot.value && Number(form.structure) < 1) errors.value.structure = messageFormat('ERROR', 'E_0021');
   if (Object.keys(errors.value).length) return;
   const common = {
     IndexNum: Number(form.index),
@@ -158,7 +176,7 @@ function applyRow() {
   clearRow();
 }
 async function removeRow() {
-  if (editingIndex.value < 0 || !(await props.dialogs.confirm('この行を削除しますか？'))) return;
+  if (editingIndex.value < 0 || !(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'この行を削除')))) return;
   rows.value.splice(editingIndex.value, 1);
   clearRow();
 }
@@ -166,42 +184,52 @@ function close() {
   emit('update:modelValue', false);
 }
 async function save() {
+  genre.value = inputFields.getValue<string | number>('genre', '');
+  division.value = inputFields.getValue<string | number>('division', '');
   errors.value = {};
-  if (!genre.value) errors.value.genre = 'ジャンルを入力してください';
-  if (!division.value) errors.value.division = '区分を入力してください';
+  if (!genre.value) errors.value.genre = messageFormat('ERROR', 'E_0001', 'ジャンル');
+  if (!division.value) errors.value.division = messageFormat('ERROR', 'E_0001', '区分');
   if (Object.keys(errors.value).length) return;
   if (!rows.value.length) {
-    await props.dialogs.error('テンプレートを1行以上登録してください');
+    await props.dialogs.error(messageFormat('ERROR', 'E_0022'));
     return;
   }
   try {
-    requireSuccess(await props.request('/SaveTemplateMaster.php', 'POST', {
-      TemplateId: props.template?.TemplateId || null,
-      Genre: Number(genre.value),
-      DivisionType: Number(division.value),
-      TemplateRows: rows.value,
-      UpdateDate: props.template?.UpdateDate || null
-    }), '保存に失敗しました');
-    await props.dialogs.info('保存完了', 'テンプレートを保存しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/SaveTemplateMaster.php', 'POST', {
+        TemplateId: props.template?.TemplateId || null,
+        Genre: Number(genre.value),
+        DivisionType: Number(division.value),
+        TemplateRows: rows.value,
+        UpdateDate: props.template?.UpdateDate || null
+      }), messageFormat('ERROR', 'E_0003', '保存'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'テンプレートの保存'));
     close();
     emit('changed');
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '保存中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '保存'));
   }
 }
 async function remove() {
   if (!props.template) return;
-  if (!(await props.dialogs.confirm('テンプレートを削除しますか？\n※すでに該当テンプレートを使用して作成された作品に関しては削除されません'))) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0004')))) return;
   try {
-    requireSuccess(await props.request('/DeleteTemplateMaster.php', 'POST', {
-      TemplateId: props.template.TemplateId,
-      UpdateDate: props.template.UpdateDate
-    }), '削除に失敗しました');
-    await props.dialogs.info('削除完了', 'テンプレートを削除しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/DeleteTemplateMaster.php', 'POST', {
+        TemplateId: props.template.TemplateId,
+        UpdateDate: props.template.UpdateDate
+      }), messageFormat('ERROR', 'E_0003', '削除'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '削除'), messageFormat('INFO', 'I_0001', 'テンプレートの削除'));
     close();
     emit('changed');
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '削除中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '削除'));
   }
 }
 </script>
@@ -220,7 +248,7 @@ async function remove() {
       </label>
       <div class="FormRow">
         <SelectBoxComponent
-          :model-value="genre"
+          :ref="el => inputFields.register('genre', el, genre)"
           label="ジャンル"
           :options="genres"
           :disabled="editing"
@@ -228,12 +256,12 @@ async function remove() {
           :required="!editing"
           :info-icon-flg="!editing"
           info-title="ジャンル"
-          info-message="ストーリー・プロットの両方のテンプレートが登録済みのジャンルは表示されません"
+          :info-message="messageFormat('INFO', 'I_0014')"
           :error="errors.genre"
-          @update:model-value="changeGenre"
+          @value-change="changeGenre"
         />
         <SelectBoxComponent
-          :model-value="division"
+          :ref="el => inputFields.register('division', el, division)"
           label="区分"
           :options="divisions"
           :disabled="editing"
@@ -241,9 +269,9 @@ async function remove() {
           :required="!editing"
           :info-icon-flg="!editing"
           info-title="区分"
-          info-message="ジャンルを選択すると、そのジャンルでまだテンプレートが登録されていない区分のみが表示されます"
+          :info-message="messageFormat('INFO', 'I_0015')"
           :error="errors.division"
-          @update:model-value="changeDivision"
+          @value-change="changeDivision"
         />
       </div>
     </div>
@@ -254,17 +282,17 @@ async function remove() {
           class="fas fa-info-circle ContentHeaderHelpIcon"
           role="button"
           tabindex="0"
-          @click="dialogs.info('テンプレート', '行の入力項目は区分によって変わるため、区分を選択するまで行は追加できません')"
-          @keydown.enter="dialogs.info('テンプレート', '行の入力項目は区分によって変わるため、区分を選択するまで行は追加できません')"
+          @click="dialogs.info(messageFormat('INFO', 'I_0016'), messageFormat('INFO', 'I_0017'))"
+          @keydown.enter="dialogs.info(messageFormat('INFO', 'I_0016'), messageFormat('INFO', 'I_0017'))"
         />
       </label>
       <div v-if="!isPlot" class="TemplateStoryChecks">
-        <CheckBoxComponent v-model="form.freeInput" inline>自由入力</CheckBoxComponent>
-        <CheckBoxComponent v-model="form.monologue" inline>モノローグ</CheckBoxComponent>
+        <CheckBoxComponent :ref="el => inputFields.register('freeInput', el, form.freeInput)" inline>自由入力</CheckBoxComponent>
+        <CheckBoxComponent :ref="el => inputFields.register('monologue', el, form.monologue)" inline>モノローグ</CheckBoxComponent>
       </div>
       <div class="FormRow">
         <TextFieldComponent
-          v-model="form.index"
+          :ref="el => inputFields.register('index', el, form.index)"
           label="並び順"
           numeric-only
           inputmode="numeric"
@@ -274,16 +302,16 @@ async function remove() {
         />
         <SelectBoxComponent
           v-if="isPlot"
-          v-model="form.structure"
+          :ref="el => inputFields.register('structure', el, form.structure)"
           label="起承転結"
           :options="structures.map((label, value) => ({ label, value }))"
           :error="errors.structure"
           required
         />
-        <TextFieldComponent v-else v-model="form.narrator" label="語り手" maxlength="255" />
+        <TextFieldComponent v-else :ref="el => inputFields.register('narrator', el, form.narrator)" label="語り手" maxlength="255" />
       </div>
       <TextFieldComponent
-        v-model="form.content"
+        :ref="el => inputFields.register('content', el, form.content)"
         label="内容"
         text-area-flg
         :error="errors.content"

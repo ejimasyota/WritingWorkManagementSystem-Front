@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
+import { useInputFields } from '../composables/useInputFields';
 import { computed, reactive, ref, watch } from 'vue';
 import { cellValue, filterValues, processTable, type TableColumn, type TableRow } from '../composables/tableData';
+
+const inputFields = useInputFields();
 interface Props {
   rows?: TableRow[];
   columns: TableColumn[];
@@ -20,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   pageSize: 15,
   scrollTopOnPageChange: true
 });
-const emit = defineEmits(['edit', 'delete', 'selection-change', 'row-click']);
+const emit = defineEmits(['edit', 'delete', 'selection-change', 'row-click', 'result-change']);
 const page = ref(1);
 const sort = reactive({
   key: '',
@@ -40,6 +44,8 @@ const activeFilterCount = computed(() => Object.keys(filters).length);
 
 // 絞り込み・ソートを全件に適用してから、現在ページの行を取得する。
 const result = computed(() => processTable(props.rows, props.columns, filters, sort));
+// 年表などの別表示へ、ページ分割前の絞込結果を渡す。
+watch(result, rows => emit('result-change', rows), { immediate: true });
 const size = computed(() => Math.max(1, Math.floor(props.pageSize) || 15));
 const pages = computed(() => Math.max(1, Math.ceil(result.value.length / size.value)));
 const visible = computed(() => {
@@ -109,10 +115,10 @@ function openFilter(event: MouseEvent, column: TableColumn) {
 }
 
 /** チェックを変更した時点で適用する。適用ボタン・確認ダイアログは設けない。 */
-function toggleFilter(value: string, event: Event) {
+function toggleFilter(value: string) {
   const column = activeFilter.value;
   if (!column) return;
-  const checked = (event.target as HTMLInputElement).checked;
+  const checked = inputFields.getValue('filter:' + column.key + ':' + value, false);
   const current = filters[column.key] || [];
   const next = checked ? [...current, value] : current.filter(item => item !== value);
   if (next.length) {
@@ -146,14 +152,14 @@ function filterSummary(column: TableColumn) {
 function isSelected(row: TableRow) {
   return selected.value.includes(row[props.rowKey]);
 }
-function selectRow(row: TableRow, event: Event) {
+function selectRow(row: TableRow) {
   const key = row[props.rowKey];
-  const checked = (event.target as HTMLInputElement).checked;
+  const checked = inputFields.getValue('row:' + String(key), false);
   selected.value = checked ? [...new Set([...selected.value, key])] : selected.value.filter(value => value !== key);
   emit('selection-change', [...selected.value]);
 }
-function selectPage(event: Event) {
-  const checked = (event.target as HTMLInputElement).checked;
+function selectPage() {
+  const checked = inputFields.getValue('page', false);
   const keys = visible.value.map(row => row[props.rowKey]);
   selected.value = checked ? [...new Set([...selected.value, ...keys])] : selected.value.filter(key => !keys.includes(key));
   emit('selection-change', [...selected.value]);
@@ -192,6 +198,16 @@ function columnStyle(column: TableColumn) {
   const width = widths[column.key] || column.width;
   return { ...column.style, ...(width ? { width: `${width}px`, minWidth: `${width}px` } : {}) };
 }
+// 一括選択、フィルタ解除、ページ変更の結果をチェック部品へセットする。
+watch([visible, selected, filters, activeFilter], () => {
+  inputFields.setValue('page', allPageSelected.value);
+  for (const row of visible.value) inputFields.setValue('row:' + String(row[props.rowKey]), isSelected(row));
+  if (activeFilter.value) {
+    const key = activeFilter.value.key;
+    for (const option of filterOptions.value) inputFields.setValue('filter:' + key + ':' + option, !!filters[key]?.includes(option));
+  }
+}, { deep: true, flush: 'post' });
+
 function reset() {
   clearFilters();
   sort.key = '';
@@ -244,7 +260,7 @@ defineExpose({
               <CheckBoxComponent
                 inline
                 aria-label="このページをすべて選択"
-                :model-value="allPageSelected"
+                :ref="el => inputFields.register('page', el, allPageSelected)"
                 :indeterminate="somePageSelected && !allPageSelected"
                 :disabled="!visible.length"
                 @change="selectPage"
@@ -295,7 +311,7 @@ defineExpose({
         <tbody>
           <tr v-for="row in visible" :key="String(row[rowKey])" :class="{ ClickableTableRow: rowClickable }" @click="emit('row-click', row)">
             <td v-if="selectable" data-label="選択" @click.stop>
-              <CheckBoxComponent inline aria-label="行を選択" :model-value="isSelected(row)" @change="selectRow(row, $event)" />
+              <CheckBoxComponent inline aria-label="行を選択" :ref="el => inputFields.register('row:' + String(row[rowKey]), el, isSelected(row))" @change="selectRow(row)" />
             </td>
             <td
               v-for="column in columns"
@@ -324,7 +340,7 @@ defineExpose({
               class="EmptyTableCell"
               :colspan="columns.length + Number(selectable) + Number(canEdit)"
             >
-              データがありません
+              {{ messageFormat('INFO', 'I_0048') }}
             </td>
           </tr>
         </tbody>
@@ -398,7 +414,7 @@ defineExpose({
         >
           <i class="fas fa-times" aria-hidden="true" /> クリア
         </ButtonComponent>
-        <CheckBoxComponent v-for="option in filterOptions" :key="option" inline wrapper-class="FilterDropdownOption" :model-value="!!(activeFilter && filters[activeFilter.key]?.includes(option))" @change="toggleFilter(option, $event)">
+        <CheckBoxComponent v-for="option in filterOptions" :key="option" inline wrapper-class="FilterDropdownOption" :ref="el => inputFields.register('filter:' + activeFilter?.key + ':' + option, el, !!(activeFilter && filters[activeFilter.key]?.includes(option)))" @change="toggleFilter(option)">
           <span :title="option || '(未設定)'">{{ option || '(未設定)' }}</span>
         </CheckBoxComponent>
       </template>

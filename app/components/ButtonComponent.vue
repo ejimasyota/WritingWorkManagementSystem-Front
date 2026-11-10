@@ -14,7 +14,6 @@
 import { useFieldValue } from '../composables/useFieldValue';
 
 const props = withDefaults(defineProps<{
-  modelValue?: string;
   disabled?: boolean;
   /** メニュー・表操作等は既存の専用CSSを適用する。 */
   unstyled?: boolean;
@@ -25,14 +24,13 @@ const props = withDefaults(defineProps<{
   type: 'button'
 });
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
   click: [event: MouseEvent];
 }>();
 const {
   value,
   setValue,
   getValue
-} = useFieldValue<string>(props, emit, '');
+} = useFieldValue<string>('');
 defineExpose({
   setValue,
   getValue

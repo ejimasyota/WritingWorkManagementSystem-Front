@@ -20,7 +20,7 @@
           :checked="value === option.value"
           :disabled="disabled || readonly || option.disabled"
           :required="required"
-          @change="setValue(option.value)"
+          @change="updateValue(option.value)"
         >
         {{ option.label }}
       </label>
@@ -28,6 +28,7 @@
   </FieldFrame>
 </template>
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -55,7 +56,6 @@ const props = defineProps({
   // 1. フォーム共通定義
   ...fieldProps,
   // 2. 値
-  modelValue: [String, Number],
   // 3. 項目
   options: {
     type: Array as PropType<SelectOption[]>,
@@ -68,7 +68,7 @@ const props = defineProps({
  * ========================================================== */
 const emit = defineEmits<{
   // 1. 選択値
-  'update:modelValue': [value: string | number];
+  'value-change': [];
 }>();
 
 /* ==========================================================
@@ -77,7 +77,7 @@ const emit = defineEmits<{
 // 1. 一意のIDを生成
 const id = useId();
 // 2. 共通処理群を取得
-const { value, setValue, getValue } = useFieldValue<string | number>(props, emit, '');
+const { value, setValue, getValue, updateValue } = useFieldValue<string | number>('', () => emit('value-change'));
 
 /* ==========================================================
  * 公開メソッド

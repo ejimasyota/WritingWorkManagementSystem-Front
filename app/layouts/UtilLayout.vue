@@ -72,6 +72,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { CONST_VARIABLE } from '../config/Const';
 import { computed, ref } from 'vue';
 interface SessionInfo {
   UserId?: string;
@@ -141,20 +142,11 @@ const defaultMenus: SidebarMenu[] = [{
   admin: true
 }];
 
-// 作品画面で実装済みのメニュー。表示名・アイコン・順序をここで管理する。
-const workMenus: SidebarMenu[] = [{
-  id: 'MenuBackToMain',
-  label: 'メインへ戻る',
-  icon: 'fa-arrow-left'
-}, {
-  id: 'MenuWorkInfo',
-  label: '作品共通情報',
-  icon: 'fa-info-circle'
-}, {
-  id: 'MenuCharacter',
-  label: 'キャラ設定',
-  icon: 'fa-user'
-}];
+// 作品内の表示名・ID・アイコンはルーティングと同じ定義を使用する。
+const workMenus: SidebarMenu[] = [
+  { id: 'MenuBackToMain', label: 'メインへ戻る', icon: 'fa-arrow-left' },
+  ...Object.entries(CONST_VARIABLE.WORK_MENUS).map(([id, menu]) => ({ id, label: menu.label, icon: menu.icon })),
+];
 
 // 旧 Main.js の IsAdmin 判定を踏襲し、セッション未取得時も管理者メニューを表示しない。
 const visibleMenus = computed(() => {

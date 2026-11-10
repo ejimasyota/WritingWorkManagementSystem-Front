@@ -1,6 +1,3 @@
-import rawColumns from './mainColumns.json'
-import type { TableColumn } from '../composables/tableData'
-import { formatDateTime, genreLabel } from './mainView'
 
 export const mainMenus = {
   MenuWorkManagement: { title: '創作管理', icon: 'fa-folder-open', api: '/GetProjectList.php', key: 'WorkId', columns: 'ProjectColumns', admin: false },
@@ -20,18 +17,3 @@ export function canOpenMenu(id: string, isAdmin: boolean): id is MainMenuId {
   return !mainMenus[id as MainMenuId].admin || isAdmin
 }
 
-/** 旧Main.jsから抽出した列順と幅指定を共通テーブルへ渡す。 */
-export function mainColumns(menuId: MainMenuId): TableColumn[] {
-  return rawColumns[mainMenus[menuId].columns].map(column => ({
-    ...column,
-    className: column.key === 'Action' ? 'ActionCol' : undefined,
-    meta: ['登録年月日', '更新年月日', '登録者', '更新者'].includes(column.label),
-    style: column.style ? Object.fromEntries(column.style.split(';').filter(Boolean).map(part => part.split(':'))) : undefined,
-    format: (value: unknown) => {
-      if (column.key === 'Genre') return genreLabel(value)
-      if (column.key === 'ExpireDate') return value ? String(value).split(' ')[0].replace(/-/g, '/') : '無期限'
-      if (column.key.endsWith('Date')) return formatDateTime(value) || '未設定'
-      return value === null || value === undefined || value === '' ? '未設定' : value
-    },
-  }))
-}

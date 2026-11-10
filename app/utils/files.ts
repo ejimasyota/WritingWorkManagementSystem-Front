@@ -1,3 +1,4 @@
+import { messageFormat } from './messages';
 import type { DownloadData } from '../types/backend'
 
 export function downloadBase64(data: DownloadData) {
@@ -14,7 +15,7 @@ export function fileAsBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result).split(',')[1] || '')
-    reader.onerror = () => reject(new Error('選択したCSVの読み込みに失敗しました'))
+    reader.onerror = () => reject(new Error(messageFormat('ERROR', 'E_0003', '選択したCSVの読み込み')))
     reader.readAsDataURL(file)
   })
 }

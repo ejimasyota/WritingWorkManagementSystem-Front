@@ -9,7 +9,7 @@
         会員登録
       </h1>
       <p class="RegistrationSubtitle">
-        新規アカウントを作成してください
+        {{ messageFormat('INFO', 'I_0054') }}
       </p>
 
       <div id="RegistrationForm" class="RegistrationForm">
@@ -17,7 +17,7 @@
           ref="RefUserId"
           input-id="UserId"
           label="ユーザーID"
-          hint="数値を含む8桁以上のユーザーID"
+          :hint="messageFormat('INFO', 'I_0041')"
           maxlength="12"
           autocomplete="username"
           :error="errorInfo.userId"
@@ -28,7 +28,7 @@
           ref="RefPassword"
           input-id="Password"
           label="パスワード"
-          hint="ユーザーIDと異なる数値を含んだ8桁以上のパスワード"
+          :hint="messageFormat('INFO', 'I_0042')"
           type="password"
           maxlength="12"
           autocomplete="new-password"
@@ -48,7 +48,7 @@
         />
 
         <div class="FormGroup">
-          <CheckBoxComponent v-model="agreedFlg" inline input-id="TermsCheckbox" class="CheckboxInput">
+          <CheckBoxComponent :ref="el => inputFields.register('agreedFlg', el, agreedFlg)" inline input-id="TermsCheckbox" @value-change="agreedFlg = inputFields.getValue('agreedFlg', false)" class="CheckboxInput">
             <span><a id="TermsLink" href="#" class="LinkText" @click.stop.prevent="openTerms">利用規約</a>に同意する</span>
           </CheckBoxComponent>
         </div>
@@ -84,6 +84,9 @@
 </template>
 
 <script setup lang="ts">
+import { useOperationSpinner } from '../../composables/useOperationSpinner';
+
+import { useInputFields } from '../../composables/useInputFields';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -107,6 +110,10 @@ import { useApi } from '../../utils/useApi'
 import type { ApiResponse } from '../../types/utilType';
 //10. メッセージ共通処理
 import { messageFormat } from '../../utils/messages';
+
+const inputFields = useInputFields();
+
+const spinner = useOperationSpinner();
 
 /* ==========================================================
  * ページ設定
@@ -186,6 +193,7 @@ const registerEvent = async (): Promise<void> => {
   /* ------------------------------
    * 1. 利用規約未同意の場合
    * ------------------------------*/
+  agreedFlg.value = inputFields.getValue('agreedFlg', false);
   if (!agreedFlg.value) {
     // 1. 処理終了
     return
@@ -252,14 +260,10 @@ const registerEvent = async (): Promise<void> => {
     /* ------------------------------
      * 1. 会員登録API呼び出し
      * ------------------------------*/
-    const response = await useApi<ApiResponse<unknown>>(
-      '/Registration.php',
-      'POST',
-      {
-        UserId: checkInput.userId,
-        Password: checkInput.password
-      }
-    )
+    const response = await spinner.run(() => useApi<ApiResponse<unknown>>('/Registration.php', 'POST', {
+      UserId: checkInput.userId,
+      Password: checkInput.password
+    }))
 
     /* ------------------------------
      * 2. 会員登録に失敗した場合
@@ -279,8 +283,8 @@ const registerEvent = async (): Promise<void> => {
      * ------------------------------*/
     // 1. 登録完了ダイアログを表示
     await dialogUtil.info(
-      '登録完了',
-      '会員登録が完了しました。ログイン画面へ移動します。'
+      messageFormat('INFO', 'I_0011', '登録'),
+      messageFormat('INFO', 'I_0040')
     )
 
     // 2. ログイン画面へ遷移

@@ -1,3 +1,4 @@
+import { messageFormat } from '../utils/messages';
 import { onBeforeUnmount, ref, shallowRef } from 'vue'
 
 interface DialogRequest {
@@ -68,8 +69,8 @@ export function usePageDialogs() {
     finish,
     cancelAll,
     info: (title: string, message: string, textAlign: DialogRequest['textAlign'] = 'center') => show('info', title, message, textAlign),
-    error: (message: string) => show('error', 'エラー', message),
-    confirm: (message: string) => show('confirm', '確認', message),
+    error: (message: string) => show('error', messageFormat('ERROR', 'E_0034'), message),
+    confirm: (message: string) => show('confirm', messageFormat('CONFIRM', 'C_0010'), message),
   }
 }
 

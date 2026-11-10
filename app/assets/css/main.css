@@ -5621,3 +5621,7 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
   font: inherit;
   cursor: pointer;
 }
+
+/* 旧階層図のデータなし表示。画面固有のstyleタグに分散させない。 */
+.ClassChartEmpty { text-align: center; padding: 40px; color: #999; }
+.ClassChartEmpty > i { font-size: 48px; margin-bottom: 15px; }

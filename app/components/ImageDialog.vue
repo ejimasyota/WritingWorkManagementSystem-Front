@@ -11,7 +11,7 @@
       <i
         v-if="failedFlg"
         class="fa-solid fa-file-circle-xmark ImageMissingIcon ImageMissingIconLarge"
-        aria-label="画像がありません"
+        :aria-label="messageFormat('INFO', 'I_0058')"
       />
       <img v-else :src="src" :alt="alt" class="ImageDialogImage" @error="failedFlg = true">
     </div>
@@ -26,6 +26,7 @@
   </BaseDialog>
 </template>
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */

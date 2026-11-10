@@ -46,7 +46,7 @@
 
     <BaseDialog v-model="listDialogOpenFlg" :title="listTitle" size="DialogMedium">
       <div class="OptionSearchArea">
-        <TextFieldComponent v-model="searchKeyWord" inline aria-label="検索" placeholder="検索" />
+        <TextFieldComponent :ref="el => inputFields.register('searchKeyWord', el, searchKeyWord)" inline aria-label="検索" placeholder="検索" @value-change="searchKeyWord = inputFields.getValue('searchKeyWord', '')" />
       </div>
       <div class="OptionSearchList">
         <div
@@ -74,6 +74,8 @@
   </FieldFrame>
 </template>
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
+import { useInputFields } from '../composables/useInputFields';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -87,6 +89,8 @@ import { fieldProps } from '../composables/componentProps';
 import { computed, ref, useId } from 'vue';
 // 5. メッセージ共通処理
 import { messageFormat } from '../utils/messages';
+
+const inputFields = useInputFields();
 
 /* ==========================================================
  * 属性定義
@@ -103,7 +107,6 @@ const props = defineProps({
   // 1. フォーム共通定義
   ...fieldProps,
   // 2. 値
-  modelValue: [String, Number],
   // 呼出元が入力要素のIDを指定する場合に使用
   inputId: String,
   // 3. リストダイアログ表示ボタン表示制御FLG
@@ -120,7 +123,7 @@ const props = defineProps({
  * ========================================================== */
 const emit = defineEmits<{
   // 1. 選択値
-  'update:modelValue': [value: string | number];
+  'value-change': [];
 }>();
 
 /* ==========================================================
@@ -130,7 +133,7 @@ const emit = defineEmits<{
 const generatedId = useId();
 const id = computed(() => props.inputId || generatedId);
 // 2. 共通処理群を取得
-const { value, setValue, getValue } = useFieldValue<string | number>(props, emit, '');
+const { value, setValue, getValue, updateValue } = useFieldValue<string | number>('', () => emit('value-change'));
 // 3. リストダイアログ表示制御FLG
 const listDialogOpenFlg = ref(false);
 // 4. 検索語句
@@ -194,6 +197,7 @@ function openListDialog() {
    * ------------------------------*/
   // 1. 検索キーワードを初期化
   searchKeyWord.value = '';
+  inputFields.setValue('searchKeyWord', '');
   // 2. リストダイアログを表示
   listDialogOpenFlg.value = true;
 }
@@ -216,7 +220,7 @@ function selectOption(option: SelectOption) {
    * ------------------------------*/
   // 通常の選択欄と一覧ダイアログで更新処理を共用する。
   // 1. 選択された値の設定
-  setValue(option.value);
+  updateValue(option.value);
   // 2. リストダイアログを削除
   listDialogOpenFlg.value = false;
 }

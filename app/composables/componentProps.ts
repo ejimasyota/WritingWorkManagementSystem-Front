@@ -1,3 +1,4 @@
+import { messageFormat } from '../utils/messages';
 import type { PropType } from "vue";
 
 /**
@@ -14,7 +15,7 @@ export const fieldProps = {
   required: Boolean,
   // 説明アイコンの表示フラグ。Vueでは info-icon-flg で指定する（省略時はfalse）。
   infoIconFlg: Boolean,
-  infoTitle: { type: String, default: "項目説明" },
+  infoTitle: { type: String, default: () => messageFormat('INFO', 'I_0056') },
   infoMessage: { type: String, default: "" },
   error: String,
 };

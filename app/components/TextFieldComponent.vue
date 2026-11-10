@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
+import { useInputFields } from '../composables/useInputFields';
 import { fieldProps } from '../composables/componentProps';
 import { computed, nextTick, ref, useId, watch, type PropType } from 'vue';
 import { CONST_VARIABLE } from '../config/Const';
-import type { DateMode } from '../composables/dateFields';
+import type { DateMode } from '../types/date';
+
+const inputFields = useInputFields();
 defineOptions({
   inheritAttrs: false
 });
 const props = defineProps({
   ...fieldProps,
-  modelValue: String,
   inputId: String,
   inputReadonly: Boolean,
   numericOnly: Boolean,
@@ -19,7 +22,7 @@ const props = defineProps({
   type: String
 });
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
+  'value-change': [];
 }>();
 const generatedId = useId();
 const id = computed(() => props.inputId || generatedId);
@@ -27,33 +30,38 @@ const input = ref<HTMLInputElement>();
 const {
   value,
   setValue,
-  getValue
-} = useFieldValue(props, emit, '');
+  getValue,
+  updateValue
+} = useFieldValue('', () => emit('value-change'));
 // 色コードが不正・空欄の間は、旧実装と同じく最後の有効なピッカー色を維持する。
 const pickerColor = ref(CONST_VARIABLE.COLOR_PICKER_INITIAL_VALUE);
 watch(value, next => {
-  if (/^#[0-9a-f]{6}$/i.test(next)) pickerColor.value = next;
+  if (/^#[0-9a-f]{6}$/i.test(next)) {
+    pickerColor.value = next;
+    inputFields.setValue('pickerColor', next);
+  }
 }, { immediate: true });
-function updateColor(next: string) {
+function updateColor() {
+  const next = inputFields.getValue('pickerColor', pickerColor.value);
   if (props.disabled || props.readonly) return;
-  setValue(next);
+  updateValue(next);
 }
 const editorOpen = ref(false);
 const calendarOpen = ref(false);
 const draft = ref('');
-const textArea = ref<{ focus: () => void }>();
 function updateInput(event: Event) {
   if (props.type === 'file') return;
   const target = event.target as HTMLInputElement;
   const next = props.numericOnly ? target.value.replace(/[^0-9]/g, '') : target.value;
   target.value = next;
-  setValue(next);
+  updateValue(next);
 }
 
 /** 旧 ShowInputAreaDialog：開く時に値をコピーし、「完了」でだけ反映する。 */
 function openEditor() {
   if (props.disabled) return;
   draft.value = value.value;
+  inputFields.setValue('draft', draft.value);
   editorOpen.value = true;
 }
 function closeEditor() {
@@ -61,14 +69,16 @@ function closeEditor() {
 }
 function commitEditor() {
   if (props.disabled || props.readonly) return;
-  setValue(draft.value);
+  draft.value = inputFields.getValue('draft', '');
+  updateValue(draft.value);
   closeEditor();
 }
 async function clearEditor() {
   if (props.disabled || props.readonly) return;
   draft.value = '';
+  inputFields.setValue('draft', '');
   await nextTick();
-  textArea.value?.focus();
+  inputFields.focus('draft');
 }
 function openCalendar() {
   if (props.disabled) return;
@@ -87,15 +97,27 @@ function openFilePicker() {
   input.value.click();
 }
 
+/** 選択ファイルも親画面からrefで取得する。返す配列は内部状態から切り離す。 */
+function getFiles(): File[] {
+  return Array.from(input.value?.files || []);
+}
+
+/** ファイル入力は空文字のセット時にブラウザ側の選択も解除する。 */
+function setInputValue(next: string) {
+  setValue(next);
+  if (props.type === 'file' && next === '' && input.value) input.value.value = '';
+}
+
 function focus() {
   input.value?.focus();
 }
 
-// 公開APIとv-modelは共通の値更新処理を使用する。
+// 親からの値の読み書きはコンポーネントref経由で行う。
 defineExpose({
   focus,
   openFilePicker,
-  setValue,
+  getFiles,
+  setValue: setInputValue,
   getValue
 });
 </script>
@@ -128,9 +150,9 @@ defineExpose({
         @click="handleInputClick"
       >
       <TextFieldComponent
-        v-if="colorPickerFlg" inline type="color" :model-value="pickerColor"
+        v-if="colorPickerFlg" inline type="color" :ref="el => inputFields.register('pickerColor', el, pickerColor)"
         :aria-label="`${label}を選択`" :disabled="disabled || readonly"
-        @update:model-value="updateColor"
+        @value-change="updateColor"
       />
       <ButtonComponent
         v-if="textAreaFlg"
@@ -157,8 +179,8 @@ defineExpose({
     <BaseDialog v-model="editorOpen" title="詳細" size="DialogMedium">
       <TextAreaComponent
         inline
-        ref="textArea"
-        v-model="draft"
+
+        :ref="el => inputFields.register('draft', el, draft)"
         aria-label="詳細"
         class="InputAreaDialogText"
         :readonly="readonly || disabled"
@@ -182,7 +204,7 @@ defineExpose({
       :value="value"
       :fixed-mode="dateMode"
       :readonly="readonly || disabled"
-      @commit="setValue"
+      @commit="updateValue"
     />
   </FieldFrame>
 </template>

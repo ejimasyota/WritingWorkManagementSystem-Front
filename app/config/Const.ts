@@ -29,8 +29,22 @@ export const CONST_VARIABLE = {
     REGISTER: "/regist",
     // 3. メイン画面
     MAIN: "/main",
+    // 作品編集画面
+    WORK: "/work",
     // 4. エラー画面
-    ERROR: "/login"
+    ERROR: "/login",
+  },
+
+  /** 作品内の遷移先。サイドバーとルーティングが同じメニューIDを参照する。 */
+  WORK_MENUS: {
+    MenuWorkInfo: { label: '作品共通情報', icon: 'fa-info-circle' },
+    MenuCharacter: { label: 'キャラ設定', icon: 'fa-user' },
+    MenuOrganization: { label: '組織設定', icon: 'fa-building' },
+    MenuTeam: { label: 'チーム設定', icon: 'fa-users' },
+    MenuRace: { label: '種族設定', icon: 'fa-dna' },
+    MenuClass: { label: '階級設定', icon: 'fa-sitemap' },
+    MenuBiography: { label: '経歴一覧', icon: 'fa-stream' },
+    MenuImage: { label: '画像一覧', icon: 'fa-images' },
   },
 
   /**
@@ -40,7 +54,7 @@ export const CONST_VARIABLE = {
     // 1. ログアウト前に表示されていた画面のパス
     LAST_PATH: "LastPath",
     // 2. メイン画面のアクティブなメニューID
-    MAIN_ACTIVE_MENU_ID: "MainActiveMenuId"
+    MAIN_ACTIVE_MENU_ID: "MainActiveMenuId",
   },
 
   /**
@@ -50,6 +64,6 @@ export const CONST_VARIABLE = {
     // 1. ダークモードFLG
     DARK_MODE_FLG: "DarkMode",
     // 2. メタ情報非表示FLG
-    HIDE_META_FLG: "HideMetaColumns"
-  }
-}
+    HIDE_META_FLG: "HideMetaColumns",
+  },
+};

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useOperationSpinner } from '../../../composables/useOperationSpinner';
+
+import { messageFormat } from '../../../utils/messages';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { BackendRequest } from '../../../types/backend';
 import type { CharacterMasters, CharacterRow, CharacterMaster } from '../../../types/character';
@@ -7,9 +10,12 @@ import type { TableColumn } from '../../../composables/tableData';
 import type { PageDialogs } from '../../../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../../../utils/backend';
 import { formatDateTime } from '../../../utils/mainView';
-import { masterDefinitions } from '../../../utils/characterFields';
-import { tagStyle } from '../../../utils/characterData';
+// この一覧画面が取得するマスタ。入力欄の定義には依存させない。
+const masterKeys = ['Organization', 'Team', 'Race', 'Class', 'Power', 'Weapon', 'Move', 'Tag', 'Stage'] as const;
+import { tagStyle } from '../../../utils/tagStyle';
 import CharacterDialog from './CharacterDialog.vue';
+const spinner = useOperationSpinner();
+
 const props = defineProps<{ request: BackendRequest; dialogs: PageDialogs; isAdmin: boolean; hideMeta?: boolean }>();
 const emit = defineEmits(['unavailable']);
 const work = ref<WorkInfo>();
@@ -51,10 +57,10 @@ function resolveTag(tag: CharacterMaster) {
 
 /** APIごとのDataの入れ子と区分値は旧実装を維持する。取得失敗を空マスタとして保存しない。 */
 async function loadMasters() {
-  const results = await Promise.allSettled(masterDefinitions.map(async ([key]) => {
-    const data = requireSuccess(await props.request<Record<string, CharacterMaster[]>>(`/Get${key}List.php`), `${key}の取得に失敗しました`);
+  const results = await Promise.allSettled(masterKeys.map(async key => {
+    const data = requireSuccess(await props.request<Record<string, CharacterMaster[]>>(`/Get${key}List.php`), messageFormat('ERROR', 'E_0003', key + 'の取得'));
     const list = data[`${key}List`];
-    if (!Array.isArray(list)) throw new Error(`${key}の一覧形式が不正です`);
+    if (!Array.isArray(list)) throw new Error(messageFormat('ERROR', 'E_0030', key));
     return [key, list] as const;
   }));
   const next: CharacterMasters = {};
@@ -67,19 +73,19 @@ async function loadMasters() {
   if (!disposed) masters.value = next;
 }
 async function loadList() {
-  const list = requireSuccess(await props.request<CharacterRow[]>('/GetCharacterList.php'), 'キャラ一覧の取得に失敗しました');
-  if (!Array.isArray(list)) throw new Error('キャラ一覧の形式が不正です');
+  const list = requireSuccess(await props.request<CharacterRow[]>('/GetCharacterList.php'), messageFormat('ERROR', 'E_0003', 'キャラ一覧の取得'));
+  if (!Array.isArray(list)) throw new Error(messageFormat('ERROR', 'E_0031'));
   if (!disposed) rows.value = list;
 }
 async function verifyWork() {
-  const current = requireSuccess(await props.request<WorkInfo>('/GetWorkInfo.php'), '作品情報の取得に失敗しました');
+  const current = requireSuccess(await props.request<WorkInfo>('/GetWorkInfo.php'), messageFormat('ERROR', 'E_0003', '作品情報の取得'));
   if (disposed) return;
-  const permission = requireSuccess(await props.request<WorkPermission>('/GetUserPermission.php'), '権限情報の取得に失敗しました');
+  const permission = requireSuccess(await props.request<WorkPermission>('/GetUserPermission.php'), messageFormat('ERROR', 'E_0003', '権限情報の取得'));
   if (disposed) return;
   if (work.value && current.WorkId !== work.value.WorkId) {
     work.value = undefined;
     isCreator.value = false;
-    throw new Error('選択中の作品が変更されました。作品一覧から開き直してください');
+    throw new Error(messageFormat('ERROR', 'E_0028'));
   }
   work.value = current;
   isCreator.value = permission.IsCreator === true;
@@ -87,14 +93,18 @@ async function verifyWork() {
 async function load() {
   loading.value = true;
   try {
-    await verifyWork();
-    if (disposed) return;
-    await loadMasters();
-    if (disposed) return;
-    await loadList();
+    const finished = await spinner.run(async () => {
+      await verifyWork();
+      if (disposed) return;
+      await loadMasters();
+      if (disposed) return;
+      await loadList();
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
     if (!disposed) {
-      await reportBackendError(props.dialogs, error, 'キャラ設定の取得に失敗しました');
+      await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0003', 'キャラ設定の取得'));
       if (!disposed) emit('unavailable');
     }
   } finally { loading.value = false; }
@@ -103,15 +113,21 @@ async function open(row?: CharacterRow) {
   if (loading.value || saving.value) return;
   loading.value = true;
   try {
-    await verifyWork();
-    if (disposed || (!row && !canEdit.value)) return;
-    await loadMasters();
-    if (disposed) return;
-    selected.value = row ? { ...row } : undefined;
-    dialogVersion.value++;
-    opened.value = true;
+    const finished = await spinner.run(async () => {
+      await verifyWork();
+      if (disposed || !row && !canEdit.value) return;
+      await loadMasters();
+      if (disposed) return;
+      selected.value = row ? {
+        ...row
+      } : undefined;
+      dialogVersion.value++;
+      opened.value = true;
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, 'キャラ設定を開けませんでした');
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0032'));
   } finally { loading.value = false; }
 }
 function clear() {
@@ -124,16 +140,20 @@ async function save(payload: Record<string, unknown>) {
   if (!canEdit.value || saving.value) return;
   saving.value = true;
   try {
-    await verifyWork();
-    if (disposed || !canEdit.value) return;
-    requireSuccess(await props.request('/SaveCharacter.php', 'POST', payload), '保存に失敗しました');
-    if (disposed) return;
-    await props.dialogs.info('保存完了', 'キャラ情報を保存しました');
+    const finished = await spinner.run(async () => {
+      await verifyWork();
+      if (disposed || !canEdit.value) return;
+      requireSuccess(await props.request('/SaveCharacter.php', 'POST', payload), messageFormat('ERROR', 'E_0003', '保存'));
+      if (disposed) return;
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'キャラ情報の保存'));
     if (disposed) return;
     opened.value = false;
-    await loadList();
+    await spinner.run(loadList);
   } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, '保存中にエラーが発生しました');
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '保存'));
   } finally { saving.value = false; }
 }
 async function remove() {
@@ -141,26 +161,42 @@ async function remove() {
   if (!row || !canEdit.value || saving.value) return;
   saving.value = true;
   try {
-    if (!await props.dialogs.confirm('このキャラを削除しますか？') || disposed) return;
-    await verifyWork();
-    if (disposed || !canEdit.value) return;
-    requireSuccess(await props.request('/DeleteCharacter.php', 'POST', { CharaId: row.CharaId, UpdateDate: row.UpdateDate }), '削除に失敗しました');
-    if (disposed) return;
-    await props.dialogs.info('削除完了', 'キャラを削除しました');
+    if (!await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'このキャラを削除')) || disposed) return;
+    const finished = await spinner.run(async () => {
+      await verifyWork();
+      if (disposed || !canEdit.value) return;
+      requireSuccess(await props.request('/DeleteCharacter.php', 'POST', {
+        CharaId: row.CharaId,
+        UpdateDate: row.UpdateDate
+      }), messageFormat('ERROR', 'E_0003', '削除'));
+      if (disposed) return;
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '削除'), messageFormat('INFO', 'I_0001', 'キャラの削除'));
     if (disposed) return;
     opened.value = false;
-    await loadList();
+    await spinner.run(loadList);
   } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, '削除中にエラーが発生しました');
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '削除'));
   } finally { saving.value = false; }
 }
 async function refreshTags() {
   try {
-    const data = requireSuccess(await props.request<{ TagList: CharacterMaster[] }>('/GetTagList.php'), 'タグ一覧の取得に失敗しました');
-    if (!Array.isArray(data.TagList)) throw new Error('タグ一覧の形式が不正です');
-    if (!disposed) masters.value = { ...masters.value, Tag: data.TagList };
+    const finished = await spinner.run(async () => {
+      const data = requireSuccess(await props.request<{
+        TagList: CharacterMaster[];
+      }>('/GetTagList.php'), messageFormat('ERROR', 'E_0003', 'タグ一覧の取得'));
+      if (!Array.isArray(data.TagList)) throw new Error(messageFormat('ERROR', 'E_0033'));
+      if (!disposed) masters.value = {
+        ...masters.value,
+        Tag: data.TagList
+      };
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, 'タグ一覧の取得に失敗しました');
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0003', 'タグ一覧の取得'));
   }
 }
 function refreshTagsOnReturn() { if (opened.value && !saving.value) void refreshTags(); }

@@ -43,12 +43,3 @@ export function formatDateWithWeekday(value: unknown) {
 }
 
 
-/** 作品一覧管理APIだけが Data.WorkList を返すため、既存の形式差を吸収する。 */
-export function normalizeMainList(menuId: string, data: unknown): Record<string, unknown>[] {
-  const list = menuId === 'MenuProjectManagement'
-    ? (data as { WorkList?: Record<string, unknown>[] } | null)?.WorkList
-    : data
-  if (list == null) return []
-  if (!Array.isArray(list)) throw new Error('一覧データの形式が不正です')
-  return list
-}

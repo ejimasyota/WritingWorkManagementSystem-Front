@@ -26,6 +26,7 @@
   </BaseDialog>
 </template>
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -41,7 +42,7 @@ defineProps({
   // 2. ダイアログタイトル
   title: {
     type: String,
-    default: "エラー",
+    default: () => messageFormat('ERROR', 'E_0034'),
   },
 });
 

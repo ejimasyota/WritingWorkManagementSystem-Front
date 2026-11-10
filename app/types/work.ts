@@ -13,3 +13,13 @@ export interface WorkInfo {
 export interface WorkPermission {
   IsCreator: boolean
 }
+
+/** 作品共通情報の入力値。 */
+export interface WorkInfoForm {
+  WorkTitle: string
+  Genre: number
+  SettingDate: string
+  Motif: number
+  Theme: string
+  Description: string
+}

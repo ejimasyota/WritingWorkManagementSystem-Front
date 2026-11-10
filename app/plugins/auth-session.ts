@@ -24,12 +24,11 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (lastPath) sessionStorage.setItem('LastPath', lastPath)
   }
 
-  // 認証制御の内側の送信もuseApiに集約する。認証の再帰呼出しとスピナーの二重計上を避ける。
+  // 認証制御の内側の送信もuseApiに集約する。表示制御は呼出元の操作スコープに任せる。
   const send: ApiTransport = <T, R extends ResponseType = 'json'>(
     endpoint: string, method: HttpMethod = 'GET', data?: unknown, responseType: R = 'json' as R,
   ) => nuxtApp.runWithContext(() => useApi<T, R>(endpoint, method, data, responseType, {
     authorize: false,
-    showSpinner: false,
   }))
 
   const authSession = createSessionManager({

@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { useOperationSpinner } from '../composables/useOperationSpinner';
+
+import { messageFormat } from '../utils/messages';
+
+import { useInputFields } from '../composables/useInputFields';
 import { reactive, ref, watch } from 'vue';
 import type { BackendRequest } from '../types/backend';
 import type { PageDialogs } from '../composables/usePageDialogs';
 import { reportBackendError, requireSuccess } from '../utils/backend';
 import { formatDateWithWeekday } from '../utils/mainView';
+const spinner = useOperationSpinner();
+
+
+const inputFields = useInputFields();
 const props = defineProps<{
   modelValue: boolean;
   userId: string;
@@ -25,17 +34,20 @@ watch(() => props.modelValue, async open => {
   if (!open) return;
   dark.value = document.body.classList.contains('DarkMode');
   hideMeta.value = document.body.classList.contains('HideMetaColumns');
+  inputFields.setValues({ dark: dark.value, hideMeta: hideMeta.value });
   registrationDate.value = '-';
   try {
-    const data = requireSuccess(await props.request<{
+    const data = requireSuccess(await spinner.run(() => props.request<{
       RegistDate: string;
-    }>('/GetUserInfo.php'), '取得に失敗しました');
+    }>('/GetUserInfo.php')), messageFormat('ERROR', 'E_0003', '取得'));
     registrationDate.value = formatDateWithWeekday(data.RegistDate);
   } catch {
     // 旧実装同様、作成日だけの取得失敗では設定操作を妨げない。
   }
 });
 function appearance() {
+  dark.value = inputFields.getValue('dark', false);
+  hideMeta.value = inputFields.getValue('hideMeta', false);
   document.body.classList.toggle('DarkMode', dark.value);
   document.body.classList.toggle('HideMetaColumns', hideMeta.value);
   localStorage.setItem('DarkMode', String(dark.value));
@@ -50,32 +62,39 @@ function openPassword() {
   password.next = '';
   password.confirm = '';
   errors.value = {};
+  inputFields.setValues(password);
   passwordOpen.value = true;
 }
 async function changePassword() {
+  Object.assign(password, inputFields.getValues(password));
   const current = password.current.trim();
   const next = password.next.trim();
   const confirm = password.confirm.trim();
   errors.value = {};
-  if (current.length < 8) errors.value.current = '現在のパスワードは8桁以上で入力してください';
+  if (current.length < 8) errors.value.current = messageFormat('ERROR', 'E_0005', '現在のパスワード', 8);
   if (next.length < 8 || !/[0-9]/.test(next) || next === current || next === props.userId) {
-    errors.value.next = '新しいパスワードは現在のパスワードと異なる数値を含んだ8桁以上で、ユーザーIDとも異なる値を設定してください';
+    errors.value.next = messageFormat('ERROR', 'E_0019');
   }
-  if (!confirm || confirm !== next) errors.value.confirm = '入力されたパスワードが一致しません';
+  if (!confirm || confirm !== next) errors.value.confirm = messageFormat('ERROR', 'E_0006', '入力されたパスワード');
   if (Object.keys(errors.value).length) return;
   passwordOpen.value = false;
   try {
-    requireSuccess(await props.request('/ChangePassword.php', 'POST', {
-      CurrentPassword: current,
-      NewPassword: next
-    }), 'パスワード変更に失敗しました');
-    await props.dialogs.info('変更完了', 'パスワードを変更しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/ChangePassword.php', 'POST', {
+        CurrentPassword: current,
+        NewPassword: next
+      }), messageFormat('ERROR', 'E_0003', 'パスワード変更'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '変更'), messageFormat('INFO', 'I_0001', 'パスワードの変更'));
   } catch (error) {
-    await reportBackendError(props.dialogs, error, 'パスワード変更中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'パスワード変更'));
   } finally {
     password.current = '';
     password.next = '';
     password.confirm = '';
+    inputFields.setValues(password);
   }
 }
 </script>
@@ -105,10 +124,10 @@ async function changePassword() {
       <div class="SettingsSectionTitle">
         表示設定
       </div>
-      <ToogleComponent v-model="dark" inline wrapper-class="SettingsRow SettingsDarkModeRow" aria-label="ダークモード" @change="appearance">
+      <ToogleComponent :ref="el => inputFields.register('dark', el, dark)" inline wrapper-class="SettingsRow SettingsDarkModeRow" aria-label="ダークモード" @change="appearance">
         <span class="SettingsRowLabel">ダークモード</span>
       </ToogleComponent>
-      <ToogleComponent v-model="hideMeta" inline wrapper-class="SettingsRow" aria-label="メタ情報非表示" @change="appearance">
+      <ToogleComponent :ref="el => inputFields.register('hideMeta', el, hideMeta)" inline wrapper-class="SettingsRow" aria-label="メタ情報非表示" @change="appearance">
         <span class="SettingsRowLabel">メタ情報非表示</span>
       </ToogleComponent>
     </div>
@@ -128,7 +147,7 @@ async function changePassword() {
   <BaseDialog v-model="passwordOpen" title="パスワード変更">
     <form id="ChangePasswordForm" novalidate @submit.prevent="changePassword">
       <TextFieldComponent
-        v-model="password.current"
+        :ref="el => inputFields.register('current', el, password.current)"
         label="現在のパスワード"
         type="password"
         maxlength="12"
@@ -137,7 +156,7 @@ async function changePassword() {
         required
       />
       <TextFieldComponent
-        v-model="password.next"
+        :ref="el => inputFields.register('next', el, password.next)"
         label="新しいパスワード"
         type="password"
         maxlength="12"
@@ -146,7 +165,7 @@ async function changePassword() {
         required
       />
       <TextFieldComponent
-        v-model="password.confirm"
+        :ref="el => inputFields.register('confirm', el, password.confirm)"
         label="確認用"
         type="password"
         maxlength="12"

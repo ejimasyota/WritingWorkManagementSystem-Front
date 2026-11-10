@@ -28,6 +28,7 @@
   </FieldFrame>
 </template>
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -39,27 +40,22 @@ defineOptions({
 });
 const props = defineProps({
   ...fieldProps,
-  modelValue: Boolean,
   wrapperClass: String,
 });
 const emit = defineEmits<{
-  "update:modelValue": [value: boolean];
+  'value-change': [];
   change: [event: Event];
 }>();
 const id = useId();
-const { value, setValue, getValue } = useFieldValue<boolean>(
-  props,
-  emit,
-  false,
-);
-// 親コンポーネントは ref 経由でも値を取得・設定できる。
+const { value, setValue, getValue, updateValue } = useFieldValue<boolean>(false, () => emit('value-change'));
+// 親コンポーネントはref経由で値を取得・設定する。
 defineExpose({
   setValue,
   getValue,
 });
 function updateChecked(event: Event) {
   if (props.disabled || props.readonly) return;
-  setValue((event.target as HTMLInputElement).checked);
+  updateValue((event.target as HTMLInputElement).checked);
   emit("change", event);
 }
 </script>

@@ -1,3 +1,4 @@
+import { formatDateTime } from '../utils/mainView';
 export type TableRow = Record<string, unknown>
 
 export interface TableColumn {
@@ -81,4 +82,14 @@ export function processTable(
     const comparison = compareRows(left, right, sortColumn)
     return sort.direction === 'asc' ? comparison : -comparison
   })
+}
+
+/** 各一覧で共通の登録・更新情報。列の配置順は画面側で決める。 */
+export function metadataColumns(): TableColumn[] {
+  return [
+    { key: 'RegistDate', label: '登録年月日', sortable: true, meta: true, type: 'date', style: { minWidth: '310px' }, format: formatDateTime },
+    { key: 'UpdateDate', label: '更新年月日', sortable: true, meta: true, type: 'date', style: { minWidth: '310px' }, format: formatDateTime },
+    { key: 'RegistUser', label: '登録者', sortable: true, filterable: true, meta: true, style: { minWidth: '250px' } },
+    { key: 'UpdateUser', label: '更新者', sortable: true, filterable: true, meta: true, style: { minWidth: '250px' } },
+  ];
 }

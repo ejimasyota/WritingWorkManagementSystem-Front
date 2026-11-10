@@ -1,3 +1,4 @@
+import { messageFormat } from './messages';
 import { computed, readonly, ref, shallowRef } from 'vue'
 import type { SessionInfo } from '../types/backend'
 import type { ApiResponse, ApiTransport, HttpMethod, ResponseType } from '../types/utilType'
@@ -70,8 +71,8 @@ export function createSessionManager(dependencies: Dependencies) {
     if (hadSession) {
       dependencies.clearClientState('expired')
       showNotice({
-        kind: 'expired', title: 'セッションタイムアウト',
-        message: '一定時間操作がなかったため、ログアウトしました。', target: CONST_VARIABLE.DISPLAY_PATH.LOGIN,
+        kind: 'expired', title: messageFormat('INFO', 'I_0043'),
+        message: messageFormat('INFO', 'I_0046'), target: CONST_VARIABLE.DISPLAY_PATH.LOGIN,
       })
     }
   }
@@ -79,7 +80,7 @@ export function createSessionManager(dependencies: Dependencies) {
   function handleWorkAccessLost(error: backendError) {
     error.handled = true
     workAccessVersion.value += 1
-    showNotice({ kind: 'work-access-lost', title: 'エラー', message: error.message, target: '/main' })
+    showNotice({ kind: 'work-access-lost', title: messageFormat('ERROR', 'E_0034'), message: error.message, target: '/main' })
   }
 
   function isWorkAccessLost(error: unknown): error is backendError {
@@ -108,9 +109,9 @@ export function createSessionManager(dependencies: Dependencies) {
           response = await dependencies.send<ApiResponse<SessionInfo>>('/GetSessionInfo.php')
         }
         if (started !== generation) return null
-        const data = requireSuccess(response, 'セッション情報の取得に失敗しました')
+        const data = requireSuccess(response, messageFormat('ERROR', 'E_0003', 'セッション情報の取得'))
         if (!data || typeof data.UserId !== 'string' || !data.UserId || typeof data.IsAdmin !== 'boolean') {
-          throw new backendError('セッション情報の形式が不正です', 502)
+          throw new backendError(messageFormat('ERROR', 'E_0041'), 502)
         }
         const previous = user.value
         const changed = previous && (previous.UserId !== data.UserId || previous.IsAdmin !== data.IsAdmin)
@@ -148,17 +149,17 @@ export function createSessionManager(dependencies: Dependencies) {
     const started = generation
     const publicEndpoint = isPublicEndpoint(endpoint)
     if (!publicEndpoint && !authenticated.value) {
-      const error = new backendError('認証が必要です', 401)
+      const error = new backendError(messageFormat('ERROR', 'E_0042'), 401)
       error.handled = true
       throw error
     }
     if (requiresAdmin(endpoint) && !isAdmin.value) {
-      throw new backendError('管理者権限が必要です', 403)
+      throw new backendError(messageFormat('ERROR', 'E_0043'), 403)
     }
     try {
       const response = await dependencies.send<T, R>(endpoint, method, data, responseType)
       if (!publicEndpoint && started !== generation) {
-        const stale = new backendError('認証状態が変更されました', 401)
+        const stale = new backendError(messageFormat('ERROR', 'E_0035'), 401)
         stale.handled = true
         throw stale
       }
@@ -184,7 +185,7 @@ export function createSessionManager(dependencies: Dependencies) {
     invalidate()
     notice.value = null
     const session = await checkSession()
-    if (!session) throw new backendError('ログイン状態を確認できませんでした', 401)
+    if (!session) throw new backendError(messageFormat('ERROR', 'E_0044'), 401)
     dependencies.publish('signed-in')
     return session
   }
@@ -200,7 +201,7 @@ export function createSessionManager(dependencies: Dependencies) {
     const job = (async () => {
       try {
         try {
-          requireSuccess(await dependencies.send<ApiResponse<null>>('/Logout.php', 'POST'), 'ログアウトに失敗しました')
+          requireSuccess(await dependencies.send<ApiResponse<null>>('/Logout.php', 'POST'), messageFormat('ERROR', 'E_0003', 'ログアウト'))
         } catch (error) {
           // 既にサーバー側が失効している場合も、ローカル状態を破棄できる。
           if (!(error instanceof backendError && error.status === 401)) throw error
@@ -226,11 +227,11 @@ export function createSessionManager(dependencies: Dependencies) {
   }
 
   function navigationFailed(error: unknown) {
-    showNotice({ kind: 'unavailable', title: 'エラー', message: errorMessage(error, '認証情報を確認できませんでした'), target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
+    showNotice({ kind: 'unavailable', title: messageFormat('ERROR', 'E_0034'), message: errorMessage(error, messageFormat('ERROR', 'E_0045')), target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
   }
 
   function forbidden() {
-    showNotice({ kind: 'forbidden', title: 'エラー', message: 'この画面を表示する権限がありません。', target: '/main' })
+    showNotice({ kind: 'forbidden', title: messageFormat('ERROR', 'E_0034'), message: messageFormat('ERROR', 'E_0036'), target: '/main' })
   }
 
   /** 別タブの状態は信頼せず、ログイン通知ではサーバーへ再確認する。 */
@@ -239,7 +240,7 @@ export function createSessionManager(dependencies: Dependencies) {
       const hadSession = user.value !== null
       invalidate()
       dependencies.clearClientState('logout')
-      if (hadSession) showNotice({ kind: 'signed-out', title: 'ログアウト', message: '別のタブでログアウトしたため、ログイン画面へ移動します。', target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
+      if (hadSession) showNotice({ kind: 'signed-out', title: messageFormat('INFO', 'I_0045'), message: messageFormat('INFO', 'I_0047'), target: CONST_VARIABLE.DISPLAY_PATH.LOGIN })
       return null
     }
     invalidate()

@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { useOperationSpinner } from '../../composables/useOperationSpinner';
+
+import { messageFormat } from '../../utils/messages';
 import { onMounted, ref } from 'vue';
 import type { BackendRequest, DownloadData, Project, SessionInfo } from '../../types/backend';
 import type { PageDialogs } from '../../composables/usePageDialogs';
 import type { TableColumn } from '../../composables/tableData';
-import rawColumns from '../../utils/mainColumns.json';
 import { formatDateTime, genreLabel } from '../../utils/mainView';
 import { copyToClipboard, downloadBase64, fileAsBase64 } from '../../utils/files';
 import { reportBackendError, requireSuccess } from '../../utils/backend';
+const spinner = useOperationSpinner();
+
 const props = defineProps<{
   session: SessionInfo;
   request: BackendRequest;
@@ -19,11 +23,59 @@ const createOpen = ref(false);
 const exportOpen = ref(false);
 const exportProject = ref<Project>();
 const restoreProject = ref<Project>();
-const fileInput = ref<{ openFilePicker: () => void }>();
+const fileInput = ref<{ openFilePicker: () => void; getFiles: () => File[]; setValue: (value: string) => void }>();
 const table = ref<{
   reset: () => void;
 }>();
-const columns: TableColumn[] = rawColumns.ProjectColumns.map(column => ({
+const projectColumns = [
+  {
+    "key": "WorkTitle",
+    "label": "作品名",
+    "filterable": true,
+    "sortable": true
+  },
+  {
+    "key": "Genre",
+    "label": "ジャンル",
+    "filterable": true,
+    "sortable": true
+  },
+  {
+    "key": "RegistUser",
+    "label": "登録者",
+    "filterable": true,
+    "sortable": true
+  },
+  {
+    "key": "RegistDate",
+    "label": "登録年月日",
+    "filterable": false,
+    "sortable": true,
+    "style": "min-width:310px"
+  },
+  {
+    "key": "UpdateUser",
+    "label": "更新者",
+    "filterable": true,
+    "sortable": true
+  },
+  {
+    "key": "UpdateDate",
+    "label": "更新年月日",
+    "filterable": false,
+    "sortable": true,
+    "style": "min-width:310px"
+  },
+  {
+    "key": "Action",
+    "label": "操作パレット",
+    "filterable": false,
+    "sortable": false,
+    "style": "width:1%"
+  }
+];
+
+const columns: TableColumn[] = projectColumns.map(column => ({
   ...column,
   className: column.key === 'Action' ? 'ActionCol' : undefined,
   meta: ['登録年月日', '更新年月日', '登録者', '更新者'].includes(column.label),
@@ -36,10 +88,14 @@ const columns: TableColumn[] = rawColumns.ProjectColumns.map(column => ({
 }));
 async function load() {
   try {
-    projects.value = requireSuccess(await props.request<Project[]>('/GetProjectList.php'), 'プロジェクト一覧の取得に失敗しました') || [];
-    table.value?.reset();
+    const finished = await spinner.run(async () => {
+      projects.value = requireSuccess(await props.request<Project[]>('/GetProjectList.php'), messageFormat('ERROR', 'E_0003', 'プロジェクト一覧の取得')) || [];
+      table.value?.reset();
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
-    await reportBackendError(props.dialogs, error, 'プロジェクト一覧の取得中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロジェクト一覧の取得'));
   }
 }
 function isCreator(project: Project) {
@@ -50,42 +106,54 @@ async function createWork(data: {
   Genre: number;
 }) {
   try {
-    requireSuccess(await props.request('/CreateWork.php', 'POST', data), '作品の作成に失敗しました');
-    await props.dialogs.info('作品作成', '作品を作成しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/CreateWork.php', 'POST', data), messageFormat('ERROR', 'E_0003', '作品の作成'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0023'), messageFormat('INFO', 'I_0001', '作品の作成'));
     await load();
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '作品作成中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '作品作成'));
   }
 }
 async function deleteProject(project: Project) {
   const creator = isCreator(project);
-  if (!(await props.dialogs.confirm(creator ? 'この作品を削除しますか？' : 'この作品の制作から退出しますか？'))) return;
-  if (creator && !(await props.dialogs.confirm(`下記の作品を削除します。本当によろしいですか？\n ${project.WorkTitle}`))) return;
+  if (!(await props.dialogs.confirm(creator ? messageFormat('CONFIRM', 'C_0001', 'この作品を削除') : messageFormat('CONFIRM', 'C_0001', 'この作品の制作から退出')))) return;
+  if (creator && !(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0006', project.WorkTitle)))) return;
   try {
-    requireSuccess(await props.request('/DeleteProject.php', 'POST', {
-      WorkId: project.WorkId,
-      UpdateDate: project.UpdateDate || null,
-      CreaterUpdateDate: project.CreaterUpdateDate || null
-    }), creator ? '削除に失敗しました' : '退出に失敗しました');
-    await props.dialogs.info(creator ? '削除完了' : '退出完了', creator ? '作品を削除しました' : '作品の制作から退出しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/DeleteProject.php', 'POST', {
+        WorkId: project.WorkId,
+        UpdateDate: project.UpdateDate || null,
+        CreaterUpdateDate: project.CreaterUpdateDate || null
+      }), creator ? messageFormat('ERROR', 'E_0003', '削除') : messageFormat('ERROR', 'E_0003', '退出'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(creator ? messageFormat('INFO', 'I_0011', '削除') : messageFormat('INFO', 'I_0011', '退出'), creator ? messageFormat('INFO', 'I_0001', '作品の削除') : messageFormat('INFO', 'I_0001', '作品の制作からの退出'));
     await load();
     emit('changed');
   } catch (error) {
-    await reportBackendError(props.dialogs, error, creator ? '削除中にエラーが発生しました' : '退出中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, creator ? messageFormat('ERROR', 'E_0004', '削除') : messageFormat('ERROR', 'E_0004', '退出'));
   }
 }
 async function issueUrl(project: Project) {
   try {
-    const data = requireSuccess(await props.request<{
-      Token: string;
-    }>('/IssueParticipationUrl.php', 'POST', {
-      WorkId: project.WorkId
-    }), '参加URLの発行に失敗しました');
-    const url = `${window.location.origin}/login?token=${encodeURIComponent(data.Token)}`;
-    if (!(await copyToClipboard(url))) throw new Error('クリップボードへのコピーに失敗しました');
-    await props.dialogs.info('URL発行', 'プロジェクト参加URLをクリップボードに保存しました。\nプロジェクトに参加を行うメンバーへ共有を行ってください。');
+    const finished = await spinner.run(async () => {
+      const data = requireSuccess(await props.request<{
+        Token: string;
+      }>('/IssueParticipationUrl.php', 'POST', {
+        WorkId: project.WorkId
+      }), messageFormat('ERROR', 'E_0003', '参加URLの発行'));
+      const url = `${window.location.origin}/login?token=${encodeURIComponent(data.Token)}`;
+      if (!(await copyToClipboard(url))) throw new Error(messageFormat('ERROR', 'E_0003', 'クリップボードへのコピー'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0026'), messageFormat('INFO', 'I_0027'));
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '参加URLの発行中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '参加URLの発行'));
   }
 }
 function openExport(project: Project) {
@@ -96,62 +164,75 @@ async function exportDocument(settings: Record<string, unknown>) {
   const project = exportProject.value;
   if (!project) return;
   const type = settings.ExportType === 'html' ? 'HTML' : 'Word';
-  if (!(await props.dialogs.confirm(`この設定で資料を${type}出力しますか？`))) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0007', type)))) return;
   exportOpen.value = false;
   try {
-    const data = requireSuccess(await props.request<DownloadData>('/ExportDocument.php', 'POST', {
-      WorkId: project.WorkId,
-      ...settings
-    }), '出力に失敗しました');
-    downloadBase64(data);
-    await props.dialogs.info('出力完了', `${type}ファイルをダウンロードしました`);
+    const finished = await spinner.run(async () => {
+      const data = requireSuccess(await props.request<DownloadData>('/ExportDocument.php', 'POST', {
+        WorkId: project.WorkId,
+        ...settings
+      }), messageFormat('ERROR', 'E_0003', '出力'));
+      downloadBase64(data);
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '出力'), messageFormat('INFO', 'I_0002', type + 'ファイル'));
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '出力中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '出力'));
   }
 }
 async function backup(project: Project) {
-  if (!(await props.dialogs.confirm('この作品のバックアップCSVを出力しますか？'))) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'この作品のバックアップCSVを出力')))) return;
   try {
-    const data = requireSuccess(await props.request<DownloadData>('/GetBackupInfo.php', 'POST', {
-      WorkId: project.WorkId
-    }), 'バックアップ出力に失敗しました');
-    downloadBase64({
-      ...data,
-      MimeType: data.MimeType || 'text/csv',
-      FileName: data.FileName || 'backup.csv'
+    const finished = await spinner.run(async () => {
+      const data = requireSuccess(await props.request<DownloadData>('/GetBackupInfo.php', 'POST', {
+        WorkId: project.WorkId
+      }), messageFormat('ERROR', 'E_0003', 'バックアップ出力'));
+      downloadBase64({
+        ...data,
+        MimeType: data.MimeType || 'text/csv',
+        FileName: data.FileName || 'backup.csv'
+      });
+      return true;
     });
-    await props.dialogs.info('出力完了', 'バックアップCSVをダウンロードしました');
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '出力'), messageFormat('INFO', 'I_0001', 'バックアップCSVの出力'));
   } catch (error) {
-    await reportBackendError(props.dialogs, error, 'バックアップ出力中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'バックアップ出力'));
   }
 }
 async function chooseRestore(project: Project) {
-  if (!(await props.dialogs.confirm('バックアップCSVから復元しますか？'))) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'バックアップCSVから復元')))) return;
   restoreProject.value = project;
   if (fileInput.value) {
     fileInput.value.openFilePicker();
   }
 }
-async function restore(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0];
+async function restore() {
+  const file = fileInput.value?.getFiles()[0];
+  fileInput.value?.setValue('');
   const project = restoreProject.value;
   if (!file || !project) return;
   if (!file.name.toLowerCase().endsWith('.csv')) {
-    await props.dialogs.error('CSV以外のファイルは選択できません');
+    await props.dialogs.error(messageFormat('ERROR', 'E_0027'));
     return;
   }
   try {
     const data = await fileAsBase64(file);
-    if (!data) throw new Error('選択したCSVの読み込みに失敗しました');
-    requireSuccess(await props.request('/BackupRestoration.php', 'POST', {
-      WorkId: project.WorkId,
-      FileName: file.name,
-      FileData: data
-    }), '復元に失敗しました');
-    await props.dialogs.info('復元完了', 'バックアップCSVから復元しました');
+    if (!data) throw new Error(messageFormat('ERROR', 'E_0003', '選択したCSVの読み込み'));
+    const finished = await spinner.run(async () => {
+      requireSuccess(await props.request('/BackupRestoration.php', 'POST', {
+        WorkId: project.WorkId,
+        FileName: file.name,
+        FileData: data
+      }), messageFormat('ERROR', 'E_0003', '復元'));
+      return true;
+    });
+    if (!finished) return;
+    await props.dialogs.info(messageFormat('INFO', 'I_0011', '復元'), messageFormat('INFO', 'I_0001', 'バックアップCSVからの復元'));
     await load();
   } catch (error) {
-    await reportBackendError(props.dialogs, error, '復元中にエラーが発生しました');
+    await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '復元'));
   }
 }
 onMounted(load);

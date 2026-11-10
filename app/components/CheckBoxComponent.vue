@@ -30,11 +30,12 @@
 </template>
 
 <script setup lang="ts">
+import { useFieldValue } from '../composables/useFieldValue';
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
 // 1. vue関連
-import { computed, ref, useId, type PropType } from 'vue';
+import { computed, ref, useId } from 'vue';
 // 2. フォーム共通定義
 import { fieldProps } from '../composables/componentProps';
 
@@ -59,7 +60,6 @@ const props = defineProps({
   // 1. フォーム共通定義
   ...fieldProps,
   // 2. 値
-  modelValue: { type: [Boolean, Array] as PropType<CheckedValue>, default: false },
   // 3. 複数選択時にこの項目が表す値
   optionValue: [String, Number],
   // 4. 入力要素ID（省略時は自動生成）
@@ -75,7 +75,7 @@ const props = defineProps({
  * ========================================================== */
 const emit = defineEmits<{
   // 1. 入力値
-  'update:modelValue': [value: CheckedValue];
+  'value-change': [];
   // 2. 既存の選択処理へネイティブイベントを渡す
   change: [event: Event];
 }>();
@@ -87,7 +87,7 @@ const emit = defineEmits<{
 const generatedId = useId();
 const id = computed(() => props.inputId || generatedId);
 // 2. 共通処理群を取得
-const { value, setValue, getValue } = useFieldValue<CheckedValue>(props, emit, false);
+const { value, setValue, getValue, updateValue } = useFieldValue<CheckedValue>(false, () => emit('value-change'));
 
 // 3. 入力要素
 const input = ref<HTMLInputElement>();
@@ -123,9 +123,9 @@ function updateChecked(event: Event) {
     // 複数選択は重複を除いて更新し、選択値の型を維持する。
     if (props.optionValue === undefined) return;
     const current = value.value.filter(item => item !== props.optionValue);
-    setValue(nextChecked ? [...current, props.optionValue] : current);
+    updateValue(nextChecked ? [...current, props.optionValue] : current);
   } else {
-    setValue(nextChecked);
+    updateValue(nextChecked);
   }
 
   // 2. 親画面へ変更イベントを通知

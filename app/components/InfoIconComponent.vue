@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
 import { ref } from 'vue';
 withDefaults(defineProps<{ title?: string; message?: string; label?: string }>(), {
-  title: '項目説明',
+  title: messageFormat('INFO', 'I_0056'),
   message: '',
-  label: '説明を表示',
+  label: messageFormat('INFO', 'I_0057'),
 });
 const opened = ref(false);
 </script>

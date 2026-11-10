@@ -7,7 +7,10 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test:input-refs": "node scripts/check-input-refs.mjs",
+    "test:frontend-structure": "node scripts/check-frontend-structure.mjs",
+    "test:legacy-timeline": "node scripts/check-legacy-timeline.mjs"
   },
   "dependencies": {
     "nuxt": "^4.6.3",

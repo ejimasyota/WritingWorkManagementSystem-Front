@@ -8,7 +8,7 @@
         創作管理システム
       </h1>
       <p class="LoginSubtitle">
-        ログインしてください
+        {{ messageFormat('INFO', 'I_0053') }}
       </p>
       <div id="LoginForm" class="LoginForm">
         <TextFieldComponent
@@ -73,6 +73,8 @@
   </div>
 </template>
 <script setup lang="ts">
+import { useOperationSpinner } from '../../composables/useOperationSpinner';
+
 /* ==========================================================
  * モジュールインポート
  * ========================================================== */
@@ -98,6 +100,8 @@ import { messageFormat } from '../../utils/messages';
 import { useApi } from '../../utils/useApi';
 //11. 共通型定義
 import type { ApiResponse } from '../../types/utilType';
+
+const spinner = useOperationSpinner();
 
 /* ==========================================================
  * ページ設定
@@ -163,7 +167,7 @@ const countdownText = computed(() => {
   // 2. 残り時間（秒）
   const seconds = Math.floor(remaining.value % 60_000 / 1000);
   // 3. 表示テキストを返却
-  return `ロック解除まで ${minutes}分${String(seconds).padStart(2, '0')}秒`;
+  return messageFormat('INFO', 'I_0055', minutes, String(seconds).padStart(2, '0'));
 });
 
 /**
@@ -351,14 +355,14 @@ const loginEvent = async (): Promise<void> => {
     /* ------------------------------
      * 1. 認証処理実行
      * ------------------------------*/
-    const response = await useApi<ApiResponse<LoginResult>>(
-      '/Login.php',
-      'POST',
-      {
+    const response = await spinner.run(async () => {
+      const result = await useApi<ApiResponse<LoginResult>>('/Login.php', 'POST', {
         UserId: checkInput.userId,
         Password: checkInput.password
-      }
-    )
+      });
+      if (result.Success) await authInfo.establishSession();
+      return result;
+    })
 
     /* ------------------------------
      * 2. 認証に失敗した場合
@@ -376,7 +380,7 @@ const loginEvent = async (): Promise<void> => {
      * 3. 認証に成功した場合
      * ------------------------------*/
     // 1. 認証セッションを確立
-    await authInfo.establishSession()
+    // 認証セッションの確立までを上の操作スコープ内で完了している。
     // 2. 保留中の参加トークンを確認
     const pendingJoin = !!sessionStorage.getItem('PendingJoinToken')
     // 3. ログイン後の遷移先を決定

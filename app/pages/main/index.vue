@@ -56,6 +56,8 @@
   </div>
 </template>
 <script setup lang="ts">
+import { useOperationSpinner } from '../../composables/useOperationSpinner';
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import UtilLayout from '../../layouts/UtilLayout.vue';
 import type { BackendRequest } from '../../types/backend';
@@ -63,11 +65,14 @@ import type { ApiResponse } from '../../types/utilType';
 import { useApi } from '../../utils/useApi';
 import { backendError, reportBackendError, requireSuccess } from '../../utils/backend';
 import { stashPendingJoinToken } from '../../utils/auth';
+import { resolveWorkMenu, workLocation } from '../../utils/workNavigation';
 import { canOpenMenu, type MainMenuId } from '../../utils/mainMenus';
 // 2. 定数関連
 import {CONST_VARIABLE} from '../../config/Const';
 // 9. メッセージ関連
 import { messageFormat } from '../../utils/messages';
+const spinner = useOperationSpinner();
+
 
 /* ==========================================================
  * ページ設定
@@ -89,6 +94,7 @@ const auth = useAuthSession();
 const session = auth.user;
 const nuxtApp = useNuxtApp();
 const dialogs = usePageDialogs();
+const switchingWork = ref(false);
 const activeMenu = ref<MainMenuId>('MenuWorkManagement');
 const hideMeta = ref(false);
 const notificationsOpen = ref(false);
@@ -101,7 +107,7 @@ const call = computed<BackendRequest>(() => {
   const identity = auth.identityVersion.value;
   return async <T,>(endpoint: string, method: 'GET' | 'POST' = 'GET', data?: unknown) => {
     if (identity !== auth.identityVersion.value) {
-      const error = new backendError('認証状態が変更されました', 401);
+      const error = new backendError(messageFormat('ERROR', 'E_0035'), 401);
       error.handled = true;
       throw error;
     }
@@ -175,7 +181,7 @@ watch(auth.workAccessVersion, async () => {
 
 async function refreshBadge() {
   try {
-    const data = requireSuccess(await call.value<{ TotalCnt: number }>('/GetNotificationSummary.php'), '通知サマリの取得に失敗しました');
+    const data = requireSuccess(await call.value<{ TotalCnt: number }>('/GetNotificationSummary.php'), messageFormat('ERROR', 'E_0003', '通知サマリの取得'));
     notificationCount.value = Math.min(data.TotalCnt || 0, 1000);
   } catch {
     // 認証エラーは共通処理済み。一時的な通信失敗では現在のバッジを維持する。
@@ -198,26 +204,36 @@ async function navigateMenu(id: string) {
     const verified = await auth.checkSession();
     if (!verified) return;
     if (!canOpenMenu(id, verified.IsAdmin)) {
-      await dialogs.error('この画面を表示する権限がありません。');
+      await dialogs.error(messageFormat('ERROR', 'E_0036'));
       return;
     }
     switchMenu(id);
   } catch (error) {
-    await reportBackendError(dialogs, error, '権限情報を確認できませんでした');
+    await reportBackendError(dialogs, error, messageFormat('ERROR', 'E_0037'));
   }
 }
 
+/** 通知・一覧からの移動は、共通のメニュー検証と遷移先組立てを使用する。 */
 async function moveToWork(workId: unknown, menuId?: string) {
-  if (menuId && !['MenuWorkInfo', 'MenuCharacter'].includes(menuId)) {
-    await dialogs.info('お知らせ', 'この画面はまだ利用できません');
+  if (switchingWork.value) return;
+  const menu = resolveWorkMenu(menuId);
+  if (!menu) {
+    await dialogs.info(messageFormat('INFO', 'I_0035'), messageFormat('INFO', 'I_0036'));
     return;
   }
+  switchingWork.value = true;
   try {
-    requireSuccess(await call.value('/SetCurrentWork.php', 'POST', { WorkId: workId }), '作品セッションの設定に失敗しました');
-    await navigateTo(menuId === 'MenuCharacter' ? '/work?menu=MenuCharacter' : '/work');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await call.value('/SetCurrentWork.php', 'POST', {
+        WorkId: workId
+      }), messageFormat('ERROR', 'E_0003', '作品セッションの設定'));
+      await navigateTo(workLocation(menu));
+      return true;
+    });
+    if (!finished) return;
   } catch (error) {
-    await reportBackendError(dialogs, error, '作品の移動に失敗しました');
-  }
+    await reportBackendError(dialogs, error, messageFormat('ERROR', 'E_0003', '作品の移動'));
+  } finally { switchingWork.value = false; }
 }
 
 /**
@@ -252,16 +268,22 @@ async function pendingJoin() {
   const token = sessionStorage.getItem('PendingJoinToken');
   if (!token) return;
   sessionStorage.removeItem('PendingJoinToken');
-  if (!await dialogs.confirm('プロジェクトに参加しますか？')) return;
+  if (!await dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'プロジェクトに参加'))) return;
   try {
-    requireSuccess(await call.value('/JoinProject.php', 'POST', { Token: token }), 'プロジェクト参加に失敗しました');
-    await dialogs.info('参加完了', 'プロジェクトに参加しました');
+    const finished = await spinner.run(async () => {
+      requireSuccess(await call.value('/JoinProject.php', 'POST', {
+        Token: token
+      }), messageFormat('ERROR', 'E_0003', 'プロジェクト参加'));
+      return true;
+    });
+    if (!finished) return;
+    await dialogs.info(messageFormat('INFO', 'I_0011', '参加'), messageFormat('INFO', 'I_0001', 'プロジェクトへの参加'));
     switchMenu('MenuWorkManagement');
     await nextTick();
     await projectList.value?.load();
     await refreshBadge();
   } catch (error) {
-    await reportBackendError(dialogs, error, 'プロジェクト参加中にエラーが発生しました');
+    await reportBackendError(dialogs, error, messageFormat('ERROR', 'E_0004', 'プロジェクト参加'));
   }
 }
 </script>

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
 import { messageDialogProps } from '../composables/componentProps';
 defineProps({
   ...messageDialogProps,
   title: {
     type: String,
-    default: 'お知らせ'
+    default: () => messageFormat('INFO', 'I_0035')
   }
 });
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);

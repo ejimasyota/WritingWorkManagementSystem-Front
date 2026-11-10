@@ -1,6 +1,97 @@
 <script setup lang="ts">
+import { messageFormat } from '../utils/messages';
+
+import { useInputFields } from '../composables/useInputFields';
 import { ref, watch } from 'vue';
-import items from '../utils/exportItems.json';
+// この出力設定ダイアログが扱う項目。
+const items = [
+  {
+    "key": "Characters",
+    "label": "キャラ一覧"
+  },
+  {
+    "key": "Biographies",
+    "label": "経歴一覧"
+  },
+  {
+    "key": "Calendars",
+    "label": "元号一覧"
+  },
+  {
+    "key": "Buildings",
+    "label": "建物一覧"
+  },
+  {
+    "key": "Stages",
+    "label": "舞台一覧"
+  },
+  {
+    "key": "Organizations",
+    "label": "組織一覧"
+  },
+  {
+    "key": "Classes",
+    "label": "階級一覧"
+  },
+  {
+    "key": "Teams",
+    "label": "チーム一覧"
+  },
+  {
+    "key": "Races",
+    "label": "種族一覧"
+  },
+  {
+    "key": "Tags",
+    "label": "タグ一覧"
+  },
+  {
+    "key": "Powers",
+    "label": "能力一覧"
+  },
+  {
+    "key": "Weapons",
+    "label": "武器一覧"
+  },
+  {
+    "key": "Items",
+    "label": "アイテム一覧"
+  },
+  {
+    "key": "Moves",
+    "label": "技一覧"
+  },
+  {
+    "key": "Timelines",
+    "label": "年表一覧"
+  },
+  {
+    "key": "Chapters",
+    "label": "チャプター一覧"
+  },
+  {
+    "key": "Clues",
+    "label": "伏線一覧"
+  },
+  {
+    "key": "Serifs",
+    "label": "セリフメモ一覧"
+  },
+  {
+    "key": "Exchanges",
+    "label": "掛け合い一覧"
+  },
+  {
+    "key": "Terms",
+    "label": "作中用語一覧"
+  },
+  {
+    "key": "WorkMemos",
+    "label": "作品作成用メモ一覧"
+  }
+];
+
+const inputFields = useInputFields();
 const props = defineProps<{
   modelValue: boolean;
 }>();
@@ -22,25 +113,34 @@ watch(() => props.modelValue, open => {
   font.value = 'ＭＳ ゴシック';
   cover.value = true;
   error.value = '';
+  inputFields.setValues({ type: type.value, newLine: newLine.value, sortOrder: sortOrder.value, font: font.value, cover: cover.value, all: true });
+  for (const item of items) inputFields.setValue('item:' + item.key, true);
 });
-function selectAll(event: Event) {
-  selected.value = (event.target as HTMLInputElement).checked ? items.map(item => item.key) : [];
+function selectAll() {
+  const checked = inputFields.getValue('all', false);
+  for (const item of items) inputFields.setValue('item:' + item.key, checked);
+  readItems();
+}
+function readItems() {
+  selected.value = items.filter(item => inputFields.getValue('item:' + item.key, false)).map(item => item.key);
+  inputFields.setValue('all', selected.value.length === items.length);
 }
 function close() {
   emit('update:modelValue', false);
 }
 function submit() {
+  readItems();
   if (!selected.value.length) {
-    error.value = '出力項目を1つ以上選択してください';
+    error.value = messageFormat('ERROR', 'E_0013');
     return;
   }
   emit('export', {
     ExportItems: [...selected.value],
-    ExportType: type.value,
-    NewLine: newLine.value,
-    SortOrder: sortOrder.value,
-    Font: font.value,
-    Cover: cover.value
+    ExportType: inputFields.getValue('type', type.value),
+    NewLine: inputFields.getValue('newLine', newLine.value),
+    SortOrder: inputFields.getValue('sortOrder', sortOrder.value),
+    Font: inputFields.getValue('font', font.value),
+    Cover: inputFields.getValue('cover', cover.value)
   });
 }
 </script>
@@ -59,40 +159,40 @@ function submit() {
       <label class="DialogSectionTitle" for="ExportType">
         出力形式
       </label>
-      <SelectBoxComponent v-model="type" inline input-id="ExportType" hide-list-button :options="[{ value: 'word', label: 'Word（.docx）' }, { value: 'html', label: 'HTML（.html）' }]" />
+      <SelectBoxComponent :ref="el => inputFields.register('type', el, type)" inline input-id="ExportType" hide-list-button :options="[{ value: 'word', label: 'Word（.docx）' }, { value: 'html', label: 'HTML（.html）' }]" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         出力する項目の選択
       </label>
-      <CheckBoxComponent inline wrapper-class="ExportSelectAll" :model-value="selected.length === items.length" @change="selectAll">すべて選択</CheckBoxComponent>
+      <CheckBoxComponent inline wrapper-class="ExportSelectAll" :ref="el => inputFields.register('all', el, selected.length === items.length)" @change="selectAll">すべて選択</CheckBoxComponent>
       <div class="ExportItemGrid">
-        <CheckBoxComponent v-for="item in items" :key="item.key" v-model="selected" inline :option-value="item.key">{{ item.label }}</CheckBoxComponent>
+        <CheckBoxComponent v-for="item in items" :key="item.key" :ref="el => inputFields.register('item:' + item.key, el, selected.includes(item.key))" inline @change="readItems">{{ item.label }}</CheckBoxComponent>
       </div>
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         改行コードの認識
       </label>
-      <CheckBoxComponent v-model="newLine" inline>改行コードを認識して出力する</CheckBoxComponent>
+      <CheckBoxComponent :ref="el => inputFields.register('newLine', el, newLine)" inline>改行コードを認識して出力する</CheckBoxComponent>
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         出力データの並び順
       </label>
-      <RadioButtonComponent v-model="sortOrder" inline :options="[{ value: 'asc', label: '昇順' }, { value: 'desc', label: '降順' }]" />
+      <RadioButtonComponent :ref="el => inputFields.register('sortOrder', el, sortOrder)" inline :options="[{ value: 'asc', label: '昇順' }, { value: 'desc', label: '降順' }]" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle" for="ExportFont">
         出力時の文字フォント
       </label>
-      <SelectBoxComponent v-model="font" inline input-id="ExportFont" hide-list-button :options="fonts.map(item => ({ value: item, label: item }))" />
+      <SelectBoxComponent :ref="el => inputFields.register('font', el, font)" inline input-id="ExportFont" hide-list-button :options="fonts.map(item => ({ value: item, label: item }))" />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">
         表紙の出力
       </label>
-      <CheckBoxComponent v-model="cover" inline>表紙を含めて出力する</CheckBoxComponent>
+      <CheckBoxComponent :ref="el => inputFields.register('cover', el, cover)" inline>表紙を含めて出力する</CheckBoxComponent>
     </div>
     <p v-if="error" role="alert">
       {{ error }}
