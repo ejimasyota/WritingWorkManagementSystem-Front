@@ -23,6 +23,8 @@ const props = defineProps<{
   dialogs: PageDialogs;
   isAdmin: boolean;
   hideMeta?: boolean;
+  targetId?: string;
+  targetParentId?: string;
 }>();
 const emit = defineEmits<{
   navigate: [menu: string];
@@ -346,6 +348,7 @@ async function showCharacter() {
 
 /** 新規登録は入力状態を初期化してから同じダイアログを開く。 */
 
+
 function openNew() {
   if (!canEdit.value || saving.value || loading.value) return;
   clear();
@@ -355,7 +358,13 @@ function openNew() {
 function close() {
   opened.value = false;
 }
-onMounted(load);
+onMounted(async () => {
+  await load();
+  if (!disposed && props.targetId) {
+    const target = rows.value.find(row => String(row.BiographyId) === props.targetId);
+    if (target) selectRow(target);
+  }
+});
 </script>
 
 <template>

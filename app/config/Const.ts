@@ -47,11 +47,34 @@ export const CONST_VARIABLE = {
     MenuClass: { label: '階級設定', icon: 'fa-sitemap' },
     MenuBiography: { label: '経歴一覧', icon: 'fa-stream' },
     MenuImage: { label: '画像一覧', icon: 'fa-images' },
+    MenuCalendar: { label: '元号設定', icon: 'fa-calendar-alt' },
+    MenuTimeline: { label: '年表設定', icon: 'fa-stream' },
+    MenuChapter: { label: 'チャプター設定', icon: 'fa-layer-group' },
+    MenuStage: { label: '舞台設定', icon: 'fa-map-marked-alt' },
+    MenuBuilding: { label: '建物設定', icon: 'fa-landmark' },
+    MenuPower: { label: '能力設定', icon: 'fa-bolt' },
+    MenuWeapon: { label: '武器設定', icon: 'fa-shield-alt' },
+    MenuItem: { label: 'アイテム設定', icon: 'fa-box' },
+    MenuMove: { label: '技設定', icon: 'fa-fire' },
+    MenuTag: { label: 'タグマスタ', icon: 'fa-tags' },
+    MenuSerif: { label: 'セリフ設定', icon: 'fa-comment' },
+    MenuRelation: { label: '相関図作成', icon: 'fa-project-diagram' },
+    MenuStory: { label: 'ストーリー作成', icon: 'fa-book' },
+    MenuPlot: { label: 'プロット作成', icon: 'fa-sitemap' },
+    MenuClue: { label: '伏線メモ', icon: 'fa-puzzle-piece' },
+    MenuTerm: { label: '作中用語', icon: 'fa-book-reader' },
+    MenuReview: { label: '作品レビュー', icon: 'fa-star' },
+    MenuMemo: { label: '作品作成用メモ', icon: 'fa-sticky-note' },
+    MenuWbs: { label: 'WBS', icon: 'fa-tasks' },
+    MenuParticipants: { label: '参加者一覧', icon: 'fa-user-friends' },
+    MenuHistory: { label: '更新履歴', icon: 'fa-history' },
+    MenuKeywordSearch: { label: 'キーワード検索', icon: 'fa-search' },
   },
 
-  /**
-   * セッションキー
-   */
+  /** 画面間で共有する一時状態のキー。 */
+  STATE_KEY: { CHARACTER_TAG_RETURN: 'CharacterTagReturn', WBS_SELECTION: 'WbsSelection' },
+
+  /** セッションストレージのキー。 */
   SESSION_KEY: {
     // 1. ログアウト前に表示されていた画面のパス
     LAST_PATH: "LastPath",

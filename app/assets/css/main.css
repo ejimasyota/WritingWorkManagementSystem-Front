@@ -5625,3 +5625,32 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
 /* 旧階層図のデータなし表示。画面固有のstyleタグに分散させない。 */
 .ClassChartEmpty { text-align: center; padding: 40px; color: #999; }
 .ClassChartEmpty > i { font-size: 48px; margin-bottom: 15px; }
+
+/* 旧CreateFolderCardHtml / StoryPlotModuleの共通フォルダ・プロット区分。 */
+.StoryFolderGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),220px));justify-content:start;gap:16px;align-items:stretch}
+.StoryFolderCard{position:relative;border:1px solid #dccb7a;border-radius:18px;background:#fff6bf;box-shadow:0 10px 24px rgba(89,72,24,.12);cursor:pointer;overflow:hidden}
+.StoryFolderTab{height:14px;width:120px;background:#efd36c;border-radius:0 0 12px 0;margin-left:18px}
+.StoryFolderBody{padding:18px;display:flex;flex-direction:column;gap:12px;min-height:170px}
+.StoryFolderTitle{font-size:18px;font-weight:700;color:#4b3e12;line-height:1.4;word-break:break-word}
+.StoryFolderBadge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.7);color:#6b5615;font-size:12px;font-weight:700;width:max-content;max-width:100%}
+.StoryFolderActions{margin-top:auto;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.StoryList .PlotRowContent{min-width:0;white-space:pre-wrap;display:flex}
+.StoryList .PlotSection{margin-bottom:16px}.StoryList .PlotSection:last-child{margin-bottom:0}
+.StoryList .PlotSectionHeader{display:flex;align-items:center;padding:6px 12px;margin-bottom:4px;border-bottom:2px solid rgba(148,163,184,.25)}
+.StoryList .PlotSectionHeader .PlotBadge{font-size:14px;font-weight:700}.StoryList .PlotBadge{align-self:center;margin-right:0}
+body.DarkMode .StoryList .PlotSectionHeader{border-bottom-color:rgba(148,163,184,.18)}
+@media(max-width:768px){.StoryFolderGrid{justify-content:center}}
+/* Pointer Eventsでも旧マウス／タッチ操作と同じドラッグを維持する。 */
+.RelationObject,.RelationGroupBox,.RelationResizeHandle,.CharacterListItem{touch-action:none}
+.CharacterListItem.placed{opacity:.5;cursor:not-allowed}
+.RelationDragGhost{position:fixed;pointer-events:none;z-index:10000;padding:10px;background:#fff;border:2px solid #3498db;border-radius:8px;transform:translate(8px,8px)}
+.TagMasterColor{display:inline-block;width:24px;height:24px;vertical-align:middle;border:1px solid #ccc;border-radius:4px;margin-right:8px}
+.KeywordContentPreview{min-height:300px;width:100%}
+/* 旧一覧の詳細・本文リンクの見た目をボタンでも維持する。 */
+.HistoryDetailCell,.KeywordSearchContentCell{display:block;max-width:480px;padding:0;border:none;background:transparent;color:#1d4ed8;font:inherit;line-height:inherit;text-align:left;text-decoration:underline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+
+.KeywordSearchFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

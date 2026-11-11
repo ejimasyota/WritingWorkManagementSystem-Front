@@ -3,7 +3,6 @@ import { messageFormat } from '../utils/messages';
 import { useInputFields } from '../composables/useInputFields';
 import { computed, reactive, ref, watch } from 'vue';
 import { cellValue, filterValues, processTable, type TableColumn, type TableRow } from '../composables/tableData';
-
 const inputFields = useInputFields();
 interface Props {
   rows?: TableRow[];
@@ -16,12 +15,19 @@ interface Props {
   loading?: boolean;
   scrollTopOnPageChange?: boolean;
   rowClickable?: boolean;
+  tableClass?: string;
+  containerClass?: string;
+  showFooter?: boolean;
+  stickyColumns?: number;
+  rowVisible?: (row: TableRow) => boolean;
 }
 type DropdownKind = 'values' | 'sort-columns' | 'filter-columns';
 const props = withDefaults(defineProps<Props>(), {
   rows: () => [],
   rowKey: 'id',
   pageSize: 15,
+  showFooter: true,
+  stickyColumns: 0,
   scrollTopOnPageChange: true
 });
 const emit = defineEmits(['edit', 'delete', 'selection-change', 'row-click', 'result-change']);
@@ -40,12 +46,17 @@ const activeFilter = ref<TableColumn>();
 const columns = computed(() => props.columns.filter(column => !(props.hideMeta && column.meta)));
 const sortableColumns = computed(() => columns.value.filter(column => column.sortable));
 const filterableColumns = computed(() => columns.value.filter(column => column.filterable));
+const tableInlineStyle = computed(() => props.stickyColumns ? {
+  width: columns.value.reduce((sum, column) => sum + (widths[column.key] || column.width || 0), 0) + 'px'
+} : undefined);
 const activeFilterCount = computed(() => Object.keys(filters).length);
 
 // 絞り込み・ソートを全件に適用してから、現在ページの行を取得する。
 const result = computed(() => processTable(props.rows, props.columns, filters, sort));
 // 年表などの別表示へ、ページ分割前の絞込結果を渡す。
-watch(result, rows => emit('result-change', rows), { immediate: true });
+watch(result, rows => emit('result-change', rows), {
+  immediate: true
+});
 const size = computed(() => Math.max(1, Math.floor(props.pageSize) || 15));
 const pages = computed(() => Math.max(1, Math.ceil(result.value.length / size.value)));
 const visible = computed(() => {
@@ -91,6 +102,8 @@ watch(() => props.rows, rows => {
 });
 
 /** 旧 ApplySortCharacter 等と同じく、同じ列では昇順・降順を交互に切り替える。 */
+
+
 function applySort(column: TableColumn) {
   if (!column.sortable) return;
   if (sort.key === column.key) {
@@ -100,21 +113,26 @@ function applySort(column: TableColumn) {
     sort.direction = 'asc';
   }
 }
+
 function sortIcon(column?: TableColumn) {
   if (!sort.direction || column && sort.key !== column.key) return 'fa-sort';
   return sort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
 }
+
 function openDropdown(event: MouseEvent, kind: DropdownKind, column?: TableColumn) {
   dropdownAnchor.value = event.currentTarget as HTMLElement;
   dropdownKind.value = kind;
   activeFilter.value = column;
   dropdownOpen.value = true;
 }
+
 function openFilter(event: MouseEvent, column: TableColumn) {
   openDropdown(event, 'values', column);
 }
 
 /** チェックを変更した時点で適用する。適用ボタン・確認ダイアログは設けない。 */
+
+
 function toggleFilter(value: string) {
   const column = activeFilter.value;
   if (!column) return;
@@ -127,37 +145,46 @@ function toggleFilter(value: string) {
     delete filters[column.key];
   }
 }
+
 function clearColumnFilter() {
   if (activeFilter.value) delete filters[activeFilter.value.key];
 }
+
 function clearFilters() {
   Object.keys(filters).forEach(key => delete filters[key]);
   dropdownOpen.value = false;
 }
 
 /** モバイルは列選択後、同じフィルタボタン直下に候補リストを表示する。 */
+
+
 function chooseFilterColumn(column: TableColumn) {
   activeFilter.value = column;
   dropdownKind.value = 'values';
 }
+
 function chooseSortColumn(column: TableColumn) {
   applySort(column);
   dropdownOpen.value = false;
 }
+
 function filterSummary(column: TableColumn) {
   const values = (filters[column.key] || []).map(value => value || '(未設定)');
   if (values.length <= 2) return values.join(', ');
   return `${values[0]} +${values.length - 1}件`;
 }
+
 function isSelected(row: TableRow) {
   return selected.value.includes(row[props.rowKey]);
 }
+
 function selectRow(row: TableRow) {
   const key = row[props.rowKey];
   const checked = inputFields.getValue('row:' + String(key), false);
   selected.value = checked ? [...new Set([...selected.value, key])] : selected.value.filter(value => value !== key);
   emit('selection-change', [...selected.value]);
 }
+
 function selectPage() {
   const checked = inputFields.getValue('page', false);
   const keys = visible.value.map(row => row[props.rowKey]);
@@ -166,6 +193,8 @@ function selectPage() {
 }
 
 /** 旧 CreatePagination のページ移動時と同じく、画面先頭へ戻す。 */
+
+
 function changePage(nextPage: number) {
   page.value = nextPage;
   if (!props.scrollTopOnPageChange) return;
@@ -176,6 +205,8 @@ function changePage(nextPage: number) {
 }
 
 /** 旧 ColumnResizer のクラス・最小幅を引き継ぐ。 */
+
+
 function resize(event: PointerEvent, column: TableColumn) {
   const handle = event.currentTarget as HTMLElement;
   const header = handle.parentElement!;
@@ -194,9 +225,23 @@ function resize(event: PointerEvent, column: TableColumn) {
   handle.addEventListener('pointermove', move);
   handle.addEventListener('lostpointercapture', stop);
 }
+
 function columnStyle(column: TableColumn) {
   const width = widths[column.key] || column.width;
-  return { ...column.style, ...(width ? { width: `${width}px`, minWidth: `${width}px` } : {}) };
+  const index = columns.value.indexOf(column);
+  const sticky = index >= 0 && index < props.stickyColumns;
+  const left = columns.value.slice(0, index).reduce((sum, item) => sum + (widths[item.key] || item.width || 0), 0);
+  return {
+    ...column.style,
+    ...(sticky ? {
+      left: left + 'px',
+      position: 'sticky' as const
+    } : {}),
+    ...(width ? {
+      width: `${width}px`,
+      minWidth: `${width}px`
+    } : {})
+  };
 }
 // 一括選択、フィルタ解除、ページ変更の結果をチェック部品へセットする。
 watch([visible, selected, filters, activeFilter], () => {
@@ -206,7 +251,10 @@ watch([visible, selected, filters, activeFilter], () => {
     const key = activeFilter.value.key;
     for (const option of filterOptions.value) inputFields.setValue('filter:' + key + ':' + option, !!filters[key]?.includes(option));
   }
-}, { deep: true, flush: 'post' });
+}, {
+  deep: true,
+  flush: 'post'
+});
 
 function reset() {
   clearFilters();
@@ -214,6 +262,7 @@ function reset() {
   sort.direction = '';
   page.value = 1;
 }
+
 function getSelectedKeys() {
   return [...selected.value];
 }
@@ -225,10 +274,15 @@ defineExpose({
 
 <template>
   <section :aria-busy="loading">
-    <slot name="toolbar" :selected-keys="selected" />
-
+    <slot
+      name="toolbar"
+      :selected-keys="selected"
+    />
     <!-- 旧 CreateMobileTableToolbar：アイコンボタンから列の選択リストを開く。 -->
-    <div v-if="sortableColumns.length || filterableColumns.length" class="MobileTableToolbar">
+    <div
+      v-if="sortableColumns.length || filterableColumns.length"
+      class="MobileTableToolbar"
+    >
       <div class="MobileTableToolbarButtons">
         <ButtonComponent
           v-if="sortableColumns.length"
@@ -237,7 +291,11 @@ defineExpose({
           aria-label="並び替え"
           @click.stop="openDropdown($event, 'sort-columns')"
         >
-          <i class="fas" :class="sortIcon()" aria-hidden="true" />
+          <i
+            class="fas"
+            :class="sortIcon()"
+            aria-hidden="true"
+          />
         </ButtonComponent>
         <ButtonComponent
           v-if="filterableColumns.length"
@@ -246,14 +304,26 @@ defineExpose({
           aria-label="絞り込み"
           @click.stop="openDropdown($event, 'filter-columns')"
         >
-          <i class="fas fa-filter" aria-hidden="true" />
-          <span v-if="activeFilterCount" class="MobileFilterCount">{{ activeFilterCount }}</span>
+          <i
+            class="fas fa-filter"
+            aria-hidden="true"
+          />
+          <span
+            v-if="activeFilterCount"
+            class="MobileFilterCount"
+          >{{ activeFilterCount }}</span>
         </ButtonComponent>
       </div>
     </div>
-
-    <div class="TableContainer">
-      <table class="DataTable">
+    <div
+      class="TableContainer"
+      :class="containerClass"
+    >
+      <table
+        class="DataTable"
+        :class="tableClass"
+        :style="tableInlineStyle"
+      >
         <thead>
           <tr>
             <th v-if="selectable">
@@ -269,68 +339,129 @@ defineExpose({
             <th
               v-for="column in columns"
               :key="column.key"
-              :class="[column.className, { MetaCol: column.meta }]"
+              :class="[column.headerClassName || column.className, { MetaCol: column.meta }]"
               :style="columnStyle(column)"
               :aria-sort="sort.key === column.key ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'"
             >
-              <div class="TableColumnHeader">
-                <span
-                  class="TableColumnLabel"
-                  :class="{ Sortable: column.sortable }"
-                  :role="column.sortable ? 'button' : undefined"
-                  :tabindex="column.sortable ? 0 : undefined"
-                  @click="applySort(column)"
-                  @keydown.enter.prevent="applySort(column)"
-                  @keydown.space.prevent="applySort(column)"
-                >{{ column.label }}</span>
-                <span v-if="column.sortable" class="TableSortIcon">
-                  <i
-                    class="fas"
-                    :class="sortIcon(column)"
-                    :style="{ color: sort.key === column.key ? '#007bff' : '#999' }"
-                    aria-hidden="true"
-                  />
-                </span>
-                <ButtonComponent unstyled
-                  v-if="column.filterable"
-                  type="button"
-                  class="TableFilterButton"
-                  :class="{ Active: filters[column.key]?.length }"
-                  :aria-label="column.label + 'の絞り込み'"
-                  @click.stop="openFilter($event, column)"
-                >
-                  <i class="fas fa-filter" aria-hidden="true" />
-                  <span v-if="filters[column.key]?.length" class="TableFilterBadge" />
-                </ButtonComponent>
-              </div>
-              <div class="ColumnResizer" @pointerdown.stop.prevent="resize($event, column)" />
+              <slot
+                :name="'header-' + column.key"
+                :column="column"
+              >
+                <div class="TableColumnHeader">
+                  <span
+                    class="TableColumnLabel"
+                    :class="{ Sortable: column.sortable }"
+                    :role="column.sortable ? 'button' : undefined"
+                    :tabindex="column.sortable ? 0 : undefined"
+                    @click="applySort(column)"
+                    @keydown.enter.prevent="applySort(column)"
+                    @keydown.space.prevent="applySort(column)"
+                  >{{ column.label }}</span>
+                  <span
+                    v-if="column.sortable"
+                    class="TableSortIcon"
+                  >
+                    <i
+                      class="fas"
+                      :class="sortIcon(column)"
+                      :style="{ color: sort.key === column.key ? '#007bff' : '#999' }"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <ButtonComponent
+                    unstyled
+                    v-if="column.filterable"
+                    type="button"
+                    class="TableFilterButton"
+                    :class="{ Active: filters[column.key]?.length }"
+                    :aria-label="column.label + 'の絞り込み'"
+                    @click.stop="openFilter($event, column)"
+                  >
+                    <i
+                      class="fas fa-filter"
+                      aria-hidden="true"
+                    />
+                    <span
+                      v-if="filters[column.key]?.length"
+                      class="TableFilterBadge"
+                    />
+                  </ButtonComponent>
+                </div>
+              </slot>
+              <div
+                v-if="column.resizable !== false"
+                class="ColumnResizer"
+                @pointerdown.stop.prevent="resize($event, column)"
+              />
             </th>
             <th v-if="canEdit">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in visible" :key="String(row[rowKey])" :class="{ ClickableTableRow: rowClickable }" @click="emit('row-click', row)">
-            <td v-if="selectable" data-label="選択" @click.stop>
-              <CheckBoxComponent inline aria-label="行を選択" :ref="el => inputFields.register('row:' + String(row[rowKey]), el, isSelected(row))" @change="selectRow(row)" />
+          <tr
+            v-for="row in visible"
+            v-show="!rowVisible || rowVisible(row)"
+            :key="String(row[rowKey])"
+            :class="{ ClickableTableRow: rowClickable }"
+            @click="emit('row-click', row)"
+          >
+            <td
+              v-if="selectable"
+              data-label="選択"
+              @click.stop
+            >
+              <CheckBoxComponent
+                inline
+                aria-label="行を選択"
+                :ref="el => inputFields.register('row:' + String(row[rowKey]), el, isSelected(row))"
+                @change="selectRow(row)"
+              />
             </td>
             <td
               v-for="column in columns"
               :key="column.key"
               :class="[column.className, { MetaCol: column.meta }]"
+              :style="props.stickyColumns ? columnStyle(column) : undefined"
               :data-label="column.label"
               :title="filterValues(cellValue(row, column)).join('、')"
             >
-              <slot :name="'cell-' + column.key" :row="row" :value="cellValue(row, column)">
-                {{ filterValues(cellValue(row, column)).join('、') }}
-              </slot>
+              <slot
+                :name="'cell-' + column.key"
+                :row="row"
+                :value="cellValue(row, column)"
+              >{{ filterValues(cellValue(row, column)).join('、') }}</slot>
             </td>
-            <td v-if="canEdit" class="ActionCol" data-label="操作" @click.stop>
-              <slot name="actions" :row="row">
-                <ButtonComponent type="button" variant="EditButton" @click="emit('edit', row)">
-                  <i class="fas fa-edit" aria-hidden="true" /> 編集
+            <td
+              v-if="canEdit"
+              class="ActionCol"
+              data-label="操作"
+              @click.stop
+            >
+              <slot
+                name="actions"
+                :row="row"
+              >
+                <ButtonComponent
+                  type="button"
+                  variant="EditButton"
+                  @click="emit('edit', row)"
+                >
+                  <i
+                    class="fas fa-edit"
+                    aria-hidden="true"
+                  />
+                  編集
                 </ButtonComponent>
-                <ButtonComponent type="button" variant="DeleteButton" @click="emit('delete', row)">
-                  <i class="fas fa-trash" aria-hidden="true" /> 削除
+                <ButtonComponent
+                  type="button"
+                  variant="DeleteButton"
+                  @click="emit('delete', row)"
+                >
+                  <i
+                    class="fas fa-trash"
+                    aria-hidden="true"
+                  />
+                  削除
                 </ButtonComponent>
               </slot>
             </td>
@@ -339,37 +470,53 @@ defineExpose({
             <td
               class="EmptyTableCell"
               :colspan="columns.length + Number(selectable) + Number(canEdit)"
-            >
-              {{ messageFormat('INFO', 'I_0048') }}
-            </td>
+            >{{ messageFormat('INFO', 'I_0048') }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-
     <!-- 旧 ListFooter：件数は左端、ページネーションは中央に配置する。 -->
-    <div class="ListFooter">
-      <div class="RecordCount">{{ result.length.toLocaleString('ja-JP') }}件</div>
-      <nav v-if="pages > 1" class="PaginationContainer" aria-label="ページ切替">
-        <ButtonComponent unstyled
+    <div
+      v-if="showFooter"
+      class="ListFooter"
+    >
+      <div class="RecordCount">
+        {{ result.length.toLocaleString('ja-JP') }}
+        件
+      </div>
+      <nav
+        v-if="pages > 1"
+        class="PaginationContainer"
+        aria-label="ページ切替"
+      >
+        <ButtonComponent
+          unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === 1"
           aria-label="最初のページ"
           @click="changePage(1)"
         >
-          <i class="fas fa-angle-double-left" aria-hidden="true" />
+          <i
+            class="fas fa-angle-double-left"
+            aria-hidden="true"
+          />
         </ButtonComponent>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === 1"
           aria-label="前のページ"
           @click="changePage(page - 1)"
         >
-          <i class="fas fa-chevron-left" aria-hidden="true" />
+          <i
+            class="fas fa-chevron-left"
+            aria-hidden="true"
+          />
         </ButtonComponent>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           v-for="number in pageNumbers"
           :key="number"
           type="button"
@@ -378,27 +525,34 @@ defineExpose({
           :disabled="page === number"
           @click="changePage(number)"
         >{{ number }}</ButtonComponent>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === pages"
           aria-label="次のページ"
           @click="changePage(page + 1)"
         >
-          <i class="fas fa-chevron-right" aria-hidden="true" />
+          <i
+            class="fas fa-chevron-right"
+            aria-hidden="true"
+          />
         </ButtonComponent>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           type="button"
           class="PaginationButton"
           :disabled="page === pages"
           aria-label="最後のページ"
           @click="changePage(pages)"
         >
-          <i class="fas fa-angle-double-right" aria-hidden="true" />
+          <i
+            class="fas fa-angle-double-right"
+            aria-hidden="true"
+          />
         </ButtonComponent>
       </nav>
     </div>
-
     <AnchoredDropdown
       v-model="dropdownOpen"
       :anchor="dropdownAnchor"
@@ -406,20 +560,33 @@ defineExpose({
     >
       <!-- 旧フィルタは検索・下書き・適用ボタンを持たず、チェックで即時反映する。 -->
       <template v-if="dropdownKind === 'values'">
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           v-if="activeFilter && filters[activeFilter.key]?.length"
           type="button"
           class="FilterDropdownClear"
           @click="clearColumnFilter"
         >
-          <i class="fas fa-times" aria-hidden="true" /> クリア
+          <i
+            class="fas fa-times"
+            aria-hidden="true"
+          />
+          クリア
         </ButtonComponent>
-        <CheckBoxComponent v-for="option in filterOptions" :key="option" inline wrapper-class="FilterDropdownOption" :ref="el => inputFields.register('filter:' + activeFilter?.key + ':' + option, el, !!(activeFilter && filters[activeFilter.key]?.includes(option)))" @change="toggleFilter(option)">
+        <CheckBoxComponent
+          v-for="option in filterOptions"
+          :key="option"
+          inline
+          wrapper-class="FilterDropdownOption"
+          :ref="el => inputFields.register('filter:' + activeFilter?.key + ':' + option, el, !!(activeFilter && filters[activeFilter.key]?.includes(option)))"
+          @change="toggleFilter(option)"
+        >
           <span :title="option || '(未設定)'">{{ option || '(未設定)' }}</span>
         </CheckBoxComponent>
       </template>
       <template v-else-if="dropdownKind === 'sort-columns'">
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           v-for="column in sortableColumns"
           :key="column.key"
           type="button"
@@ -435,7 +602,8 @@ defineExpose({
         </ButtonComponent>
       </template>
       <template v-else>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           v-for="column in filterableColumns"
           :key="column.key"
           type="button"
@@ -443,16 +611,18 @@ defineExpose({
           @click="chooseFilterColumn(column)"
         >
           <span>{{ column.label }}</span>
-          <span v-if="filters[column.key]?.length" class="MobileFilterSummary">{{ filterSummary(column) }}</span>
+          <span
+            v-if="filters[column.key]?.length"
+            class="MobileFilterSummary"
+          >{{ filterSummary(column) }}</span>
         </ButtonComponent>
-        <ButtonComponent unstyled
+        <ButtonComponent
+          unstyled
           v-if="activeFilterCount"
           type="button"
           class="FilterDropdownClear"
           @click="clearFilters"
-        >
-          フィルタをクリア
-        </ButtonComponent>
+        >フィルタをクリア</ButtonComponent>
       </template>
     </AnchoredDropdown>
   </section>

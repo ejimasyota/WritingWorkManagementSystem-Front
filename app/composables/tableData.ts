@@ -8,7 +8,9 @@ export interface TableColumn {
   filterable?: boolean
   type?: 'text' | 'number' | 'date'
   meta?: boolean
+  resizable?: boolean
   width?: number
+  headerClassName?: string
   className?: string
   style?: Record<string, string>
   format?: (value: unknown, row: TableRow) => unknown

@@ -19,6 +19,8 @@ const props = defineProps<{
   dialogs: PageDialogs;
   isAdmin: boolean;
   hideMeta?: boolean;
+  targetId?: string;
+  targetParentId?: string;
 }>();
 const work = ref<WorkInfo>();
 const isCreator = ref(false);
@@ -265,6 +267,7 @@ async function remove() {
 }
 /** 新規登録は入力状態を初期化してから同じダイアログを開く。 */
 
+
 function openNew() {
   if (!canEdit.value || saving.value || loading.value) return;
   clear();
@@ -274,7 +277,13 @@ function openNew() {
 function close() {
   opened.value = false;
 }
-onMounted(load);
+onMounted(async () => {
+  await load();
+  if (!disposed && props.targetId) {
+    const target = rows.value.find(row => String(row.TeamId) === props.targetId);
+    if (target) selectRow(target);
+  }
+});
 </script>
 
 <template>

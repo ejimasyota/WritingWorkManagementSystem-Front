@@ -36,3 +36,10 @@ export interface CharacterDraft {
   tags: CharacterMaster[]
   images: CharacterImage[]
 }
+
+/** タグマスタからキャラ編集へ戻るときだけ保持する未保存の入力。 */
+export interface CharacterTagReturn {
+  WorkId: string
+  row?: CharacterRow
+  draft: CharacterDraft
+}

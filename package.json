@@ -10,7 +10,9 @@
     "postinstall": "nuxt prepare",
     "test:input-refs": "node scripts/check-input-refs.mjs",
     "test:frontend-structure": "node scripts/check-frontend-structure.mjs",
-    "test:legacy-timeline": "node scripts/check-legacy-timeline.mjs"
+    "test:legacy-timeline": "node scripts/check-legacy-timeline.mjs",
+    "test:api-contracts": "node scripts/check-api-contracts.mjs",
+    "test:legacy-work-charts": "node scripts/check-legacy-work-charts.mjs"
   },
   "dependencies": {
     "nuxt": "^4.6.3",
