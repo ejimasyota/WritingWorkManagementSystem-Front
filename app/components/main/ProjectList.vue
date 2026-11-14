@@ -276,56 +276,58 @@ defineExpose({
       :hide-meta="hideMeta"
     >
       <template #cell-Action="{ row }">
-        <ButtonComponent
-          type="button"
-          variant="ButtonSmall PrimaryButton ProjectMoveButton"
-          @click.stop="emit('move', row.WorkId)"
-        >
-          <i class="fas fa-arrow-right" />
-          移動
-        </ButtonComponent>
-        <template v-if="isCreator(row as Project)">
+        <div class="ProjectActionPalette">
           <ButtonComponent
             type="button"
-            variant="ButtonSmall SuccessButton ProjectActionButton"
-            @click.stop="openExport(row as Project)"
+            variant="ButtonSmall PrimaryButton ProjectMoveButton"
+            @click.stop="emit('move', row.WorkId)"
           >
-            <i class="fas fa-file-word" />
-            出力
+            <i class="fas fa-arrow-right" />
+            移動
           </ButtonComponent>
+          <template v-if="isCreator(row as Project)">
+            <ButtonComponent
+              type="button"
+              variant="ButtonSmall SuccessButton ProjectActionButton"
+              @click.stop="openExport(row as Project)"
+            >
+              <i class="fas fa-file-word" />
+              出力
+            </ButtonComponent>
+            <ButtonComponent
+              type="button"
+              variant="ButtonSmall WarningButton ProjectActionButton"
+              @click.stop="issueUrl(row as Project)"
+            >
+              <i class="fas fa-link" />
+              URL
+            </ButtonComponent>
+            <ButtonComponent
+              type="button"
+              variant="ButtonSmall BackupButton ProjectActionButton"
+              @click.stop="backup(row as Project)"
+            >
+              <i class="fas fa-file-csv" />
+              CSV
+            </ButtonComponent>
+            <ButtonComponent
+              type="button"
+              variant="ButtonSmall RestoreButton ProjectActionButton"
+              @click.stop="chooseRestore(row as Project)"
+            >
+              <i class="fas fa-upload" />
+              復元
+            </ButtonComponent>
+          </template>
           <ButtonComponent
             type="button"
-            variant="ButtonSmall WarningButton ProjectActionButton"
-            @click.stop="issueUrl(row as Project)"
+            variant="ButtonSmall DeleteButton ProjectActionButton"
+            @click.stop="deleteProject(row as Project)"
           >
-            <i class="fas fa-link" />
-            URL
+            <i class="fas fa-trash" />
+            {{ isCreator(row as Project) ? '削除' : '退出' }}
           </ButtonComponent>
-          <ButtonComponent
-            type="button"
-            variant="ButtonSmall BackupButton ProjectActionButton"
-            @click.stop="backup(row as Project)"
-          >
-            <i class="fas fa-file-csv" />
-            CSV
-          </ButtonComponent>
-          <ButtonComponent
-            type="button"
-            variant="ButtonSmall RestoreButton ProjectActionButton"
-            @click.stop="chooseRestore(row as Project)"
-          >
-            <i class="fas fa-upload" />
-            復元
-          </ButtonComponent>
-        </template>
-        <ButtonComponent
-          type="button"
-          variant="ButtonSmall DeleteButton ProjectActionButton"
-          @click.stop="deleteProject(row as Project)"
-        >
-          <i class="fas fa-trash" />
-          {{ isCreator(row as Project) ? '削除' : '退出' }}
-        </ButtonComponent>
+        </div>
       </template>
     </TableComponent>
     <TextFieldComponent inline ref="fileInput" type="file" class="Hidden" accept=".csv" @change="restore" />

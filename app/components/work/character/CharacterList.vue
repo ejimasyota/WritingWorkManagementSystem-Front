@@ -46,6 +46,7 @@
       </template>
     </TableComponent>
     <CharacterDialog
+      ref="characterDialog"
       v-if="opened"
       :key="dialogVersion"
       v-model="opened"
@@ -59,6 +60,7 @@
       @delete="remove"
       @clear="clear"
       @refresh-tags="refreshTags"
+      @manage-tags="manageTags"
     />
   </div>
 </template>

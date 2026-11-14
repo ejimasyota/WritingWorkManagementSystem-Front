@@ -49,7 +49,7 @@ function create() {
       :error="error"
       required
     />
-    <SelectBoxComponent v-model="genre" label="ジャンル" :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)" />
+    <SelectBoxComponent :ref="el => inputFields.register('genre', el, genre)" label="ジャンル" :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)" />
     <template #actions>
       <ButtonComponent type="button" variant="CloseButton" @click="close">
         <i class="fas fa-times" />

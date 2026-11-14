@@ -7,7 +7,7 @@ import type { WorkInfo } from '../../types/work';
 import type { WorkSettingRow } from '../../types/workSettings';
 import type { PageDialogs } from '../../composables/usePageDialogs';
 import { readRelatedItems } from '../../utils/relatedItems';
-import { formatDateTime } from '../../utils/mainView';
+import { formatDateTime } from '../../utils/utilMethod';
 import { readWorkAccess } from '../../utils/workAccess';
 import { requireSuccess, reportBackendError } from '../../utils/backend';
 import { messageFormat } from '../../utils/messages';

@@ -5537,7 +5537,17 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
 
 /* 旧 Main.js / Dialog.js の作品一覧・設定・出力用インライン指定。 */
 .ProjectMoveButton { width: 100px; }
-.ProjectActionButton { width: 100px; margin-bottom: 4px; }
+.ProjectActionButton { width: 100px; }
+/* Vueのテンプレートで縮約される空白に頼らず、操作間隔を固定する。 */
+.ProjectActionPalette {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ProjectActionPalette > .ButtonClass { flex-shrink: 0; }
+@media (max-width: 768px) {
+  .ProjectActionPalette { max-width: 100%; flex-wrap: wrap; }
+}
 .SettingsDarkModeRow { margin-bottom: 12px; }
 .ExportSelectAll { margin-bottom: 6px; }
 .ExportItemGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
@@ -5640,6 +5650,15 @@ body.DarkMode .MobileDropdownItem:hover { background: #2a2a4e; }
 .StoryList .PlotSectionHeader .PlotBadge{font-size:14px;font-weight:700}.StoryList .PlotBadge{align-self:center;margin-right:0}
 body.DarkMode .StoryList .PlotSectionHeader{border-bottom-color:rgba(148,163,184,.18)}
 @media(max-width:768px){.StoryFolderGrid{justify-content:center}}
+/* 旧相関図のwidth:autoの選択欄を維持し、ボタンの縮小・改行を防ぐ。 */
+.RelationToolbar > .ButtonClass {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.RelationToolbar .SelectForm {
+  width: auto;
+  flex-shrink: 0;
+}
 /* Pointer Eventsでも旧マウス／タッチ操作と同じドラッグを維持する。 */
 .RelationObject,.RelationGroupBox,.RelationResizeHandle,.CharacterListItem{touch-action:none}
 .CharacterListItem.placed{opacity:.5;cursor:not-allowed}

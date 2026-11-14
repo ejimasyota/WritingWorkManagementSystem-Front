@@ -1,4 +1,4 @@
-import { formatDateTime } from '../utils/mainView';
+import { formatDateTime } from '../utils/utilMethod';
 export type TableRow = Record<string, unknown>
 
 export interface TableColumn {

@@ -741,7 +741,7 @@ onMounted(load);
     />
     <div
       v-if="canEdit"
-      class="ButtonGroup MarginBottom20"
+      class="ButtonGroup MarginBottom20 RelationToolbar"
     >
       <ButtonComponent
         type="button"

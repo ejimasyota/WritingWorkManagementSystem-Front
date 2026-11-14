@@ -433,7 +433,7 @@ async function importFile() {
     <template v-if="!selected">
       <div
         v-if="canEdit"
-        class="ButtonGroup"
+        class="ButtonGroup MarginBottom20"
       >
         <ButtonComponent
           type="button"

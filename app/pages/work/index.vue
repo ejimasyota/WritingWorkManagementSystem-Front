@@ -15,12 +15,14 @@
         :is="workViews[activeMenu]"
         v-if="workAvailable && activeMenu"
         :key="
-          auth.identityVersion.value + ':' + workRevision + ':' + activeMenu
+          auth.identityVersion.value + ':' + workRevision + ':' + activeMenu + ':' + (targetId || '') + ':' + (targetParentId || '')
         "
         :request="call"
         :dialogs="dialogs"
         :is-admin="session.IsAdmin"
         :hide-meta="hideMeta"
+        :target-id="targetId"
+        :target-parent-id="targetParentId"
         @unavailable="unavailable"
         @navigate="navigateMenu"
       />
@@ -149,6 +151,9 @@ const workViews: Record<WorkMenuId, Component> = {
   MenuKeywordSearch: KeywordSearch,
 };
 const activeMenu = computed(() => resolveWorkMenu(route.query.menu));
+// 同じ画面内の別検索結果への移動も再初期化し、対象行を開く。
+const targetId = computed(() => typeof route.query.row === 'string' ? route.query.row : undefined);
+const targetParentId = computed(() => typeof route.query.parent === 'string' ? route.query.parent : undefined);
 const workRevision = ref(0);
 const switchingWork = ref(false);
 const hideMeta = ref(false);

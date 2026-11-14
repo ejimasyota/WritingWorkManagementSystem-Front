@@ -229,12 +229,6 @@ function settingDateConfirmation(before: string, after: string) {
       <SelectBoxComponent
         :ref="(el) => inputFields.register('Genre', el, form.Genre)"
         label="ジャンル"
-        :options="genreOptions"
-        :disabled="!canEdit"
-      />
-      <SelectBoxComponent
-        v-model="form.Genre"
-        label="ジャンル"
         :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)"
         :disabled="!canEdit"
       />
