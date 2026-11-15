@@ -52,7 +52,8 @@ const readingImages = ref(false);
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "BuildName",
   "label": "建物名",
@@ -280,57 +281,58 @@ onMounted(async () => {
       :title="dialogTitle"
       size="DialogLarge"
     >
-      <section
-        :key="revision"
-        class="FormSection"
-      >
-        <h3 class="FormSectionTitle">基本</h3>
-        <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('BuildName', el, form.BuildName)"
-            label="建物名"
-            :readonly="!canEdit"
-            :error="errors.BuildName"
-            :maxlength="30"
-            required
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('BuildDate', el, form.BuildDate)"
-            label="建設日"
-            :readonly="!canEdit"
-            :error="errors.BuildDate"
-            input-readonly
-            :date-picker-flg="canEdit"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Height', el, form.Height)"
-            label="高さ"
-            :readonly="!canEdit"
-            :error="errors.Height"
-            :maxlength="15"
-            type="number"
-            min="0"
-            max="999999999999999"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Area', el, form.Area)"
-            label="面積"
-            :readonly="!canEdit"
-            :error="errors.Area"
-            :maxlength="15"
-            type="number"
-            min="0"
-            max="999999999999999"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Description', el, form.Description)"
-            label="説明"
-            :readonly="!canEdit"
-            :error="errors.Description"
-            text-area-flg
-          />
-        </div>
-        <section class="FormSection">
+      <div :key="revision">
+        <section
+          class="FormSection"
+        >
+          <h3 class="FormSectionTitle">基本</h3>
+          <div class="FormGrid">
+            <TextFieldComponent
+              :ref="el => fields.register('BuildName', el, form.BuildName)"
+              label="建物名"
+              :readonly="!canEdit"
+              :error="errors.BuildName"
+              :maxlength="30"
+              required
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('BuildDate', el, form.BuildDate)"
+              label="建設日"
+              :readonly="!canEdit"
+              :error="errors.BuildDate"
+              input-readonly
+              :date-picker-flg="canEdit"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Height', el, form.Height)"
+              label="高さ"
+              :readonly="!canEdit"
+              :error="errors.Height"
+              :maxlength="15"
+              type="number"
+              min="0"
+              max="999999999999999"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Area', el, form.Area)"
+              label="面積"
+              :readonly="!canEdit"
+              :error="errors.Area"
+              :maxlength="15"
+              type="number"
+              min="0"
+              max="999999999999999"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Description', el, form.Description)"
+              label="説明"
+              :readonly="!canEdit"
+              :error="errors.Description"
+              text-area-flg
+            />
+          </div>
+        </section>
+        <section class="FormSection" aria-label="画像">
           <h3 class="FormSectionTitle">画像</h3>
           <ImageListEditor
             :ref="el => fields.register('Images', el, images)"
@@ -339,7 +341,7 @@ onMounted(async () => {
             @reading="value => readingImages = value"
           />
         </section>
-      </section>
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"

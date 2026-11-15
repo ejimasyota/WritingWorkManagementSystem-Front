@@ -99,7 +99,8 @@ function showPowerDetail() {
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "MoveName",
   "label": "技名",

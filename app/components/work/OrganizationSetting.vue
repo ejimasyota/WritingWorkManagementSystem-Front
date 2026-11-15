@@ -76,7 +76,8 @@ const leaderOptions = computed(() => [{
 const columns: TableColumn[] = [{
   key: 'Detail',
   label: '詳細',
-  width: 90
+  width: 110,
+  minWidth: 110
 }, {
   key: 'OrgName',
   label: '組織名',
@@ -339,81 +340,85 @@ onMounted(async () => {
       :title="dialogTitle"
       size="DialogLarge"
     >
-      <section
-        :key="formRevision"
-        class="FormSection"
-        :aria-label="selected ? '組織編集' : '組織新規登録'"
-      >
-        <h3 class="FormSectionTitle">基本</h3>
-        <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('OrgName', el, form.OrgName)"
-            label="組織名"
+      <div :key="formRevision">
+        <section
+          class="FormSection"
+          :aria-label="selected ? '組織編集' : '組織新規登録'"
+        >
+          <h3 class="FormSectionTitle">基本</h3>
+          <div class="FormGrid">
+            <TextFieldComponent
+              :ref="el => fields.register('OrgName', el, form.OrgName)"
+              label="組織名"
+              :readonly="!canEdit"
+              :error="errors.OrgName"
+              required
+              :maxlength="50"
+            />
+            <SelectBoxComponent
+              :ref="el => fields.register('BaseBuildId', el, form.BaseBuildId)"
+              label="拠点建物"
+              :options="buildOptions"
+              :readonly="!canEdit"
+              :error="errors.BaseBuildId"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('FoundedDate', el, form.FoundedDate)"
+              label="設立日"
+              :readonly="!canEdit"
+              :error="errors.FoundedDate"
+              input-readonly
+              :date-picker-flg="canEdit"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('PeopleNum', el, form.PeopleNum)"
+              label="人数"
+              :readonly="!canEdit"
+              :error="errors.PeopleNum"
+              :maxlength="15"
+              numeric-only
+              inputmode="numeric"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Purpose', el, form.Purpose)"
+              label="目的"
+              :readonly="!canEdit"
+              :error="errors.Purpose"
+              text-area-flg
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Activity', el, form.Activity)"
+              label="活動内容"
+              :readonly="!canEdit"
+              :error="errors.Activity"
+              text-area-flg
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Note', el, form.Note)"
+              label="備考"
+              :readonly="!canEdit"
+              :error="errors.Note"
+              text-area-flg
+            />
+            <SelectBoxComponent
+              :ref="el => fields.register('LeaderId', el, form.LeaderId)"
+              label="リーダー"
+              :options="leaderOptions"
+              :readonly="!canEdit"
+              :error="errors.LeaderId"
+            />
+          </div>
+        </section>
+        <section class="FormSection" aria-label="画像">
+          <h3 class="FormSectionTitle">画像</h3>
+          <ImageListEditor
+            :ref="el => fields.register('Images', el, images)"
             :readonly="!canEdit"
-            :error="errors.OrgName"
-            required
-            :maxlength="50"
+            :dialogs="dialogs"
+            @reading="readingImages = $event"
           />
-          <SelectBoxComponent
-            :ref="el => fields.register('BaseBuildId', el, form.BaseBuildId)"
-            label="拠点建物"
-            :options="buildOptions"
-            :readonly="!canEdit"
-            :error="errors.BaseBuildId"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('FoundedDate', el, form.FoundedDate)"
-            label="設立日"
-            :readonly="!canEdit"
-            :error="errors.FoundedDate"
-            input-readonly
-            :date-picker-flg="canEdit"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('PeopleNum', el, form.PeopleNum)"
-            label="人数"
-            :readonly="!canEdit"
-            :error="errors.PeopleNum"
-            :maxlength="15"
-            numeric-only
-            inputmode="numeric"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Purpose', el, form.Purpose)"
-            label="目的"
-            :readonly="!canEdit"
-            :error="errors.Purpose"
-            text-area-flg
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Activity', el, form.Activity)"
-            label="活動内容"
-            :readonly="!canEdit"
-            :error="errors.Activity"
-            text-area-flg
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Note', el, form.Note)"
-            label="備考"
-            :readonly="!canEdit"
-            :error="errors.Note"
-            text-area-flg
-          />
-          <SelectBoxComponent
-            :ref="el => fields.register('LeaderId', el, form.LeaderId)"
-            label="リーダー"
-            :options="leaderOptions"
-            :readonly="!canEdit"
-            :error="errors.LeaderId"
-          />
-        </div>
-        <ImageListEditor
-          :ref="el => fields.register('Images', el, images)"
-          :readonly="!canEdit"
-          :dialogs="dialogs"
-          @reading="readingImages = $event"
-        />
-      </section>
+        </section>
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"

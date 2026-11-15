@@ -8,6 +8,8 @@ import { restoreImages, imagePayload } from '../../../utils/imageData';
 import { parseFlexibleDate, calculateAge } from '../../../utils/dates';
 import { messageFormat } from '../../../utils/messages';
 import SkillEditor from './SkillEditor.vue';
+import AffiliationEditor from './AffiliationEditor.vue';
+import { parseAffiliations } from '../../../utils/affiliationData';
 import TagEditor from './TagEditor.vue';
 const inputFields = useInputFields();
 const reason = (label: string) => [{
@@ -147,6 +149,11 @@ const emit = defineEmits<{
   'manage-tags': [draft: CharacterDraft];
 }>();
 const draft = ref(createCharacterDraft());
+const affiliationEditor = ref<InstanceType<typeof AffiliationEditor> | null>(null);
+function registerAffiliationEditor(instance: unknown) {
+  affiliationEditor.value = instance as InstanceType<typeof AffiliationEditor> | null;
+  inputFields.register('affiliations', instance, draft.value.affiliations);
+}
 // 補助入力・色・サブ一覧の内部状態も初期化するためのフォーム更新番号。
 const formRevision = ref(0);
 const errors = ref<Record<string, string>>({});
@@ -162,6 +169,7 @@ watch(() => props.modelValue, open => {
   inputFields.setValues(draft.value.skills);
   inputFields.setValue('tags', draft.value.tags);
   inputFields.setValue('images', draft.value.images);
+  inputFields.setValue('affiliations', draft.value.affiliations);
   errors.value = {};
 }, {
   immediate: true
@@ -234,14 +242,6 @@ async function updateField(key: string) {
     }
   }
   draft.value.fields[key] = next;
-  if (key === 'OrgId') {
-    draft.value.fields.TeamId = '';
-    draft.value.fields.ClassId = '';
-    inputFields.setValues({
-      TeamId: '',
-      ClassId: ''
-    });
-  }
   if (key === 'BirthDate' || key === 'DeathDate') {
     draft.value.fields.BirthDate = inputFields.getValue('BirthDate', '');
     draft.value.fields.DeathDate = inputFields.getValue('DeathDate', '');
@@ -268,7 +268,8 @@ function getValue(): CharacterDraft {
     entries: inputFields.getValues(draft.value.entries),
     skills: inputFields.getValues(draft.value.skills),
     tags: inputFields.getValue('tags', draft.value.tags),
-    images: inputFields.getValue('images', draft.value.images)
+    images: inputFields.getValue('images', draft.value.images),
+    affiliations: inputFields.getValue('affiliations', draft.value.affiliations)
   }));
 }
 
@@ -279,6 +280,7 @@ function setValue(value: CharacterDraft) {
   inputFields.setValues(draft.value.skills);
   inputFields.setValue('tags', draft.value.tags);
   inputFields.setValue('images', draft.value.images);
+  inputFields.setValue('affiliations', draft.value.affiliations);
 }
 defineExpose({
   getValue,
@@ -299,6 +301,8 @@ async function save() {
   draft.value.skills = inputFields.getValues(draft.value.skills);
   draft.value.tags = inputFields.getValue('tags', draft.value.tags);
   draft.value.images = inputFields.getValue('images', draft.value.images);
+  draft.value.affiliations = inputFields.getValue('affiliations', draft.value.affiliations);
+  if (affiliationEditor.value && !affiliationEditor.value.validate()) return;
   errors.value = {};
   if (!draft.value.fields.CharaName?.trim()) errors.value.CharaName = messageFormat('ERROR', 'E_0001', 'キャラ名');
   const dateError = characterDateError(draft.value.fields.BirthDate || '', draft.value.fields.DeathDate || '');
@@ -355,9 +359,6 @@ function createCharacterDraft(row?: CharacterRow, masters: CharacterMasters = {}
     Personality: '',
     Belief: '',
     RaceId: '',
-    OrgId: '',
-    TeamId: '',
-    ClassId: '',
     BirthplaceId: '',
     Biography: '',
     Alias: '',
@@ -386,7 +387,8 @@ function createCharacterDraft(row?: CharacterRow, masters: CharacterMasters = {}
     entries,
     skills,
     tags,
-    images: restoreImages(row)
+    images: restoreImages(row),
+    affiliations: parseAffiliations(row?.Affiliations)
   };
 }
 
@@ -464,6 +466,7 @@ function characterPayload(draft: CharacterDraft, row?: CharacterRow) {
     TagId: tag.TagId
   }));
   payload.Images = imagePayload(draft.images);
+  payload.Affiliations = JSON.stringify({ Affiliations: draft.affiliations });
   return payload;
 }
 
@@ -733,26 +736,13 @@ function characterDateError(birth: string, death: string): string {
             :options="characterOptions('Race', draft.fields, masters)"
             :readonly="readOnly"
           />
-          <SelectBoxComponent
-            :ref="el => inputFields.register('OrgId', el, draft.fields.OrgId)"
-            label="組織"
-            :options="characterOptions('Organization', draft.fields, masters)"
-            :readonly="readOnly"
-            @value-change="updateField('OrgId')"
-          />
-          <SelectBoxComponent
-            :ref="el => inputFields.register('TeamId', el, draft.fields.TeamId)"
-            label="チーム"
-            :options="characterOptions('Team', draft.fields, masters)"
-            :readonly="readOnly"
-          />
-          <SelectBoxComponent
-            :ref="el => inputFields.register('ClassId', el, draft.fields.ClassId)"
-            label="階級"
-            :options="characterOptions('Class', draft.fields, masters)"
-            :readonly="readOnly"
-          />
         </div>
+        <AffiliationEditor
+          :ref="registerAffiliationEditor"
+          :masters="masters"
+          :readonly="readOnly"
+          :dialogs="dialogs"
+        />
       </section>
       <section
         class="FormSection"

@@ -98,7 +98,8 @@ const roots = computed(() => buildHierarchy([...rows.value].sort((a, b) => Strin
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "StageName",
   "label": "舞台名",
@@ -421,66 +422,67 @@ onMounted(async () => {
       :title="dialogTitle"
       size="DialogLarge"
     >
-      <section
-        :key="revision"
-        class="FormSection"
-      >
-        <h3 class="FormSectionTitle">基本</h3>
-        <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('StageName', el, form.StageName)"
-            label="舞台名"
-            :readonly="!canEdit"
-            :error="errors.StageName"
-            :maxlength="30"
-            required
-          />
-          <SelectBoxComponent
-            :ref="el => fields.register('StageType', el, form.StageType)"
-            label="舞台区分"
-            :options="StageTypeOptions"
-            :readonly="!canEdit"
-            :error="errors.StageType"
-          />
-          <SelectBoxComponent
-            :ref="el => fields.register('ParentStageId', el, form.ParentStageId)"
-            label="親舞台"
-            info-icon-flg
-            :info-message="messageFormat('INFO','I_0084')"
-            :options="ParentStageIdOptions"
-            :readonly="!canEdit"
-            :error="errors.ParentStageId"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Population', el, form.Population)"
-            label="人口"
-            info-icon-flg
-            :info-message="messageFormat('INFO','I_0085')"
-            :readonly="!canEdit"
-            :error="errors.Population"
-            :maxlength="15"
-            numeric-only
-            inputmode="numeric"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('AreaSize', el, form.AreaSize)"
-            label="面積"
-            :readonly="!canEdit"
-            :error="errors.AreaSize"
-            :maxlength="15"
-            type="number"
-            min="0"
-            max="999999999999999"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Description', el, form.Description)"
-            label="説明"
-            :readonly="!canEdit"
-            :error="errors.Description"
-            text-area-flg
-          />
-        </div>
-        <section class="FormSection">
+      <div :key="revision">
+        <section
+          class="FormSection"
+        >
+          <h3 class="FormSectionTitle">基本</h3>
+          <div class="FormGrid">
+            <TextFieldComponent
+              :ref="el => fields.register('StageName', el, form.StageName)"
+              label="舞台名"
+              :readonly="!canEdit"
+              :error="errors.StageName"
+              :maxlength="30"
+              required
+            />
+            <SelectBoxComponent
+              :ref="el => fields.register('StageType', el, form.StageType)"
+              label="舞台区分"
+              :options="StageTypeOptions"
+              :readonly="!canEdit"
+              :error="errors.StageType"
+            />
+            <SelectBoxComponent
+              :ref="el => fields.register('ParentStageId', el, form.ParentStageId)"
+              label="親舞台"
+              info-icon-flg
+              :info-message="messageFormat('INFO','I_0084')"
+              :options="ParentStageIdOptions"
+              :readonly="!canEdit"
+              :error="errors.ParentStageId"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Population', el, form.Population)"
+              label="人口"
+              info-icon-flg
+              :info-message="messageFormat('INFO','I_0085')"
+              :readonly="!canEdit"
+              :error="errors.Population"
+              :maxlength="15"
+              numeric-only
+              inputmode="numeric"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('AreaSize', el, form.AreaSize)"
+              label="面積"
+              :readonly="!canEdit"
+              :error="errors.AreaSize"
+              :maxlength="15"
+              type="number"
+              min="0"
+              max="999999999999999"
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Description', el, form.Description)"
+              label="説明"
+              :readonly="!canEdit"
+              :error="errors.Description"
+              text-area-flg
+            />
+          </div>
+        </section>
+        <section class="FormSection" aria-label="画像">
           <h3 class="FormSectionTitle">画像</h3>
           <ImageListEditor
             :ref="el => fields.register('Images', el, images)"
@@ -489,7 +491,7 @@ onMounted(async () => {
             @reading="value => readingImages = value"
           />
         </section>
-      </section>
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"

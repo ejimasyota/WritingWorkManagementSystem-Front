@@ -116,7 +116,7 @@ function moveImage(images: CharacterImage[], from: number, to: number) {
 </script>
 
 <template>
-  <div>
+  <div class="ImageListEditor">
     <div class="TagTabHeader">
       <span class="TagCountLabel">登録数: {{ value.length }} / {{ imageListLimit }}
         <InfoIconComponent title="画像" :message="imageHelp" label="画像の説明" />

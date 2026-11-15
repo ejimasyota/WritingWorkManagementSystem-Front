@@ -1947,10 +1947,11 @@ body.DarkMode .SettingsRowLabel {
 /* PC：5列1行のグリッド */
 .ImageListGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
 }
 .ImageListCard {
+  min-width: 0;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
@@ -5739,3 +5740,8 @@ body.DarkMode .DialogSectionNavigation button:hover { background: #3a526a; }
 @media (max-width: 768px) {
   .DataTable:not(.WbsTaskTable) td { width: auto !important; min-width: 0 !important; max-width: 100% !important; }
 }
+
+.AffiliationWarning { color: #c0392b; margin-right: 6px; }
+body.DarkMode .AffiliationWarning { color: #ff8a80; }
+
+.ImageListEditor .TagTabHeader { margin-bottom: 16px; }

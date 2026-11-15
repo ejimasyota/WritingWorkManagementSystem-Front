@@ -77,7 +77,8 @@ const dragOverRow = ref<number | null>(null);
 const columns: TableColumn[] = [{
   key: 'Detail',
   label: '詳細',
-  width: 90
+  width: 110,
+  minWidth: 110
 }, {
   key: 'ExchangeName',
   label: '掛け合い名',

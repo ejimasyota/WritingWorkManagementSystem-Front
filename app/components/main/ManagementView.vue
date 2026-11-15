@@ -783,51 +783,53 @@ function mainColumns(menuId: MainMenuId): TableColumn[] {
       @row-click="selectRow"
     >
       <template #cell-Action="{ row }">
-        <ButtonComponent
-          v-if="menuId === CONST_VARIABLE.MENU_ID.PROJECT_MANAGEMENT"
-          type="button"
-          variant="ButtonSmall PrimaryButton ProjectMoveButton"
-          @click.stop="emit('move', row.WorkId)"
-        >
-          <i class="fas fa-arrow-right" />
-          移動
-        </ButtonComponent>
-        <ButtonComponent
-          type="button"
-          variant="ButtonSmall ProjectMoveButton"
-          :class="
-            (
-              menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST
-                ? row.AccountLockFlg
-                : row.LockFlg
-            )
-              ? 'SuccessButton'
-              : 'DangerButton'
-          "
-          @click.stop="toggleLock(row)"
-        >
-          <i
-            class="fas"
+        <div class="ProjectActionPalette">
+          <ButtonComponent
+            v-if="menuId === CONST_VARIABLE.MENU_ID.PROJECT_MANAGEMENT"
+            type="button"
+            variant="ButtonSmall PrimaryButton ProjectMoveButton"
+            @click.stop="emit('move', row.WorkId)"
+          >
+            <i class="fas fa-arrow-right" />
+            移動
+          </ButtonComponent>
+          <ButtonComponent
+            type="button"
+            variant="ButtonSmall ProjectMoveButton"
             :class="
               (
                 menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST
                   ? row.AccountLockFlg
                   : row.LockFlg
               )
-                ? 'fa-unlock'
-                : 'fa-lock'
+                ? 'SuccessButton'
+                : 'DangerButton'
             "
-          />
-          {{
-            (
-              menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST
-                ? row.AccountLockFlg
-                : row.LockFlg
-            )
-              ? "復旧"
-              : "ロック"
-          }}
-        </ButtonComponent>
+            @click.stop="toggleLock(row)"
+          >
+            <i
+              class="fas"
+              :class="
+                (
+                  menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST
+                    ? row.AccountLockFlg
+                    : row.LockFlg
+                )
+                  ? 'fa-unlock'
+                  : 'fa-lock'
+              "
+            />
+            {{
+              (
+                menuId === CONST_VARIABLE.MENU_ID.MEMBER_LIST
+                  ? row.AccountLockFlg
+                  : row.LockFlg
+              )
+                ? "復旧"
+                : "ロック"
+            }}
+          </ButtonComponent>
+        </div>
       </template>
       <template #cell-Edit="{ row }">
         <ButtonComponent

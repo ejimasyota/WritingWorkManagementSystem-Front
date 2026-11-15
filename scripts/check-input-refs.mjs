@@ -3,7 +3,7 @@ import { createRenderer, defineComponent, h, nextTick, reactive, ref } from 'vue
 import { modules } from './test-support.mjs';
 const names = ['TextFieldComponent','SelectBoxComponent','TextAreaComponent','ButtonComponent','CheckBoxComponent','RadioButtonComponent','ToogleComponent','FieldFrame','EntryTableEditor','ImageListEditor','RelatedItemsEditor','WorkCreateDialog','ExportSettingsDialog','DialogSectionNavigation','TableComponent'];
 const entries = Object.fromEntries(names.map(name=>[name,'app/components/'+name+'.vue']));
-Object.assign(entries, { CommonInfo:'app/components/work/CommonInfo.vue', StoryCreation:'app/components/work/StoryCreation.vue', PlotCreation:'app/components/work/PlotCreation.vue', ExchangeSetting:'app/components/work/ExchangeSetting.vue', MoveSetting:'app/components/work/MoveSetting.vue',SerifSetting:'app/components/work/SerifSetting.vue', CharacterList:'app/components/work/character/CharacterList.vue', TimelineSetting:'app/components/work/TimelineSetting.vue', Wbs:'app/components/work/Wbs.vue', KeywordSearch:'app/components/work/KeywordSearch.vue', WorkPage:'app/pages/work/index.vue' });
+Object.assign(entries, { AffiliationEditor:'app/components/work/character/AffiliationEditor.vue', CommonInfo:'app/components/work/CommonInfo.vue', StoryCreation:'app/components/work/StoryCreation.vue', PlotCreation:'app/components/work/PlotCreation.vue', ExchangeSetting:'app/components/work/ExchangeSetting.vue', MoveSetting:'app/components/work/MoveSetting.vue',SerifSetting:'app/components/work/SerifSetting.vue', CharacterList:'app/components/work/character/CharacterList.vue', TimelineSetting:'app/components/work/TimelineSetting.vue', Wbs:'app/components/work/Wbs.vue', KeywordSearch:'app/components/work/KeywordSearch.vue', WorkPage:'app/pages/work/index.vue' });
 const components = {...await modules(entries,{stubLayout:true}), ...await modules({UtilLayout:'app/layouts/UtilLayout.vue'})};
 const states = new Map();
 globalThis.useState = (key,initial) => { if(!states.has(key))states.set(key,ref(initial()));return states.get(key); };
@@ -170,6 +170,45 @@ for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],[
   assert.equal(writes.at(-1).payload.UpdateDate,'parent-v1');assert.equal(writes.at(-1).payload.Rows[0].UpdateDate,'child-v1');assert.deepEqual(writes.at(-1).payload.RowsSnapshot,[{[kind+'RowId']:2,UpdateDate:'child-v1'}]);view.close();
   const searchView=mount(kind==='Exchange'?'ExchangeSetting':kind+'Creation',{request,dialogs,isAdmin:false,targetId:'2',targetParentId:'1'});await settle();await settle();assert.equal(get(searchView.find('TextAreaComponent',p=>p.label==='内容')),'保存済みの行');searchView.close();
 }
+// 所属履歴は親の保存まで仮登録とし、最新行だけを一覧フィルタへ供給する。
+{
+ const masters={Organization:[{OrgId:1,OrgName:'旧組織',FoundedDate:'2000年'},{OrgId:2,OrgName:'新組織',FoundedDate:'2010年'}],Team:[],Class:[]};
+ const view=mount('AffiliationEditor',{masters,readonly:false,dialogs});await settle();
+ const editor=view.find('AffiliationEditor');
+ const add=view.buttons('PrimaryButton ButtonSmall')[0];await click(add);
+ const org=view.find('SelectBoxComponent',p=>p.label==='組織');set(org,'1');org.emit('value-change');await settle();
+ assert.equal(view.field('加入年月日').props.required,true);
+ await click(view.buttons('SaveButton')[0]);assert.equal(get(editor).length,0);assert.ok(view.field('加入年月日').props.error);
+ set(view.field('加入年月日'),'1999年');view.field('加入年月日').emit('value-change');await settle();
+ assert.ok(view.nodes().some(el=>el.tag==='p' && String(el.props.class).includes('AffiliationWarning')));
+ set(view.field('脱退年月日'),'2005年');set(view.find('TextAreaComponent',p=>p.label==='備考'),'旧所属の備考');
+ await click(view.buttons('SaveButton')[0]);assert.equal(get(editor)[0].Note,'旧所属の備考');
+ await click(add);set(view.find('SelectBoxComponent',p=>p.label==='組織'),'2');set(view.field('加入年月日'),'2020年');
+ await click(view.buttons('CloseButton')[0]);assert.equal(get(editor).length,1);
+ await click(add);set(view.find('SelectBoxComponent',p=>p.label==='組織'),'2');set(view.field('加入年月日'),'2020年');
+ await click(view.buttons('SaveButton')[0]);assert.deepEqual(get(editor).map(row=>row.OrgId),['2','1']);
+ const saved=get(editor);view.close();
+ const readonly=mount('AffiliationEditor',{masters,readonly:true,dialogs});await settle();set(readonly.find('AffiliationEditor'),saved);await settle();
+ readonly.find('TableComponent').emit('row-click',{_index:0});await settle();assert.equal(readonly.find('SelectBoxComponent',p=>p.label==='組織').props.readonly,true);assert.equal(readonly.buttons('SaveButton').length,0);readonly.close();
+ const row={CharaId:'affiliation-character',WorkId:'work',CharaName:'所属のあるキャラ',UpdateDate:'v1',Affiliations:JSON.stringify({Affiliations:saved}),OrgName:'新組織'};
+ const writes=[];const request=async(url,method,payload)=>{
+  if(url==='/GetWorkInfo.php')return ok({WorkId:'work',WorkTitle:'作品',SettingDate:'',UpdateDate:'work-v1'});
+  if(url==='/GetUserPermission.php')return ok({IsCreator:true});
+  if(url==='/GetCharacterList.php')return ok([row]);
+  const match=url.match(/^\/Get(.+)List.php$/);if(match)return ok({[match[1]+'List']:masters[match[1]]||[]});
+  writes.push({url,payload});return ok({});
+ };
+ const parent=mount('CharacterList',{request,dialogs,isAdmin:false});await settle();
+ const table=parent.find('TableComponent',p=>p.rowKey==='CharaId');const column=table.props.columns.find(column=>column.key==='OrgName');
+ assert.equal(column.label,'所属');assert.equal(column.format(row.OrgName,row),'新組織');
+ await click(parent.buttons('PrimaryButton ButtonSmall')[0]);
+ assert.equal(get(parent.find('AffiliationEditor')).length,2);
+ const migrated=get(parent.find('AffiliationEditor')).map((row,i)=>({...row,JoinedDate:i===0?'':row.JoinedDate}));
+ set(parent.find('AffiliationEditor'),migrated);
+ await click(parent.buttons('SaveButton')[0]);assert.equal(writes.length,0);assert.ok(parent.field('加入年月日').props.error);
+ set(parent.field('加入年月日'),'2021年');await click(parent.buttons('SaveButton')[0]);
+ await click(parent.buttons('SaveButton')[0]);assert.equal(writes[0].url,'/SaveCharacter.php');assert.equal(JSON.parse(writes[0].payload.Affiliations).Affiliations.length,2);assert.equal(writes[0].payload.UpdateDate,'v1');parent.close();
+}
 // マスタセリフにも独白区分を保存し、次に開いたときに復元する。
 {
  const writes=[];const row={SerifId:1,Content:'セリフ',Monologue:true,UpdateDate:'serif-v1'};
@@ -178,11 +217,11 @@ for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],[
 }
 // リサイズした幅は見出しと本文セルの両方へ反映する。本文に200pxの上限を持たせない。
 {
- const view=mount('TableComponent',{rows:[{id:1,UpdateDate:'2026年11月15日（日）12時00分00秒'}],columns:[{key:'UpdateDate',label:'更新年月日',width:310}]});await settle();
+ const view=mount('TableComponent',{rows:[{id:1,UpdateDate:'2026年11月15日（日）12時00分00秒'}],columns:[{key:'UpdateDate',label:'更新年月日',width:310,minWidth:110}]});await settle();
  const th=view.nodes().find(el=>el.tag==='th'),td=view.nodes().find(el=>el.tag==='td');assert.equal(th.props.style.width,'310px');assert.equal(td.props.style.width,'310px');
  const resizer=view.nodes().find(el=>String(el.props.class).includes('ColumnResizer'));
  const events={};const handle={parentElement:{getBoundingClientRect:()=>({width:310})},setPointerCapture(){},classList:{add(){},remove(){}},addEventListener:(key,handler)=>events[key]=handler,removeEventListener(){}};
- resizer.props.onPointerdown({currentTarget:handle,clientX:0,pointerId:1,stopPropagation(){},preventDefault(){}});events.pointermove({clientX:200});await settle();assert.equal(th.props.style.width,'510px');assert.equal(td.props.style.width,'510px');events.pointermove({clientX:-1000});await settle();assert.equal(th.props.style.width,'64px');assert.equal(td.props.style.width,'64px');view.close();
+ resizer.props.onPointerdown({currentTarget:handle,clientX:0,pointerId:1,stopPropagation(){},preventDefault(){}});events.pointermove({clientX:200});await settle();assert.equal(th.props.style.width,'510px');assert.equal(td.props.style.width,'510px');events.pointermove({clientX:-1000});await settle();assert.equal(th.props.style.width,'110px');assert.equal(td.props.style.width,'110px');view.close();
 }
 // 見出し文字と両方のアイコンを実測し、拡大後でも文字幅を基準に縮められる。
 {

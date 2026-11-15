@@ -61,7 +61,8 @@ const EvaluationOptions = [{
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "ReviewerName",
   "label": "レビュアー",

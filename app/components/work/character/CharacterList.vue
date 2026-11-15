@@ -65,6 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { affiliationLabel, parseAffiliations } from '../../../utils/affiliationData';
 import { computed, onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 import { CONST_VARIABLE } from "../../../config/Const";
 import type {
@@ -143,7 +144,8 @@ const columns: TableColumn[] = [
   {
     key: "Detail",
     label: "詳細",
-    width: 90,
+    width: 110,
+    minWidth: 110,
   },
   {
     key: "CharaName",
@@ -177,9 +179,13 @@ const columns: TableColumn[] = [
   },
   {
     key: "OrgName",
-    label: "組織",
+    label: "所属",
     filterable: true,
     sortable: true,
+    format: (value, row) => {
+      const latest = parseAffiliations(row.Affiliations)[0];
+      return latest ? affiliationLabel(latest, masters.value) : String(value || '');
+    },
   },
   {
     key: "TagInfo",

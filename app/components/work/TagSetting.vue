@@ -51,7 +51,8 @@ const role = computed(() => props.isAdmin ? '管理者' : isCreator.value ? '作
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "TagName",
   "label": "タグ名",

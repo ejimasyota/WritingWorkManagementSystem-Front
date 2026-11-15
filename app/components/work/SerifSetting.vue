@@ -56,7 +56,8 @@ const CharaIdOptions = computed(() => [{
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "CharaName",
   "label": "キャラクター",

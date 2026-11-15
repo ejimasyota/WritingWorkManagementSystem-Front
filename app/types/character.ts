@@ -8,6 +8,17 @@ export type CharacterRow = Record<string, unknown> & {
 export type CharacterMaster = Record<string, unknown>
 export type CharacterMasters = Record<string, CharacterMaster[]>
 export type CharacterEntry = Record<string, string>
+export interface CharacterAffiliation {
+  OrgId: string
+  OrgName: string
+  TeamId: string
+  TeamName: string
+  ClassId: string
+  ClassName: string
+  JoinedDate: string
+  LeftDate: string
+  Note: string
+}
 export interface CharacterImage {
   Path: string
   Data: string | null
@@ -30,6 +41,7 @@ export interface EntryDefinition {
   helpMessage?: string
 }
 export interface CharacterDraft {
+  affiliations: CharacterAffiliation[]
   fields: Record<string, string>
   entries: Record<string, CharacterEntry[]>
   skills: Record<string, string[]>

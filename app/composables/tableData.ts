@@ -10,6 +10,7 @@ export interface TableColumn {
   meta?: boolean
   resizable?: boolean
   width?: number
+  minWidth?: number
   headerClassName?: string
   className?: string
   style?: Record<string, string>

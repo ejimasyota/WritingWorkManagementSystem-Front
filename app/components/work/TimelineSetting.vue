@@ -67,7 +67,8 @@ const detailDraft = ref<(WorkSettingRow & {
 const detailColumns: TableColumn[] = [{
   key: 'Detail',
   label: '詳細',
-  width: 90
+  width: 110,
+  minWidth: 110
 }, {
   key: 'Title',
   label: '出来事タイトル',
@@ -250,7 +251,8 @@ function readDetail(row: WorkSettingRow & {
 const columns: TableColumn[] = [{
   key: 'Detail',
   label: '詳細',
-  width: 90
+  width: 110,
+  minWidth: 110
 }, {
   key: 'Title',
   label: 'タイトル',

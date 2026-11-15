@@ -51,7 +51,8 @@ const readingImages = ref(false);
 const columns: TableColumn[] = [{
   "key": "Detail",
   "label": "詳細",
-  "width": 90
+  "width": 110,
+  minWidth: 110
 }, {
   "key": "Title",
   "label": "タイトル",
@@ -256,29 +257,30 @@ onMounted(async () => {
       :title="dialogTitle"
       size="DialogLarge"
     >
-      <section
-        :key="revision"
-        class="FormSection"
-      >
-        <h3 class="FormSectionTitle">基本</h3>
-        <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('Title', el, form.Title)"
-            label="タイトル"
-            :readonly="!canEdit"
-            :error="errors.Title"
-            :maxlength="50"
-            required
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Content', el, form.Content)"
-            label="内容"
-            :readonly="!canEdit"
-            :error="errors.Content"
-            text-area-flg
-          />
-        </div>
-        <section class="FormSection">
+      <div :key="revision">
+        <section
+          class="FormSection"
+        >
+          <h3 class="FormSectionTitle">基本</h3>
+          <div class="FormGrid">
+            <TextFieldComponent
+              :ref="el => fields.register('Title', el, form.Title)"
+              label="タイトル"
+              :readonly="!canEdit"
+              :error="errors.Title"
+              :maxlength="50"
+              required
+            />
+            <TextFieldComponent
+              :ref="el => fields.register('Content', el, form.Content)"
+              label="内容"
+              :readonly="!canEdit"
+              :error="errors.Content"
+              text-area-flg
+            />
+          </div>
+        </section>
+        <section class="FormSection" aria-label="画像">
           <h3 class="FormSectionTitle">画像</h3>
           <ImageListEditor
             :ref="el => fields.register('Images', el, images)"
@@ -287,7 +289,7 @@ onMounted(async () => {
             @reading="value => readingImages = value"
           />
         </section>
-      </section>
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"

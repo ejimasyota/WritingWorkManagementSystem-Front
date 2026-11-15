@@ -207,7 +207,7 @@ function changePage(nextPage: number) {
 // 見出しと操作アイコンが収まる幅を下限とし、本文の長さでは制限しない。
 const minimumWidths = reactive<Record<string, number>>({});
 function minimumWidth(column: TableColumn) {
-  return minimumWidths[column.key] || (64 + (column.sortable ? 20 : 0) + (column.filterable ? 32 : 0));
+  return Math.max(column.minWidth || 0, minimumWidths[column.key] || (64 + (column.sortable ? 20 : 0) + (column.filterable ? 32 : 0)));
 }
 
 function resize(event: PointerEvent, column: TableColumn) {
