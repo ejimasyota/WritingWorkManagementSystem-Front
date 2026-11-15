@@ -375,11 +375,9 @@ onMounted(async () => {
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
     />
-    <div
-      v-if="canEdit"
-      class="ButtonGroup"
-    >
+    <div class="ButtonGroup">
       <ButtonComponent
+        v-if="canEdit"
         type="button"
         variant="SuccessButton"
         @click="openNew"
@@ -390,8 +388,6 @@ onMounted(async () => {
         />
         追加
       </ButtonComponent>
-    </div>
-    <div class="ButtonGroup">
       <ButtonComponent
         type="button"
         variant="SecondaryButton"
@@ -403,19 +399,9 @@ onMounted(async () => {
           :class="chartVisible ? 'fa-table' : 'fa-stream'"
           aria-hidden="true"
         />
-        {{ chartVisible ? '一覧表示' : '年表カード表示' }}
+        {{ chartVisible ? '一覧表示' : '年表カード' }}
       </ButtonComponent>
-      <ButtonComponent
-        type="button"
-        variant="PrimaryButton"
-        @click="emit('navigate', 'MenuCharacter')"
-      >
-        <i
-          class="fas fa-user"
-          aria-hidden="true"
-        />
-        キャラ設定画面へ
-      </ButtonComponent>
+
     </div>
     <TableComponent
       v-show="!chartVisible"
@@ -525,19 +511,21 @@ onMounted(async () => {
         aria-label="経歴入力"
       >
         <h3 class="FormSectionTitle">基本</h3>
-        <div class="FormGrid">
+        <div>
           <SelectBoxComponent
             :ref="el => fields.register('CharaId', el, form.CharaId)"
             label="キャラクター"
             required
             :options="characterOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.CharaId"
             info-icon-flg
             info-title="キャラクター"
             :info-message="messageFormat('INFO', 'I_0064')"
             @value-change="updateAge"
           />
+        </div>
+        <div class="FormGrid">
           <TextFieldComponent
             :ref="el => fields.register('EventDate', el, form.EventDate)"
             label="年月日"
@@ -557,6 +545,8 @@ onMounted(async () => {
             info-title="年齢"
             :info-message="messageFormat('INFO', 'I_0063')"
           />
+        </div>
+        <div>
           <TextFieldComponent
             :ref="el => fields.register('Content', el, form.Content)"
             label="内容"

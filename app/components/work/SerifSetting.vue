@@ -10,6 +10,7 @@ import type { PageDialogs } from '../../composables/usePageDialogs';
 import { readWorkAccess } from '../../utils/workAccess';
 import { requireSuccess, reportBackendError } from '../../utils/backend';
 import { messageFormat } from '../../utils/messages';
+import { narrativeText } from '../../utils/narrativeRows';
 const props = defineProps<{
   request: BackendRequest;
   dialogs: PageDialogs;
@@ -37,7 +38,8 @@ onBeforeUnmount(() => {
 const form = reactive({
   "CharaId": "",
   "Situation": "",
-  "Content": ""
+  "Content": "",
+  Monologue: false
 });
 const canAdd = computed(() => initialized.value && !!work.value && (props.isAdmin || isCreator.value));
 const canEdit = canAdd;
@@ -67,6 +69,10 @@ const columns: TableColumn[] = [{
   "filterable": false
 }, {
   "key": "Content",
+  format: (value, row) => narrativeText({
+    Content: value,
+    Monologue: row.Monologue
+  }, 'Exchange'),
   "label": "セリフ内容",
   "sortable": true,
   "filterable": false
@@ -122,6 +128,7 @@ function selectRow(row: WorkSettingRow) {
   form.CharaId = String(row.CharaId ?? '');
   form.Situation = String(row.Situation ?? '');
   form.Content = String(row.Content ?? '');
+  form.Monologue = !!row.Monologue;
   fields.setValues(form);
   errors.value = {};
   revision.value++;
@@ -134,7 +141,8 @@ function clear() {
   Object.assign(form, {
     "CharaId": "",
     "Situation": "",
-    "Content": ""
+    "Content": "",
+    Monologue: false
   });
   fields.setValues(form);
   errors.value = {};
@@ -221,7 +229,7 @@ onMounted(async () => {
       icon="fa-comment"
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
-    />
+     />
     <div
       v-if="canAdd"
       class="ButtonGroup"
@@ -234,7 +242,7 @@ onMounted(async () => {
         <i
           class="fas fa-plus"
           aria-hidden="true"
-        />
+         />
         追加
       </ButtonComponent>
     </div>
@@ -254,7 +262,7 @@ onMounted(async () => {
           <i
             class="fas fa-eye"
             aria-hidden="true"
-          />
+           />
           詳細
         </ButtonComponent>
       </template>
@@ -274,16 +282,21 @@ onMounted(async () => {
             :ref="el => fields.register('CharaId', el, form.CharaId)"
             label="発言者"
             :options="CharaIdOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.CharaId"
-          />
+           />
           <TextFieldComponent
             :ref="el => fields.register('Situation', el, form.Situation)"
             label="場面"
             :readonly="!canEdit"
             :error="errors.Situation"
             text-area-flg
-          />
+           />
+          <CheckBoxComponent
+            :ref="el=>fields.register('Monologue',el,form.Monologue)"
+            label="モノローグ"
+            :readonly="!canEdit"
+           />
           <TextFieldComponent
             :ref="el => fields.register('Content', el, form.Content)"
             label="セリフ内容"
@@ -291,7 +304,7 @@ onMounted(async () => {
             :error="errors.Content"
             text-area-flg
             required
-          />
+           />
         </div>
       </section>
       <template #actions>
@@ -303,7 +316,7 @@ onMounted(async () => {
           <i
             class="fas fa-times"
             aria-hidden="true"
-          />
+           />
           閉じる
         </ButtonComponent>
         <template v-if="canEdit">
@@ -315,7 +328,7 @@ onMounted(async () => {
             <i
               class="fas fa-sync"
               aria-hidden="true"
-            />
+             />
             クリア
           </ButtonComponent>
           <ButtonComponent
@@ -327,7 +340,7 @@ onMounted(async () => {
             <i
               class="fas fa-trash"
               aria-hidden="true"
-            />
+             />
             削除
           </ButtonComponent>
           <ButtonComponent
@@ -338,7 +351,7 @@ onMounted(async () => {
             <i
               class="fas fa-save"
               aria-hidden="true"
-            />
+             />
             保存
           </ButtonComponent>
         </template>

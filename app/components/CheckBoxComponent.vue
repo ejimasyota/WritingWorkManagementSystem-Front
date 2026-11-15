@@ -19,9 +19,11 @@
         :checked="checked"
         :value="optionValue"
         :indeterminate="indeterminate"
-        :disabled="disabled || readonly"
+        :disabled="disabled"
         :required="required"
         v-bind="$attrs"
+        :aria-readonly="readonly"
+        @click="readonly && $event.preventDefault()"
         @change="updateChecked"
       >
       <slot />

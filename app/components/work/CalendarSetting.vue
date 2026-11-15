@@ -309,7 +309,7 @@ onMounted(async () => {
           <CheckBoxComponent
             :ref="el => fields.register('UseRealEra', el, useRealEra)"
             label="実元号を使用"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             @value-change="changeRealEra"
           />
           <SelectBoxComponent
@@ -317,7 +317,7 @@ onMounted(async () => {
             :ref="el => fields.register('RealEraId', el, '')"
             label="実元号"
             :options="eraOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             @value-change="applyRealEra"
           />
           <TextFieldComponent

@@ -18,9 +18,11 @@
           type="checkbox"
           role="switch"
           :checked="value"
-          :disabled="disabled || readonly"
+          :disabled="disabled"
           v-bind="$attrs"
-          @change="updateChecked"
+          :aria-readonly="readonly"
+        @click="readonly && $event.preventDefault()"
+        @change="updateChecked"
         />
         <span class="ToggleSwitchSlider" />
       </span>

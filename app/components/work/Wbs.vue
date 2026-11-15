@@ -762,7 +762,7 @@ onMounted(() => load(null, true));
             :ref="el => fields.register('ParentTaskId',el,taskForm.ParentTaskId)"
             label="親タスク"
             :options="parentOptions"
-            :disabled="!canEdit || !!editingTask?.ParentTaskId"
+            :readonly="!canEdit || !!editingTask?.ParentTaskId"
             @value-change="changeParent"
           />
         </div>

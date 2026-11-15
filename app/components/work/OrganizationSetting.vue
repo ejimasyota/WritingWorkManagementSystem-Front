@@ -358,7 +358,7 @@ onMounted(async () => {
             :ref="el => fields.register('BaseBuildId', el, form.BaseBuildId)"
             label="拠点建物"
             :options="buildOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.BaseBuildId"
           />
           <TextFieldComponent
@@ -403,7 +403,7 @@ onMounted(async () => {
             :ref="el => fields.register('LeaderId', el, form.LeaderId)"
             label="リーダー"
             :options="leaderOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.LeaderId"
           />
         </div>

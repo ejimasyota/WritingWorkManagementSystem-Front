@@ -18,9 +18,11 @@
           :name="id"
           :value="option.value"
           :checked="value === option.value"
-          :disabled="disabled || readonly || option.disabled"
+          :disabled="disabled || option.disabled"
           :required="required"
-          @change="updateValue(option.value)"
+          :aria-readonly="readonly"
+          @click="readonly && $event.preventDefault()"
+          @change="!readonly && updateValue(option.value)"
         >
         {{ option.label }}
       </label>

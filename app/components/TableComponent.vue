@@ -47,7 +47,7 @@ const columns = computed(() => props.columns.filter(column => !(props.hideMeta &
 const sortableColumns = computed(() => columns.value.filter(column => column.sortable));
 const filterableColumns = computed(() => columns.value.filter(column => column.filterable));
 const tableInlineStyle = computed(() => props.stickyColumns ? {
-  width: columns.value.reduce((sum, column) => sum + (widths[column.key] || column.width || 0), 0) + 'px'
+  width: columns.value.reduce((sum, column) => sum + effectiveWidth(column), 0) + 'px'
 } : undefined);
 const activeFilterCount = computed(() => Object.keys(filters).length);
 
@@ -204,18 +204,42 @@ function changePage(nextPage: number) {
   });
 }
 
-/** 旧 ColumnResizer のクラス・最小幅を引き継ぐ。 */
-
+// 見出しと操作アイコンが収まる幅を下限とし、本文の長さでは制限しない。
+const minimumWidths = reactive<Record<string, number>>({});
+function minimumWidth(column: TableColumn) {
+  return minimumWidths[column.key] || (64 + (column.sortable ? 20 : 0) + (column.filterable ? 32 : 0));
+}
 
 function resize(event: PointerEvent, column: TableColumn) {
   const handle = event.currentTarget as HTMLElement;
   const header = handle.parentElement!;
+  const content = header.querySelector?.<HTMLElement>('.TableColumnHeader');
+  if (content && typeof window.getComputedStyle === 'function') {
+    const headerStyle = window.getComputedStyle(header);
+    const contentStyle = window.getComputedStyle(content);
+    const children = [...content.children] as HTMLElement[];
+    const padding = parseFloat(headerStyle.paddingLeft) + parseFloat(headerStyle.paddingRight);
+    const gap = (parseFloat(contentStyle.columnGap) || 0) * Math.max(0, children.length - 1);
+    const contentWidth = children.reduce((sum, child) => {
+      const style = window.getComputedStyle(child);
+      // flexで引き伸ばされたラベルの幅ではなく、文字自体の幅を測る。
+      let width = Math.max(child.scrollWidth, child.getBoundingClientRect().width);
+      if (child.classList.contains('TableColumnLabel')) {
+        const range = document.createRange();
+        range.selectNodeContents(child);
+        width = range.getBoundingClientRect().width;
+      }
+      return sum + width
+        + (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0);
+    }, 0);
+    minimumWidths[column.key] = Math.max(minimumWidth(column), Math.ceil(contentWidth + (padding || 0) + gap + 8));
+  }
   const startX = event.clientX;
   const startWidth = header.getBoundingClientRect().width;
   handle.setPointerCapture(event.pointerId);
   handle.classList.add('Resizing');
   function move(pointer: PointerEvent) {
-    widths[column.key] = Math.max(50, startWidth + pointer.clientX - startX);
+    widths[column.key] = Math.max(minimumWidth(column), startWidth + pointer.clientX - startX);
   }
   function stop() {
     handle.classList.remove('Resizing');
@@ -226,11 +250,16 @@ function resize(event: PointerEvent, column: TableColumn) {
   handle.addEventListener('lostpointercapture', stop);
 }
 
+function effectiveWidth(column: TableColumn) {
+  const requestedWidth = widths[column.key] || column.width;
+  return requestedWidth ? Math.max(minimumWidth(column), requestedWidth) : 0;
+}
+
 function columnStyle(column: TableColumn) {
-  const width = widths[column.key] || column.width;
+  const width = effectiveWidth(column);
   const index = columns.value.indexOf(column);
   const sticky = index >= 0 && index < props.stickyColumns;
-  const left = columns.value.slice(0, index).reduce((sum, item) => sum + (widths[item.key] || item.width || 0), 0);
+  const left = columns.value.slice(0, index).reduce((sum, item) => sum + effectiveWidth(item), 0);
   return {
     ...column.style,
     ...(sticky ? {
@@ -239,7 +268,8 @@ function columnStyle(column: TableColumn) {
     } : {}),
     ...(width ? {
       width: `${width}px`,
-      minWidth: `${width}px`
+      minWidth: `${width}px`,
+      maxWidth: `${width}px`
     } : {})
   };
 }
@@ -421,7 +451,7 @@ defineExpose({
               v-for="column in columns"
               :key="column.key"
               :class="[column.className, { MetaCol: column.meta }]"
-              :style="props.stickyColumns ? columnStyle(column) : undefined"
+              :style="columnStyle(column)"
               :data-label="column.label"
               :title="filterValues(cellValue(row, column)).join('、')"
             >
@@ -429,7 +459,7 @@ defineExpose({
                 :name="'cell-' + column.key"
                 :row="row"
                 :value="cellValue(row, column)"
-              >{{ filterValues(cellValue(row, column)).join('、') }}</slot>
+              ><span class="TableCellText">{{ filterValues(cellValue(row, column)).join('、') }}</span></slot>
             </td>
             <td
               v-if="canEdit"

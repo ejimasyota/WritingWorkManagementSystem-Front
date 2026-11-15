@@ -80,6 +80,7 @@ import WeaponSetting from "../../components/work/WeaponSetting.vue";
 import ItemSetting from "../../components/work/ItemSetting.vue";
 import MoveSetting from "../../components/work/MoveSetting.vue";
 import TagSetting from "../../components/work/TagSetting.vue";
+import ExchangeSetting from "../../components/work/ExchangeSetting.vue";
 import SerifSetting from "../../components/work/SerifSetting.vue";
 import RelationDiagram from "../../components/work/RelationDiagram.vue";
 import StoryCreation from "../../components/work/StoryCreation.vue";
@@ -138,6 +139,7 @@ const workViews: Record<WorkMenuId, Component> = {
   MenuMove: MoveSetting,
   MenuTag: TagSetting,
   MenuSerif: SerifSetting,
+  MenuExchange: ExchangeSetting,
   MenuRelation: RelationDiagram,
   MenuStory: StoryCreation,
   MenuPlot: PlotCreation,

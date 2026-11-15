@@ -6,7 +6,7 @@ import { parse as parseScript } from '@babel/parser';
 import traverseModule from '@babel/traverse';
 import { root, files, read, modules } from './test-support.mjs';
 const traverse = traverseModule.default;
-const globals = new Set(('window document navigator localStorage sessionStorage FileReader File Blob FormData URL URLSearchParams fetch AbortController HTMLElement HTMLInputElement HTMLSelectElement HTMLTextAreaElement KeyboardEvent PointerEvent MouseEvent Event EventTarget ResizeObserver requestAnimationFrame cancelAnimationFrame atob btoa defineProps defineEmits defineExpose defineOptions withDefaults definePageMeta defineNuxtConfig defineNuxtPlugin defineNuxtRouteMiddleware abortNavigation useState useHead useRoute useRouter useNuxtApp useRuntimeConfig useAuthSession usePageDialogs useBackendBusy navigateTo $fetch XMLSerializer Image').split(' '));
+const globals = new Set(('window document navigator localStorage sessionStorage FileReader File Blob FormData URL URLSearchParams fetch AbortController HTMLElement HTMLInputElement HTMLSelectElement HTMLTextAreaElement KeyboardEvent PointerEvent MouseEvent Event EventTarget ResizeObserver MutationObserver requestAnimationFrame cancelAnimationFrame atob btoa defineProps defineEmits defineExpose defineOptions withDefaults definePageMeta defineNuxtConfig defineNuxtPlugin defineNuxtRouteMiddleware abortNavigation useState useHead useRoute useRouter useNuxtApp useRuntimeConfig useAuthSession usePageDialogs useBackendBusy navigateTo $fetch XMLSerializer Image').split(' '));
 const failures = [];
 const vueFiles = files(path.join(root, 'app')).filter(file => file.endsWith('.vue'));
 for (const file of files(path.join(root, 'app')).filter(file => /\.(vue|ts)$/.test(file))) {

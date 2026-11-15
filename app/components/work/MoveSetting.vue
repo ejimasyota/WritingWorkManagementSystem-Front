@@ -11,6 +11,7 @@ import { readWorkAccess } from '../../utils/workAccess';
 import { requireSuccess, reportBackendError } from '../../utils/backend';
 import { messageFormat } from '../../utils/messages';
 import type { CharacterEntry, EntryDefinition } from '../../types/character';
+import PowerSetting from './PowerSetting.vue';
 import { parseEntry, formatEntry } from '../../utils/entryData';
 const props = defineProps<{
   request: BackendRequest;
@@ -90,12 +91,10 @@ const selectedPowerId = ref('');
 function changePower() {
   selectedPowerId.value = fields.getValue('PowerId', '');
 }
+const powerDetail = ref<WorkSettingRow | null>(null);
 
-async function showPowerDetail() {
-  const power = options.value.find(row => String(row.PowerId) === fields.getValue('PowerId', ''));
-  if (!power) return;
-  const unset = messageFormat('INFO', 'I_0071');
-  await props.dialogs.info(messageFormat('INFO', 'I_0079'), messageFormat('INFO', 'I_0080', power.PowerName || unset, power.Description || unset, formatEntry(power.Conditions, conditionsDefinition) || unset, formatEntry(power.Risk, riskDefinition) || unset), 'left');
+function showPowerDetail() {
+  powerDetail.value = options.value.find(row => String(row.PowerId) === String(fields.getValue('PowerId', ''))) || null;
 }
 const columns: TableColumn[] = [{
   "key": "Detail",
@@ -292,7 +291,7 @@ onMounted(async () => {
       icon="fa-fire"
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
-    />
+     />
     <div
       v-if="canAdd"
       class="ButtonGroup"
@@ -305,7 +304,7 @@ onMounted(async () => {
         <i
           class="fas fa-plus"
           aria-hidden="true"
-        />
+         />
         追加
       </ButtonComponent>
     </div>
@@ -325,7 +324,7 @@ onMounted(async () => {
           <i
             class="fas fa-eye"
             aria-hidden="true"
-          />
+           />
           詳細
         </ButtonComponent>
       </template>
@@ -348,47 +347,58 @@ onMounted(async () => {
             :error="errors.MoveName"
             :maxlength="50"
             required
-          />
-          <SelectBoxComponent
-            :ref="el => fields.register('PowerId', el, form.PowerId)"
-            label="関連能力"
-            :options="PowerIdOptions"
-            :disabled="!canEdit"
-            :error="errors.PowerId"
-            @value-change="changePower"
-          />
-          <ButtonComponent
-            type="button"
-            variant="SecondaryButton"
-            :disabled="!selectedPowerId"
-            @click="showPowerDetail"
-          >
-            <i
-              class="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            能力詳細
-          </ButtonComponent>
+           />
+          <FieldFrame label="関連能力">
+            <div class="InputWithButton AbilityPowerControl">
+              <SelectBoxComponent
+                :ref="el => fields.register('PowerId', el, form.PowerId)"
+                inline
+                aria-label="関連能力"
+                :options="PowerIdOptions"
+                :readonly="!canEdit"
+                :error="errors.PowerId"
+                @value-change="changePower"
+               />
+              <ButtonComponent
+                type="button"
+                variant="SecondaryButton"
+                :disabled="!selectedPowerId"
+                @click="showPowerDetail"
+              >
+                <i
+                  class="fas fa-info-circle"
+                  aria-hidden="true"
+                 />
+                能力詳細
+              </ButtonComponent>
+            </div>
+          </FieldFrame>
           <TextFieldComponent
             :ref="el => fields.register('Description', el, form.Description)"
             label="説明"
             :readonly="!canEdit"
             :error="errors.Description"
             text-area-flg
-          />
+           />
         </div>
+      </section>
+      <section
+        :key="'conditions:' + revision"
+        class="FormSection"
+      >
+        <h3 class="FormSectionTitle">条件</h3>
         <EntryTableEditor
           :ref="el => fields.register('Conditions', el, conditions)"
           :definition="conditionsDefinition"
           :readonly="!canEdit"
           :dialogs="dialogs"
-        />
+         />
         <EntryTableEditor
           :ref="el => fields.register('Risk', el, risk)"
           :definition="riskDefinition"
           :readonly="!canEdit"
           :dialogs="dialogs"
-        />
+         />
       </section>
       <template #actions>
         <ButtonComponent
@@ -399,7 +409,7 @@ onMounted(async () => {
           <i
             class="fas fa-times"
             aria-hidden="true"
-          />
+           />
           閉じる
         </ButtonComponent>
         <template v-if="canEdit">
@@ -411,7 +421,7 @@ onMounted(async () => {
             <i
               class="fas fa-sync"
               aria-hidden="true"
-            />
+             />
             クリア
           </ButtonComponent>
           <ButtonComponent
@@ -423,7 +433,7 @@ onMounted(async () => {
             <i
               class="fas fa-trash"
               aria-hidden="true"
-            />
+             />
             削除
           </ButtonComponent>
           <ButtonComponent
@@ -434,11 +444,21 @@ onMounted(async () => {
             <i
               class="fas fa-save"
               aria-hidden="true"
-            />
+             />
             保存
           </ButtonComponent>
         </template>
       </template>
     </BaseDialog>
+    <PowerSetting
+      v-if="powerDetail"
+      :key="String(powerDetail.PowerId)"
+      :request="request"
+      :dialogs="dialogs"
+      :is-admin="isAdmin"
+      readonly
+      :detail-row="powerDetail"
+      @close="powerDetail = null"
+     />
   </div>
 </template>

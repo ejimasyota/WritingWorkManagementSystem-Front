@@ -496,6 +496,7 @@ function characterDateError(birth: string, death: string): string {
     :model-value="modelValue"
     :title="title"
     size="DialogLarge CharacterSettingDialog"
+    section-navigation
     @update:model-value="close"
   >
     <div
@@ -587,13 +588,13 @@ function characterDateError(birth: string, death: string): string {
             :ref="el => inputFields.register('Gender', el, draft.fields.Gender)"
             label="性別"
             :options="characterOptions('Gender', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
           <SelectBoxComponent
             :ref="el => inputFields.register('BloodType', el, draft.fields.BloodType)"
             label="血液型"
             :options="characterOptions('BloodType', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
           <div class="FormGridItem">
             <TextFieldComponent
@@ -730,26 +731,26 @@ function characterDateError(birth: string, death: string): string {
             :ref="el => inputFields.register('RaceId', el, draft.fields.RaceId)"
             label="種族"
             :options="characterOptions('Race', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
           <SelectBoxComponent
             :ref="el => inputFields.register('OrgId', el, draft.fields.OrgId)"
             label="組織"
             :options="characterOptions('Organization', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
             @value-change="updateField('OrgId')"
           />
           <SelectBoxComponent
             :ref="el => inputFields.register('TeamId', el, draft.fields.TeamId)"
             label="チーム"
             :options="characterOptions('Team', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
           <SelectBoxComponent
             :ref="el => inputFields.register('ClassId', el, draft.fields.ClassId)"
             label="階級"
             :options="characterOptions('Class', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
         </div>
       </section>
@@ -763,7 +764,7 @@ function characterDateError(birth: string, death: string): string {
             :ref="el => inputFields.register('BirthplaceId', el, draft.fields.BirthplaceId)"
             label="出身地"
             :options="characterOptions('Stage', draft.fields, masters)"
-            :disabled="readOnly"
+            :readonly="readOnly"
           />
           <div class="FormGridItem FormGridFullWidth">
             <TextFieldComponent
@@ -864,7 +865,7 @@ function characterDateError(birth: string, death: string): string {
               label="死因"
               :readonly="readOnly"
               text-area-flg
-              :disabled="!draft.fields.DeathDate"
+              :disabled="!readOnly && !draft.fields.DeathDate"
               info-icon-flg
               info-title="死因"
               :info-message="messageFormat('INFO', 'I_0005')"

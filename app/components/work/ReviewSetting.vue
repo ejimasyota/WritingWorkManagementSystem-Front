@@ -273,7 +273,7 @@ onMounted(load);
             :ref="el => fields.register('Evaluation', el, form.Evaluation)"
             label="評価"
             :options="EvaluationOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.Evaluation"
             required
           />

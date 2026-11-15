@@ -2,6 +2,10 @@
 import { messageFormat } from '../utils/messages';
 import { useInputFields } from '../composables/useInputFields';
 import { ref, watch } from 'vue';
+import type { BackendRequest } from '../types/backend';
+import type { PageDialogs } from '../composables/usePageDialogs';
+import { useOperationSpinner } from '../composables/useOperationSpinner';
+import { requireSuccess, reportBackendError } from '../utils/backend';
 // この出力設定ダイアログが扱う項目。
 const items = [{
   "key": "Characters",
@@ -71,11 +75,25 @@ const inputFields = useInputFields();
 const props = withDefaults(defineProps<{
   modelValue: boolean;
   showItems?: boolean;
+  workId?: string;
+  request?: BackendRequest;
+  dialogs?: PageDialogs;
 }>(), {
   showItems: true
 });
 const emit = defineEmits(['update:modelValue', 'export']);
 const selected = ref<string[]>([]);
+const report = ref('Document');
+const stories = ref<Record<string, unknown>[]>([]);
+const plots = ref<Record<string, unknown>[]>([]);
+const optionsReady = ref(false);
+const spinner = useOperationSpinner();
+let optionsVersion = 0;
+
+function changeReport() {
+  report.value = inputFields.getValue('report', 'Document');
+  error.value = '';
+}
 const type = ref('word');
 const newLine = ref(true);
 const sortOrder = ref('asc');
@@ -83,8 +101,13 @@ const font = ref('ＭＳ ゴシック');
 const cover = ref(true);
 const error = ref('');
 const fonts = ['ＭＳ ゴシック', 'ＭＳ 明朝', 'ＭＳ Ｐゴシック', 'ＭＳ Ｐ明朝', 'メイリオ', '游ゴシック', '游明朝'];
-watch(() => props.modelValue, open => {
+watch(() => [props.modelValue, props.workId] as const, async ([open]) => {
+  const version = ++optionsVersion;
   if (!open) return;
+  report.value = 'Document';
+  stories.value = [];
+  plots.value = [];
+  optionsReady.value = false;
   selected.value = items.map(item => item.key);
   type.value = 'word';
   newLine.value = true;
@@ -93,6 +116,9 @@ watch(() => props.modelValue, open => {
   cover.value = true;
   error.value = '';
   inputFields.setValues({
+    report: 'Document',
+    StoryId: '',
+    PlotId: '',
     type: type.value,
     newLine: newLine.value,
     sortOrder: sortOrder.value,
@@ -101,6 +127,22 @@ watch(() => props.modelValue, open => {
     all: true
   });
   for (const item of items) inputFields.setValue('item:' + item.key, true);
+  if (props.showItems && props.workId && props.request) {
+    try {
+      const request = props.request;
+      const data = requireSuccess(await spinner.run(() => request<{
+        StoryList: Record<string, unknown>[];
+        PlotList: Record<string, unknown>[];
+      }>('/GetNarrativeExportOptions.php?WorkId=' + encodeURIComponent(props.workId!))), messageFormat('ERROR', 'E_0003', '出力対象の取得'));
+      if (version !== optionsVersion || !props.modelValue) return;
+      if (!Array.isArray(data?.StoryList) || !Array.isArray(data.PlotList)) throw new Error(messageFormat('ERROR', 'E_0026'));
+      stories.value = data.StoryList;
+      plots.value = data.PlotList;
+      optionsReady.value = true;
+    } catch (error) {
+      if (version === optionsVersion && props.dialogs) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '出力対象の取得'));
+    }
+  }
 });
 
 function selectAll() {
@@ -119,12 +161,25 @@ function close() {
 }
 
 function submit() {
-  readItems();
-  if (props.showItems !== false && !selected.value.length) {
+  if (report.value === 'Document') readItems();
+  if (props.showItems && report.value !== 'Document') {
+    const key = report.value === 'Story' ? 'StoryId' : 'PlotId';
+    const value = inputFields.getValue(key, '');
+    const candidates = report.value === 'Story' ? stories.value : plots.value;
+    if (!optionsReady.value || !value || !candidates.some(item => String(item[key]) === String(value))) {
+      error.value = messageFormat('ERROR', 'E_0091');
+      return;
+    }
+  }
+  if (props.showItems !== false && report.value === 'Document' && !selected.value.length) {
     error.value = messageFormat('ERROR', 'E_0013');
     return;
   }
+  error.value = '';
   emit('export', {
+    ReportType: report.value,
+    StoryId: inputFields.getValue('StoryId', ''),
+    PlotId: inputFields.getValue('PlotId', ''),
     ExportItems: [...selected.value],
     ExportType: inputFields.getValue('type', type.value),
     NewLine: inputFields.getValue('newLine', newLine.value),
@@ -156,28 +211,57 @@ function submit() {
         input-id="ExportType"
         hide-list-button
         :options="[{ value: 'word', label: 'Word（.docx）' }, { value: 'html', label: 'HTML（.html）' }]"
-      />
+       />
+    </div>
+    <div
+      v-if="showItems !== false"
+      class="DialogSection"
+    >
+      <label class="DialogSectionTitle">出力帳票</label>
+      <SelectBoxComponent
+        :ref="el=>inputFields.register('report',el,report)"
+        inline
+        aria-label="出力帳票"
+        :options="[{value:'Document',label:'作品資料'},{value:'Story',label:'ストーリー'},{value:'Plot',label:'プロット'}]"
+        @value-change="changeReport"
+       />
     </div>
     <div
       v-if="showItems !== false"
       class="DialogSection"
     >
       <label class="DialogSectionTitle">出力する項目の選択</label>
-      <CheckBoxComponent
-        inline
-        wrapper-class="ExportSelectAll"
-        :ref="el => inputFields.register('all', el, selected.length === items.length)"
-        @change="selectAll"
-      >すべて選択</CheckBoxComponent>
-      <div class="ExportItemGrid">
+      <template v-if="report === 'Document'">
         <CheckBoxComponent
-          v-for="item in items"
-          :key="item.key"
-          :ref="el => inputFields.register('item:' + item.key, el, selected.includes(item.key))"
           inline
-          @change="readItems"
-        >{{ item.label }}</CheckBoxComponent>
-      </div>
+          wrapper-class="ExportSelectAll"
+          :ref="el => inputFields.register('all', el, selected.length === items.length)"
+          @change="selectAll"
+        >すべて選択</CheckBoxComponent>
+        <div class="ExportItemGrid">
+          <CheckBoxComponent
+            v-for="item in items"
+            :key="item.key"
+            :ref="el => inputFields.register('item:' + item.key, el, selected.includes(item.key))"
+            inline
+            @change="readItems"
+          >{{ item.label }}</CheckBoxComponent>
+        </div>
+      </template>
+      <SelectBoxComponent
+        v-if="report === 'Story'"
+        :ref="el=>inputFields.register('StoryId',el,'')"
+        label="ストーリー"
+        :hide-list-button="false"
+        :options="[{value:'',label:''},...stories.map(item=>({value:String(item.StoryId),label:String(item.StoryName)}))]"
+       />
+      <SelectBoxComponent
+        v-if="report === 'Plot'"
+        :ref="el=>inputFields.register('PlotId',el,'')"
+        label="プロット"
+        :hide-list-button="false"
+        :options="[{value:'',label:''},...plots.map(item=>({value:String(item.PlotId),label:String(item.PlotName)}))]"
+       />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">改行コードの認識</label>
@@ -192,7 +276,7 @@ function submit() {
         :ref="el => inputFields.register('sortOrder', el, sortOrder)"
         inline
         :options="[{ value: 'asc', label: '昇順' }, { value: 'desc', label: '降順' }]"
-      />
+       />
     </div>
     <div class="DialogSection">
       <label
@@ -205,7 +289,7 @@ function submit() {
         input-id="ExportFont"
         hide-list-button
         :options="fonts.map(item => ({ value: item, label: item }))"
-      />
+       />
     </div>
     <div class="DialogSection">
       <label class="DialogSectionTitle">表紙の出力</label>

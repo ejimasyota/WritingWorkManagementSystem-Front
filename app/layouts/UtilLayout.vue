@@ -43,18 +43,24 @@
           </ButtonComponent>
         </div>
         <div class="SidebarMenu">
-          <ButtonComponent unstyled
-            v-for="menu in visibleMenus"
-            :id="menu.id"
-            :key="menu.id"
-            type="button"
-            class="SidebarItem"
-            :class="{ Active: activeMenu === menu.id }"
-            :aria-current="activeMenu === menu.id ? 'page' : undefined"
-            @click="navigate(menu.id)"
-          >
-            <i class="fas" :class="menu.icon" aria-hidden="true" /> {{ menu.label }}
+          <ButtonComponent v-if="menuType === 'work'" unstyled type="button" class="SidebarItem SidebarBack" @click="navigate(CONST_VARIABLE.MENU_ID.BACK_TO_MAIN)">
+            <i class="fas fa-arrow-left" aria-hidden="true" />メインへ戻る
           </ButtonComponent>
+          <section v-for="(group,index) in visibleGroups" :key="group.label" class="SidebarGroup" :aria-labelledby="'SidebarGroup-' + menuType + '-' + index">
+            <h2 :id="'SidebarGroup-' + menuType + '-' + index" class="SidebarGroupTitle">{{ group.label }}</h2>
+            <ButtonComponent unstyled
+              v-for="menu in group.menus"
+              :id="menu.id"
+              :key="menu.id"
+              type="button"
+              class="SidebarItem"
+              :class="{ Active: activeMenu === menu.id }"
+              :aria-current="activeMenu === menu.id ? 'page' : undefined"
+              @click="navigate(menu.id)"
+            >
+              <i class="fas" :class="menu.icon" aria-hidden="true" /> {{ menu.label }}
+            </ButtonComponent>
+          </section>
         </div>
         <div class="SidebarFooter">
           <ButtonComponent unstyled id="MenuLogout" type="button" class="SidebarItem" @click="emit('logout')">
@@ -74,15 +80,10 @@
 <script setup lang="ts">
 import { CONST_VARIABLE } from '../config/Const';
 import { computed, ref } from 'vue';
+import type { SidebarMenu, SidebarGroup } from '../types/sidebar';
 interface SessionInfo {
   UserId?: string;
   IsAdmin?: boolean;
-}
-interface SidebarMenu {
-  id: string;
-  label: string;
-  icon: string;
-  admin?: boolean;
 }
 interface Props {
   /** メニュー項目の定義は共通レイアウトが保持し、ページは画面の区分だけを指定する。 */
@@ -101,42 +102,50 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['navigate', 'logout', 'settings', 'notifications']);
 const open = ref(false);
 
-// 旧 Main.html の表示順・アイコンを維持する。
+// メイン画面のメニューと分類。管理者項目はセッションの権限で絞り込む。
 const defaultMenus: SidebarMenu[] = [{
   id: CONST_VARIABLE.MENU_ID.WORK_MANAGEMENT,
+  section: '管理',
   label: '作品管理',
   icon: 'fa-folder-open'
 }, {
   id: CONST_VARIABLE.MENU_ID.NOTIFICATION_LIST,
+  section: 'システム',
   label: 'システム通知一覧',
   icon: 'fa-bell'
 }, {
   id: CONST_VARIABLE.MENU_ID.MEMBER_LIST,
+  section: 'ユーザー管理',
   label: '会員一覧',
   icon: 'fa-users',
   admin: true
 }, {
   id: CONST_VARIABLE.MENU_ID.ADMIN_LIST,
+  section: 'ユーザー管理',
   label: '管理者一覧',
   icon: 'fa-user-shield',
   admin: true
 }, {
   id: CONST_VARIABLE.MENU_ID.NOTIFICATION_ADMIN,
+  section: '管理',
   label: 'システム通知管理',
   icon: 'fa-bullhorn',
   admin: true
 }, {
   id: CONST_VARIABLE.MENU_ID.ERA_MASTER,
+  section: 'マスタ管理',
   label: '元号マスタ',
   icon: 'fa-calendar-alt',
   admin: true
 }, {
   id: CONST_VARIABLE.MENU_ID.TEMPLATE_MASTER,
+  section: 'マスタ管理',
   label: 'テンプレートマスタ',
   icon: 'fa-file-lines',
   admin: true
 }, {
   id: CONST_VARIABLE.MENU_ID.PROJECT_MANAGEMENT,
+  section: '管理',
   label: '作品一覧管理',
   icon: 'fa-cogs',
   admin: true
@@ -145,13 +154,24 @@ const defaultMenus: SidebarMenu[] = [{
 // 作品内の表示名・ID・アイコンはルーティングと同じ定義を使用する。
 const workMenus: SidebarMenu[] = [
   { id: CONST_VARIABLE.MENU_ID.BACK_TO_MAIN, label: 'メインへ戻る', icon: 'fa-arrow-left' },
-  ...Object.entries(CONST_VARIABLE.WORK_MENUS).map(([id, menu]) => ({ id, label: menu.label, icon: menu.icon })),
+  ...Object.entries(CONST_VARIABLE.WORK_MENUS).map(([id, menu]) => ({ id, label: menu.label, icon: menu.icon, section: menu.section })),
 ];
 
 // 旧 Main.js の IsAdmin 判定を踏襲し、セッション未取得時も管理者メニューを表示しない。
 const visibleMenus = computed(() => {
   const menus = props.menuType === 'work' ? workMenus : defaultMenus;
   return menus.filter(menu => !menu.admin || props.session?.IsAdmin === true);
+});
+// 空の分類は作らない。管理者用の見出しも権限のない利用者には表示しない。
+const visibleGroups = computed<SidebarGroup[]>(() => {
+  const groups = new Map<string, SidebarMenu[]>();
+  for (const menu of visibleMenus.value) {
+    if (!menu.section) continue; // メインへ戻るは分類の外に置く。
+    const items = groups.get(menu.section) || [];
+    items.push(menu);
+    groups.set(menu.section, items);
+  }
+  return [...groups].map(([label, menus]) => ({ label, menus }));
 });
 function toggleMenu() {
   open.value = !open.value;

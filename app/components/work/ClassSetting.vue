@@ -312,11 +312,9 @@ onMounted(async () => {
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
     />
-    <div
-      v-if="canEdit"
-      class="ButtonGroup"
-    >
+    <div class="ButtonGroup">
       <ButtonComponent
+        v-if="canEdit"
         type="button"
         variant="SuccessButton"
         @click="openNew"
@@ -327,8 +325,6 @@ onMounted(async () => {
         />
         追加
       </ButtonComponent>
-    </div>
-    <div class="ButtonGroup">
       <ButtonComponent
         type="button"
         variant="SecondaryButton"
@@ -450,7 +446,7 @@ onMounted(async () => {
             :ref="el => fields.register('OrgId', el, form.OrgId)"
             label="所属組織"
             :options="organizationOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.OrgId"
           />
           <TextFieldComponent

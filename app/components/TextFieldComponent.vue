@@ -50,7 +50,7 @@ const editorOpen = ref(false);
 const calendarOpen = ref(false);
 const draft = ref('');
 function updateInput(event: Event) {
-  if (props.type === 'file') return;
+  if (props.type === 'file' || props.disabled || props.readonly) return;
   const target = event.target as HTMLInputElement;
   const next = props.numericOnly ? target.value.replace(/[^0-9]/g, '') : target.value;
   target.value = next;
@@ -92,7 +92,7 @@ function handleInputClick() {
 
 /** ファイル選択も共通入力部品から開き、同じファイルの再選択に対応する。 */
 function openFilePicker() {
-  if (props.disabled || !input.value) return;
+  if (props.disabled || props.readonly || !input.value) return;
   input.value.value = '';
   input.value.click();
 }
@@ -150,7 +150,7 @@ defineExpose({
         @click="handleInputClick"
       >
       <TextFieldComponent
-        v-if="colorPickerFlg" inline type="color" :ref="el => inputFields.register('pickerColor', el, pickerColor)"
+        v-if="colorPickerFlg && !readonly" inline type="color" :ref="el => inputFields.register('pickerColor', el, pickerColor)"
         :aria-label="`${label}を選択`" :disabled="disabled || readonly"
         @value-change="updateColor"
       />

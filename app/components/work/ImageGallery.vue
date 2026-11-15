@@ -86,7 +86,7 @@ onMounted(load);
       label="画面"
       :options="screenOptions"
     />
-    <div class="ButtonGroup">
+    <div class="ButtonGroup MarginBottom20">
       <ButtonComponent
         type="button"
         variant="PrimaryButton"

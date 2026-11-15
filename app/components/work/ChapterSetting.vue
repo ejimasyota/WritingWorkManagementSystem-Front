@@ -435,7 +435,7 @@ onMounted(async () => {
             info-icon-flg
             :info-message="messageFormat('INFO','I_0087')"
             :options="TimeIdOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.TimeId"
           />
         </div>

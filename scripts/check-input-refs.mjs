@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { createRenderer, defineComponent, h, nextTick, reactive, ref } from 'vue';
 import { modules } from './test-support.mjs';
-const names = ['TextFieldComponent','SelectBoxComponent','TextAreaComponent','ButtonComponent','CheckBoxComponent','RadioButtonComponent','ToogleComponent','FieldFrame','EntryTableEditor','ImageListEditor','RelatedItemsEditor','WorkCreateDialog'];
+const names = ['TextFieldComponent','SelectBoxComponent','TextAreaComponent','ButtonComponent','CheckBoxComponent','RadioButtonComponent','ToogleComponent','FieldFrame','EntryTableEditor','ImageListEditor','RelatedItemsEditor','WorkCreateDialog','ExportSettingsDialog','DialogSectionNavigation','TableComponent'];
 const entries = Object.fromEntries(names.map(name=>[name,'app/components/'+name+'.vue']));
-Object.assign(entries, { CommonInfo:'app/components/work/CommonInfo.vue', CharacterList:'app/components/work/character/CharacterList.vue', TimelineSetting:'app/components/work/TimelineSetting.vue', Wbs:'app/components/work/Wbs.vue', KeywordSearch:'app/components/work/KeywordSearch.vue', WorkPage:'app/pages/work/index.vue' });
-const components = await modules(entries,{stubLayout:true});
+Object.assign(entries, { CommonInfo:'app/components/work/CommonInfo.vue', StoryCreation:'app/components/work/StoryCreation.vue', PlotCreation:'app/components/work/PlotCreation.vue', ExchangeSetting:'app/components/work/ExchangeSetting.vue', MoveSetting:'app/components/work/MoveSetting.vue',SerifSetting:'app/components/work/SerifSetting.vue', CharacterList:'app/components/work/character/CharacterList.vue', TimelineSetting:'app/components/work/TimelineSetting.vue', Wbs:'app/components/work/Wbs.vue', KeywordSearch:'app/components/work/KeywordSearch.vue', WorkPage:'app/pages/work/index.vue' });
+const components = {...await modules(entries,{stubLayout:true}), ...await modules({UtilLayout:'app/layouts/UtilLayout.vue'})};
 const states = new Map();
 globalThis.useState = (key,initial) => { if(!states.has(key))states.set(key,ref(initial()));return states.get(key); };
 const dialogs = { confirm:async()=>true,info:async()=>true,error:async()=>true,cancelAll(){} };
@@ -35,8 +35,8 @@ const Table=defineComponent({name:'TableComponent',props:['rows','columns','rowK
 function mount(name,props={},events={}) {
   const state=reactive(props);const host=node('host');let root;
   const app=renderer.createApp(defineComponent({setup:()=>()=>h(components[name],{...state,...events})}));
-  for(const [key,value] of Object.entries(components))app.component(key,value);
-  for(const key of ['DatePickerDialog','InfoIconComponent','ImageDialog','WorkContentHeader','TimelineChart','SettingsDialog','NotificationDialog','PageDialogHost'])app.component(key,Empty);
+  for(const [key,value] of Object.entries(components))if(key!=='TableComponent')app.component(key,value);
+  for(const key of ['DatePickerDialog','InfoIconComponent','ImageDialog','WorkContentHeader','TimelineChart','SettingsDialog','NotificationDialog','PageDialogHost','AnchoredDropdown'])app.component(key,Empty);
   app.component('BaseDialog',Dialog);app.component('TableComponent',Table);
   app.config.warnHandler=message=>{throw Error(message);};
   root=app.mount(host);
@@ -129,5 +129,134 @@ function requestFor(extra,writes=[]) {return async(url,method,payload)=>{
   assert.equal(view.all().filter(item=>item.type.__name==='FieldFrame'&&item.props.label==='担当者').length,1);
   assert.equal(view.find('RelatedItemsEditor',props=>props.label==='担当者').props.required,true);view.close();
 }
+// 行は子ダイアログで入力し、旧カードへ反映。番号指定・ドラッグも保存前のローカル操作。
+for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],['Exchange','掛け合い']]) {
+  const writes=[];const parent={[kind+'Id']:1,[kind+'Name']:'登録済み',Description:'概要',ProductionType:1,UpdateDate:'parent-v1'};
+  const child={[kind+'RowId']:2,Content:'保存済みの行',StructureType:1,UpdateDate:'child-v1'};
+  const api=requestFor({});let fail=false;
+  const request=async(url,method,payload)=>{
+    if(url.startsWith('/Get'+kind+'List.php'))return ok({PlotList:[],[kind+'List']:[parent],['Selected'+kind]:url.includes('?')?parent:null,[kind+'RowList']:url.includes('?')?[child]:[],CharacterList:[],SerifList:[],TemplateRows:[{IndexNum:1,StructureType:1,Content:'雛形'}]});
+    if(url.startsWith('/Save')){writes.push({url,payload});return fail?{Success:false,Message:'競合'}:ok({});}
+    return api(url,method,payload);
+  };
+  const view=mount(kind==='Exchange'?'ExchangeSetting':kind+'Creation',{request,dialogs,isAdmin:false});await settle();
+  const cards=()=>view.nodes().filter(el=>el.tag==='div'&&String(el.props.class).split(/\s+/).includes('StoryItem'));
+  const text=el=>el.text+el.children.map(text).join('');
+  const editCard=async(index)=>{cards()[index].props.onClick();await settle();};
+  const commit=()=>click(view.buttons('SaveButton').at(-1));
+  const add=()=>click(view.buttons('PrimaryButton ButtonSmall').at(-1));
+  if(kind!=='Exchange')assert.ok(!view.find('TableComponent').props.columns.some(column=>column.key==='Description'));
+  await click(view.buttons('SuccessButton')[0]);set(view.field(label+'名'),'新規'+label);
+  assert.equal(cards().length,0);await add();assert.equal(cards().length,0,'追加時点では一覧を変更しない');
+  if(kind==='Plot'){const structure=view.find('SelectBoxComponent',p=>p.label==='起承転結');set(structure,'1');structure.emit('value-change');await settle();}
+  else {const action=view.find('ToogleComponent',p=>p.label==='動詞を入力する');assert.equal(get(action),false);set(action,true);action.emit('value-change');await settle();}
+  set(view.find('TextAreaComponent',p=>p.label==='内容'),'最初の行');set(view.field('並び順'),'1');await commit();assert.equal(cards().length,1);
+  assert.deepEqual(view.nodes().filter(el=>el.tag==='h3'&&el.props.class==='FormSectionTitle').map(text),['基本',label+'行'],'行ごとの見出しをパンくずに入れない');
+  await add();if(kind==='Plot'){const structure=view.find('SelectBoxComponent',p=>p.label==='起承転結');set(structure,'1');structure.emit('value-change');await settle();}
+  set(view.find('TextAreaComponent',p=>p.label==='内容'),'二番目の行');set(view.field('並び順'),'2');await commit();assert.equal(cards().length,2);
+  const handle=view.nodes(cards()[0]).find(el=>el.tag==='button'&&el.props.class==='StoryDragHandle');
+  handle.props.onDragstart({dataTransfer:{setData(){}},preventDefault(){}});await settle();cards()[1].props.onDrop({preventDefault(){}});await settle();
+  assert.ok(text(cards()[0]).includes('二番目の行'),'ドラッグで順序を変更');
+  await editCard(1);set(view.field('並び順'),'1');await commit();assert.ok(text(cards()[0]).includes('最初の行'),'番号で順序を変更');
+  await editCard(0);set(view.find('TextAreaComponent',p=>p.label==='内容'),'破棄する編集');await click(view.buttons('CloseButton').at(-1));assert.ok(text(cards()[0]).includes('最初の行'),'閉じた編集は反映しない');
+  assert.equal(writes.length,0,'保存前にDBへ書き込まない');
+  fail=true;await click(view.buttons('SaveButton')[0]);assert.equal(writes[0].payload.Mode,'bundle');assert.equal(writes[0].payload.Rows.length,2);assert.deepEqual(writes[0].payload.RowsSnapshot,[]);
+  if(kind!=='Plot')assert.equal(writes[0].payload.Rows[0].ActionLine,true);
+  assert.equal(new Set(writes[0].payload.Rows.map(row=>row.localKey)).size,2,'既存行を編集した後もキーを重複させない');
+  assert.equal(get(view.field(label+'名')),'新規'+label,'保存失敗時は入力を保持');
+  fail=false;await click(view.buttons('SaveButton')[0]);
+  await click(view.buttons('PrimaryButton ButtonSmall')[0]);await editCard(0);
+  set(view.find('TextAreaComponent',p=>p.label==='内容'),'行変更');await commit();await click(view.buttons('SaveButton')[0]);
+  assert.equal(writes.at(-1).payload.UpdateDate,'parent-v1');assert.equal(writes.at(-1).payload.Rows[0].UpdateDate,'child-v1');assert.deepEqual(writes.at(-1).payload.RowsSnapshot,[{[kind+'RowId']:2,UpdateDate:'child-v1'}]);view.close();
+  const searchView=mount(kind==='Exchange'?'ExchangeSetting':kind+'Creation',{request,dialogs,isAdmin:false,targetId:'2',targetParentId:'1'});await settle();await settle();assert.equal(get(searchView.find('TextAreaComponent',p=>p.label==='内容')),'保存済みの行');searchView.close();
+}
+// マスタセリフにも独白区分を保存し、次に開いたときに復元する。
+{
+ const writes=[];const row={SerifId:1,Content:'セリフ',Monologue:true,UpdateDate:'serif-v1'};
+ const view=mount('SerifSetting',{request:requestFor({'/GetSerifList.php':{SerifList:[row],CharacterList:[]}},writes),dialogs,isAdmin:false});await settle();await click(view.buttons('PrimaryButton ButtonSmall')[0]);
+ const monologue=view.find('CheckBoxComponent',p=>p.label==='モノローグ');assert.equal(get(monologue),true);set(monologue,false);await click(view.buttons('SaveButton')[0]);assert.equal(writes[0].payload.Monologue,false);assert.equal(writes[0].payload.UpdateDate,'serif-v1');view.close();
+}
+// リサイズした幅は見出しと本文セルの両方へ反映する。本文に200pxの上限を持たせない。
+{
+ const view=mount('TableComponent',{rows:[{id:1,UpdateDate:'2026年11月15日（日）12時00分00秒'}],columns:[{key:'UpdateDate',label:'更新年月日',width:310}]});await settle();
+ const th=view.nodes().find(el=>el.tag==='th'),td=view.nodes().find(el=>el.tag==='td');assert.equal(th.props.style.width,'310px');assert.equal(td.props.style.width,'310px');
+ const resizer=view.nodes().find(el=>String(el.props.class).includes('ColumnResizer'));
+ const events={};const handle={parentElement:{getBoundingClientRect:()=>({width:310})},setPointerCapture(){},classList:{add(){},remove(){}},addEventListener:(key,handler)=>events[key]=handler,removeEventListener(){}};
+ resizer.props.onPointerdown({currentTarget:handle,clientX:0,pointerId:1,stopPropagation(){},preventDefault(){}});events.pointermove({clientX:200});await settle();assert.equal(th.props.style.width,'510px');assert.equal(td.props.style.width,'510px');events.pointermove({clientX:-1000});await settle();assert.equal(th.props.style.width,'64px');assert.equal(td.props.style.width,'64px');view.close();
+}
+// 見出し文字と両方のアイコンを実測し、拡大後でも文字幅を基準に縮められる。
+{
+ const view=mount('TableComponent',{rows:[{id:1,name:'値'}],columns:[{key:'name',label:'項目名',width:310,sortable:true,filterable:true}]});await settle();
+ const events={};
+ const label={scrollWidth:240,getBoundingClientRect:()=>({width:240}),classList:{contains:()=>true}};
+ const icon=width=>({scrollWidth:width,getBoundingClientRect:()=>({width}),classList:{contains:()=>false}});
+ const content={children:[label,icon(16),icon(28)]};
+ const header={querySelector:()=>content,getBoundingClientRect:()=>({width:310})};
+ const handle={parentElement:header,setPointerCapture(){},classList:{add(){},remove(){}},addEventListener:(key,handler)=>events[key]=handler,removeEventListener(){}};
+ window.getComputedStyle=element=>({paddingLeft:'12px',paddingRight:'12px',columnGap:element===content?'8px':'0px',marginLeft:'0px',marginRight:'0px'});
+ document.createRange=()=>({selectNodeContents(){},getBoundingClientRect:()=>({width:48})});
+ try {
+  const resizer=view.nodes().find(el=>String(el.props.class).includes('ColumnResizer'));
+  resizer.props.onPointerdown({currentTarget:handle,clientX:0,pointerId:1,stopPropagation(){},preventDefault(){}});
+  events.pointermove({clientX:-1000});await settle();
+  const th=view.nodes().find(el=>el.tag==='th'),td=view.nodes().find(el=>el.tag==='td');
+  assert.equal(th.props.style.width,'140px');assert.equal(td.props.style.width,'140px');
+  events.pointermove({clientX:100});await settle();assert.equal(th.props.style.width,'410px');
+ } finally {delete window.getComputedStyle;delete document.createRange;view.close();}
+}
+// 出力帳票ごとに、チェックボックスとリスト選択を切り替える。
+{
+ let payload;
+ const view=mount('ExportSettingsDialog',{modelValue:false,workId:'work',request:requestFor({'/GetNarrativeExportOptions.php?WorkId=work':{StoryList:[{StoryId:1,StoryName:'本文'}],PlotList:[{PlotId:2,PlotName:'構成'}]}}),dialogs},{onExport:value=>payload=value});
+ view.state.modelValue=true;await settle();
+ const report=view.find('SelectBoxComponent',p=>p.options.some(option=>option.value==='Document'));
+ set(report,'Story');report.emit('value-change');await settle();
+ assert.equal(view.all().filter(i=>i.type.__name==='CheckBoxComponent').length,2);
+ const story=view.find('SelectBoxComponent',p=>p.label==='ストーリー');assert.equal(story.props.hideListButton,false);set(story,'1');await click(view.buttons('SuccessButton')[0]);assert.equal(payload.ReportType,'Story');assert.equal(payload.StoryId,'1');
+ set(report,'Plot');report.emit('value-change');await settle();const plot=view.find('SelectBoxComponent',p=>p.label==='プロット');assert.equal(plot.props.hideListButton,false);set(plot,'2');await click(view.buttons('SuccessButton')[0]);assert.equal(payload.PlotId,'2');
+ view.close();
+}
+// 読み取り専用の選択値は非活性selectではなく、コピー可能なreadonly入力で表示する。
+{
+ const view=mount('SelectBoxComponent',{readonly:true,label:'性別',options:[{value:'1',label:'男性'}]});
+ const instance=view.find('SelectBoxComponent');set(instance,'1');await settle();
+ const input=view.nodes().find(el=>el.tag==='input');assert.ok(input.props.readonly!==undefined);assert.equal(input.props.value,'男性');assert.ok(!view.nodes().some(el=>el.tag==='select'));view.close();
+}
+// 能力詳細は同じ能力設定ダイアログを読み取り専用で開く。
+{
+ const power={PowerId:1,PowerName:'能力',Description:'説明',Conditions:'条件',Risk:'代償',UpdateDate:'power-v1'};
+ const move={MoveId:2,MoveName:'技',PowerId:1,UpdateDate:'move-v1'};
+ const request=requestFor({'/GetMoveList.php':{MoveList:[move],PowerList:[power]},'/GetPowerList.php':{PowerList:[power]}});
+ const view=mount('MoveSetting',{request,dialogs,isAdmin:false});await settle();await click(view.buttons('PrimaryButton ButtonSmall')[0]);
+ await click(view.buttons('SecondaryButton')[0]);
+ assert.equal(view.find('PowerSetting').props.readonly,true);assert.equal(view.field('能力名').props.readonly,true);
+ assert.equal(view.all().filter(item=>item.type.__name==='EntryTableEditor'&&item.props.readonly).length,2);
+ view.close();
+}
+// セクション移動は対象本文だけをスクロールする。
+{
+ let moved;let focused=false;
+ const heading={textContent:'明細',getBoundingClientRect:()=>({top:150}),setAttribute(){},focus(){focused=true;}};
+ const target={querySelectorAll:()=>[heading],getBoundingClientRect:()=>({top:50}),scrollTop:20,scrollTo:options=>moved=options};
+ const view=mount('DialogSectionNavigation',{target});await settle();view.nodes().find(el=>el.tag==='button').props.onClick();await settle();assert.equal(moved.top,120);assert.equal(focused,true);view.close();
+}
 assert.equal(states.get('BackendOperations').value,0,'画面を閉じた後にスピナーを残さない');
-console.log('Input ref regressions passed (genre save, conflict retention, tag return, search target navigation, atomic timeline payload).');
+
+// サイドバーの分類・順序と管理者権限を、実際の共通レイアウトで確認する。
+{
+ const groups = view => view.nodes().filter(el=>el.tag==='section' && el.props.class==='SidebarGroup').map(section=>({
+   label:section.children.find(el=>el.tag==='h2').text,
+   ids:section.children.filter(el=>el.tag==='button').map(el=>el.props.id)
+ }));
+ let view=mount('UtilLayout',{menuType:'main',session:{IsAdmin:false}});await settle();
+ assert.deepEqual(groups(view).map(group=>group.label),['管理','システム']);
+ assert.deepEqual(groups(view).flatMap(group=>group.ids),['MenuWorkManagement','MenuSystemNotificationList']);view.close();
+ view=mount('UtilLayout',{menuType:'main',session:{IsAdmin:true}});await settle();
+ assert.deepEqual(groups(view).map(group=>group.label),['管理','システム','ユーザー管理','マスタ管理']);
+ assert.equal(groups(view)[0].ids.length,3);assert.equal(groups(view)[2].ids.length,2);assert.equal(groups(view)[3].ids.length,2);view.close();
+ view=mount('UtilLayout',{menuType:'work'});await settle();
+ assert.deepEqual(groups(view).map(group=>group.label),['設定管理','執筆管理','制作管理']);
+ assert.deepEqual(groups(view).map(group=>group.ids.length),[18,8,5]);
+ const ids=groups(view).flatMap(group=>group.ids);assert.equal(new Set(ids).size,31);view.close();
+}
+console.log('Input ref regressions passed (genre, tag return, search, timeline, row dialogs/numbering/drag/cancel, narrative bundle/conflicts, serif monologue, column resizing, exports, readonly details, section navigation).');

@@ -497,11 +497,9 @@ onMounted(async () => {
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
     />
-    <div
-      v-if="canAdd"
-      class="ButtonGroup"
-    >
+    <div class="ButtonGroup">
       <ButtonComponent
+        v-if="canAdd"
         type="button"
         variant="SuccessButton"
         @click="openNew"
@@ -512,8 +510,6 @@ onMounted(async () => {
         />
         追加
       </ButtonComponent>
-    </div>
-    <div class="ButtonGroup ViewToggleButtonGroup">
       <ButtonComponent
         type="button"
         variant="SecondaryButton"
@@ -523,7 +519,7 @@ onMounted(async () => {
           :class="chartVisible ? 'fas fa-table' : 'fas fa-stream'"
           aria-hidden="true"
         />
-        {{ chartVisible ? '一覧表示' : '年表表示' }}
+        {{ chartVisible ? '一覧表示' : '年表図' }}
       </ButtonComponent>
     </div>
     <div v-show="!chartVisible">

@@ -11,7 +11,9 @@
     :hint="hint"
   >
     <div :class="inline && hideListButton ? 'InlineField' : 'InputWithButton'">
+      <input ref="inputElement" v-if="readonly" :id="id" class="InputForm" type="text" readonly :value="options.find(option => String(option.value) === String(value))?.label || ''" :aria-label="label" />
       <select
+        v-else
         ref="inputElement"
         :id="id"
         class="SelectForm"
@@ -33,7 +35,7 @@
         </option>
       </select>
       <ButtonComponent
-        v-if="!hideListButton"
+        v-if="!hideListButton && !readonly"
         type="button"
         variant="SecondaryButton ButtonSmall"
         :disabled="!hasOptionFlg || readOnlyFlg"
@@ -139,7 +141,7 @@ const listDialogOpenFlg = ref(false);
 // 4. 検索語句
 const searchKeyWord = ref('');
 // 5. 入力フォーム要素
-const inputElement = ref<HTMLSelectElement>();
+const inputElement = ref<HTMLInputElement | HTMLSelectElement>();
 
 /* ==========================================================
  * 算出プロパティ

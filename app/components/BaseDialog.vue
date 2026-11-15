@@ -10,6 +10,7 @@ interface Props {
   showTitle?: boolean;
   centeredActions?: boolean;
   closeOnEscape?: boolean;
+  sectionNavigation?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   title: '',
@@ -22,6 +23,7 @@ const dialogId = Symbol('dialog');
 const layer = computed(() => dialogLayer(dialogId));
 let disposed = false;
 const container = ref<HTMLElement>();
+const content = ref<HTMLElement>();
 let previousFocus: HTMLElement | null = null;
 function close() {
   emit('update:modelValue', false);
@@ -89,7 +91,7 @@ onBeforeUnmount(() => {
         <div
           ref="container"
           class="DialogContainer"
-          :class="size"
+          :class="[size, { DialogWithSectionNavigation: sectionNavigation }]"
           role="dialog"
           aria-modal="true"
           :aria-label="title"
@@ -104,7 +106,8 @@ onBeforeUnmount(() => {
             />
             {{ title }}
           </div>
-          <div class="DialogContent">
+          <DialogSectionNavigation v-if="sectionNavigation" :target="content" />
+          <div ref="content" class="DialogContent">
             <slot />
           </div>
           <div class="DialogButtonArea" :class="{ CenteredDialogActions: centeredActions }">

@@ -224,32 +224,32 @@ function settingDateConfirmation(before: string, after: string) {
         required
         maxlength="100"
         :error="titleError"
-        :disabled="!canEdit"
+        :readonly="!canEdit"
       />
       <SelectBoxComponent
         :ref="(el) => inputFields.register('Genre', el, form.Genre)"
         label="ジャンル"
         :options="createUtilPulldown(CONST_VARIABLE.PULLDOWN_TYPE.TYPE_GENRE)"
-        :disabled="!canEdit"
+        :readonly="!canEdit"
       />
       <TextFieldComponent
         :ref="(el) => inputFields.register('SettingDate', el, form.SettingDate)"
         label="舞台設定日"
         input-readonly
         :date-picker-flg="canEdit"
-        :disabled="!canEdit"
+        :readonly="!canEdit"
       />
       <SelectBoxComponent
         :ref="(el) => inputFields.register('Motif', el, form.Motif)"
         label="題材・モチーフ"
         :options="motifOptions"
-        :disabled="!canEdit"
+        :readonly="!canEdit"
       />
       <TextFieldComponent
         :ref="(el) => inputFields.register('Theme', el, form.Theme)"
         label="テーマ"
         maxlength="100"
-        :disabled="!canEdit"
+        :readonly="!canEdit"
       />
       <!-- 閲覧者も概要を展開できるよう、disabledではなくreadonlyで制御する。 -->
       <TextFieldComponent

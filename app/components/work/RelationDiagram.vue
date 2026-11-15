@@ -776,19 +776,6 @@ onMounted(load);
         />
         グループ
       </ButtonComponent>
-      <SelectBoxComponent
-        :ref="el=>fields.register('LineType',el,'1')"
-        inline
-        hide-list-button
-        :options="[{value:'1',label:'矢印線（感情）'},{value:'2',label:'直線（関係）'}]"
-        @value-change="changeLineType"
-      />
-      <SelectBoxComponent
-        :ref="el=>fields.register('RelationType',el,'好意')"
-        inline
-        hide-list-button
-        :options="typeOptions"
-      />
     </div>
     <div class="RelationContainer">
       <div class="RelationSidebar">
@@ -843,6 +830,21 @@ onMounted(load);
               aria-hidden="true"
             />
           </ButtonComponent>
+          <div v-if="canEdit" class="RelationTypeControls">
+      <SelectBoxComponent
+        :ref="el=>fields.register('LineType',el,'1')"
+        inline
+        hide-list-button
+        :options="[{value:'1',label:'矢印線（感情）'},{value:'2',label:'直線（関係）'}]"
+        @value-change="changeLineType"
+      />
+      <SelectBoxComponent
+        :ref="el=>fields.register('RelationType',el,'好意')"
+        inline
+        hide-list-button
+        :options="typeOptions"
+      />
+          </div>
           <div
             v-if="canEdit"
             ref="trash"

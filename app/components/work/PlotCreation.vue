@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue';
-import type { BackendRequest, DownloadData } from '../../types/backend';
-import type { WorkSettingRow } from '../../types/workSettings';
-import type { WorkInfo } from '../../types/work';
-import type { PageDialogs } from '../../composables/usePageDialogs';
-import type { ExportSettings } from '../../types/export';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useInputFields } from '../../composables/useInputFields';
 import { useOperationSpinner } from '../../composables/useOperationSpinner';
+import type { BackendRequest } from '../../types/backend';
+import type { WorkInfo } from '../../types/work';
+import type { WorkSettingRow } from '../../types/workSettings';
+import type { NarrativeDraftRow } from '../../types/narrative';
+import type { PageDialogs } from '../../composables/usePageDialogs';
+import type { TableColumn } from '../../composables/tableData';
 import { readWorkAccess } from '../../utils/workAccess';
 import { requireSuccess, reportBackendError } from '../../utils/backend';
 import { messageFormat } from '../../utils/messages';
-import { workLocation } from '../../utils/workNavigation';
-import { downloadBase64, fileAsBase64 } from '../../utils/files';
+import { placeNarrativeRow, dragNarrativeRow, narrativeText, narrativeRowPositions } from '../../utils/narrativeRows';
 const props = defineProps<{
   request: BackendRequest;
   dialogs: PageDialogs;
@@ -20,37 +20,37 @@ const props = defineProps<{
   targetId?: string;
   targetParentId?: string;
   backStoryId?: string;
+  readonly?: boolean;
+  detailId?: string;
 }>();
+const emit = defineEmits(['close']);
 const fields = useInputFields();
 const spinner = useOperationSpinner();
 const work = ref<WorkInfo>();
-const isCreator = ref(false);
+const creator = ref(false);
 const ready = ref(false);
 const busy = ref(false);
+const opened = ref(false);
+const records = ref<WorkSettingRow[]>([]);
 const selected = ref<WorkSettingRow | null>(null);
-const folders = ref<WorkSettingRow[]>([]);
-const rows = ref<WorkSettingRow[]>([]);
-const hasTemplate = ref(false);
-const infoOpen = ref(false);
-const rowOpen = ref(false);
-const exportOpen = ref(false);
-const editingInfo = ref<WorkSettingRow | null>(null);
-const editingRow = ref<WorkSettingRow | null>(null);
+const rows = ref<NarrativeDraftRow[]>([]);
+const snapshot = ref<Record<string, unknown>[]>([]);
+const characters = ref<WorkSettingRow[]>([]);
+const templates = ref<Record<string, unknown>[]>([]);
 const errors = ref<Record<string, string>>({});
 const revision = ref(0);
-const dragged = ref<string | null>(null);
-const touchTarget = ref<string | null>(null);
-const production = ref('0');
-const infoForm = reactive({
+const form = reactive({
   Name: '',
   ProductionType: '0'
 });
-const rowForm = reactive({
-  IndexNum: '',
-  Content: ''
+const canEdit = computed(() => !props.readonly && ready.value && (props.isAdmin || creator.value));
+const role = computed(() => props.isAdmin ? '管理者' : creator.value ? '作成者' : 'アシスタント');
+const title = computed(() => 'プロット登録（' + (selected.value ? canEdit.value ? '編集' : '詳細' : '新規登録') + '）');
+let sequence = 0;
+let disposed = false;
+onBeforeUnmount(() => {
+  disposed = true;
 });
-const canEdit = computed(() => ready.value && (props.isAdmin || isCreator.value));
-const role = computed(() => props.isAdmin ? '管理者' : isCreator.value ? '作成者' : 'アシスタント');
 const productionOptions = [{
   value: '0',
   label: ''
@@ -70,45 +70,76 @@ const productionOptions = [{
   value: '5',
   label: 'その他'
 }];
-
-function productionLabel(value: unknown) {
-  return productionOptions.find(option => option.value === String(value))?.label || messageFormat('INFO', 'I_0071');
-}
-let disposed = false;
-onBeforeUnmount(() => {
-  disposed = true;
+const productionLabel = (value: unknown) => productionOptions.find(option => option.value === String(value))?.label || messageFormat('INFO', 'I_0071');
+const characterOptions = computed(() => [{
+  value: '',
+  label: ''
+}, ...characters.value.map(row => ({
+  value: String(row.CharaId),
+  label: String(row.CharaName)
+}))]);
+const rowFields = useInputFields();
+const rowOpened = ref(false);
+const editingRow = ref<NarrativeDraftRow | null>(null);
+const rowRevision = ref(0);
+const rowErrors = ref<Record<string, string>>({});
+const rowForm = reactive({
+  IndexNum: '1',
+  Content: '',
+  StructureType: '0'
 });
+const draggedRow = ref<number | null>(null);
+const dragOverRow = ref<number | null>(null);
+const columns: TableColumn[] = [{
+  key: 'Detail',
+  label: '詳細',
+  width: 90
+}, {
+  key: 'Copy',
+  label: 'コピー',
+  width: 90
+}, {
+  key: 'PlotName',
+  label: 'プロット名',
+  sortable: true
+}, {
+  key: 'ProductionType',
+  label: '制作区分',
+  filterable: true,
+  format: value => productionLabel(value)
+}, {
+  key: 'RowCount',
+  label: '登録行数',
+  sortable: true,
+  type: 'number'
+}];
 
 async function verifyAccess() {
   const access = await readWorkAccess(props.request, work.value?.WorkId);
   if (disposed) return false;
   work.value = access.work;
-  isCreator.value = access.isCreator;
+  creator.value = access.isCreator;
   return props.isAdmin || access.isCreator;
 }
-/** フォルダ・行・テンプレートの有無を1操作の中で初期化する。 */
-
 
 async function read(id: unknown = null) {
-  const endpoint = '/GetPlotList.php' + (id ? '?PlotId=' + encodeURIComponent(String(id)) : '');
-  const data = requireSuccess(await props.request<Record<string, unknown>>(endpoint), messageFormat('ERROR', 'E_0003', 'プロットの取得'));
+  const data = requireSuccess(await props.request<Record<string, unknown>>('/GetPlotList.php' + (id ? '?PlotId=' + encodeURIComponent(String(id)) : '')), messageFormat('ERROR', 'E_0003', 'プロットの取得'));
   if (!Array.isArray(data?.PlotList) || !Array.isArray(data.PlotRowList)) throw new Error(messageFormat('ERROR', 'E_0026'));
-  if (disposed) return;
-  folders.value = data.PlotList as WorkSettingRow[];
-  selected.value = id ? data.SelectedPlot as WorkSettingRow : null;
-  rows.value = data.PlotRowList as WorkSettingRow[];
-  hasTemplate.value = data.HasTemplate === true;
-  rows.value.sort((a, b) => Number(a.StructureType || 0) - Number(b.StructureType || 0) || Number(a.IndexNum) - Number(b.IndexNum));
+  if (disposed) return null;
+  records.value = data.PlotList as WorkSettingRow[];
+  characters.value = Array.isArray(data.CharacterList) ? data.CharacterList as WorkSettingRow[] : [];
+  templates.value = Array.isArray(data.TemplateRows) ? data.TemplateRows as Record<string, unknown>[] : [];
   ready.value = true;
+  return data;
 }
 
-async function load(id: unknown = null) {
+async function load() {
   if (busy.value || disposed) return;
   busy.value = true;
   try {
     await spinner.run(async () => {
       await verifyAccess();
-      if (!disposed) await read(id);
+      if (!disposed) await read();
     });
   } catch (error) {
     if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの取得'));
@@ -116,540 +147,557 @@ async function load(id: unknown = null) {
     busy.value = false;
   }
 }
-/** 成功時にだけ編集ダイアログを閉じる。行のUpdateDateは開いた時点のものを送る。 */
 
+function localRow(row: Record<string, unknown> = {}): NarrativeDraftRow {
+  return {
+    ...row,
+    localKey: ++sequence,
+    UpdateDate: String(row.UpdateDate || ''),
+    Content: String(row.Content || ''),
+    StructureType: String(row.StructureType ?? '0')
+  };
+}
 
-async function mutate(endpoint: string, payload: Record<string, unknown>, operation: string, folderId: unknown = selected.value?.PlotId ?? null) {
-  if (!canEdit.value || busy.value || disposed) return false;
+function clear() {
+  if (busy.value) return;
+  selected.value = null;
+  Object.assign(form, {
+    Name: '',
+    ProductionType: '0'
+  });
+  closeRow();
+  rows.value = [];
+  snapshot.value = [];
+  errors.value = {};
+  fields.setValues(form);
+  revision.value++;
+}
+
+function openNew() {
+  if (!canEdit.value || busy.value) return;
+  clear();
+  opened.value = true;
+}
+
+async function openDetail(row: WorkSettingRow) {
+  if (busy.value) return;
   busy.value = true;
-  let completed = false;
   try {
     await spinner.run(async () => {
-      if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', 'プロットの' + operation));
-      completed = true;
-      await read(folderId);
+      await verifyAccess();
+      if (disposed) return;
+      const data = await read(row.PlotId);
+      if (!data || disposed) return;
+      const parent = data.SelectedPlot as WorkSettingRow;
+      if (!parent) throw new Error(messageFormat('ERROR', 'E_0026'));
+      selected.value = {
+        ...parent
+      };
+      Object.assign(form, {
+        Name: String(parent.PlotName || ''),
+        ProductionType: String(parent.ProductionType || 0)
+      });
+      const source = data.PlotRowList as WorkSettingRow[];
+      rows.value = source.map(localRow);
+      snapshot.value = source.map(item => ({
+        PlotRowId: item.PlotRowId,
+        UpdateDate: item.UpdateDate
+      }));
+      fields.setValues(form);
+      errors.value = {};
+      revision.value++;
+      opened.value = true;
     });
-    if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', 'プロットの' + operation));
   } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの' + operation));
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの取得'));
   } finally {
     busy.value = false;
   }
-  return completed;
 }
 
-function openInfo(row: WorkSettingRow | null = null) {
-  if (!canEdit.value || busy.value) return;
-  editingInfo.value = row ? {
+function close() {
+  if (busy.value) return;
+  opened.value = false;
+  clear();
+  emit('close');
+}
+
+/** 行の編集はローカルのコピーを使い、「反映」で初めて親の一覧へ戻す。 */
+
+
+function rowValue(row: NarrativeDraftRow) {
+  return {
     ...row
-  } : null;
-  infoForm.Name = String(row?.PlotName || '');
-  infoForm.ProductionType = String(row?.ProductionType || '0');
-  production.value = infoForm.ProductionType;
-  fields.setValues(infoForm);
-  errors.value = {};
-  revision.value++;
-  infoOpen.value = true;
-}
-
-async function saveInfo(applyTemplate = false) {
-  if (!canEdit.value || busy.value) return;
-  const values = fields.getValues(infoForm);
-  errors.value = {};
-  if (!values.Name.trim()) errors.value.Name = messageFormat('ERROR', 'E_0001', 'プロット名');
-  if (values.Name.length > 30) errors.value.Name = messageFormat('ERROR', 'E_0002', 'プロット名', 30);
-  if (Object.keys(errors.value).length) {
-    fields.focus('Name');
-    return;
-  }
-  if (applyTemplate && !(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0017', 'プロット')))) return;
-  const payload: Record<string, unknown> = {
-    Mode: 'info',
-    PlotId: editingInfo.value?.PlotId ?? null,
-    PlotName: values.Name.trim(),
-    ProductionType: values.ProductionType,
-    ApplyTemplate: applyTemplate,
-    UpdateDate: editingInfo.value?.UpdateDate ?? null
   };
-  if (await mutate('/SavePlot.php', payload, '保存', null)) infoOpen.value = false;
 }
-/** 行の入力はダイアログで編集する。親情報と行情報の更新日時を混同しない。 */
+const rowPositions = computed(() => narrativeRowPositions(rows.value, true));
 
+function rowPosition(row: NarrativeDraftRow) {
+  return rowPositions.value.get(row.localKey) || 0;
+}
 
-function openRow(row: WorkSettingRow | null = null) {
-  if (!selected.value || busy.value) return;
+function addRow() {
+  if (!canEdit.value || busy.value) return;
+  openRow(null);
+}
+
+function openRow(row: NarrativeDraftRow | null) {
+  if (busy.value) return;
   editingRow.value = row ? {
     ...row
   } : null;
-  rowForm.IndexNum = row ? String(rows.value.filter(item => Number(item.StructureType || 0) === Number(row.StructureType || 0)).findIndex(item => String(item.PlotRowId) === String(row.PlotRowId)) + 1) : '';
-  rowForm.Content = String(row?.Content || '');
-  fields.setValues(rowForm);
-  fields.setValue('StructureType', String(row?.StructureType || '0'));
-  errors.value = {};
-  revision.value++;
-  rowOpen.value = true;
-}
-
-async function saveRow() {
-  if (!canEdit.value || !selected.value || busy.value) return;
-  const values = fields.getValues(rowForm);
-  errors.value = {};
-  if (!values.Content.trim()) errors.value.Content = messageFormat('ERROR', 'E_0001', '内容');
-  const structure = Number(fields.getValue('StructureType', '0'));
-  const groupSize = rows.value.filter(row => Number(row.StructureType || 0) === structure && String(row.PlotRowId) !== String(editingRow.value?.PlotRowId)).length;
-  if (structure < 1 || structure > 4) errors.value.StructureType = messageFormat('ERROR', 'E_0054', '起承転結');
-  if (!/^[1-9][0-9]{0,9}$/.test(values.IndexNum) || Number(values.IndexNum) > groupSize + 1) errors.value.IndexNum = messageFormat('ERROR', 'E_0073');
-  if (Object.keys(errors.value).length) {
-    fields.focus(Object.keys(errors.value)[0]!);
-    return;
-  }
-  const payload: Record<string, unknown> = {
-    ...values,
-    Mode: 'row',
-    PlotId: selected.value.PlotId,
-    PlotRowId: editingRow.value?.PlotRowId ?? null,
-    UpdateDate: editingRow.value?.UpdateDate ?? null
-  };
-  payload.StructureType = fields.getValue('StructureType', '0');
-  if (await mutate('/SavePlot.php', payload, '保存')) rowOpen.value = false;
-}
-
-async function removeInfo() {
-  const row = editingInfo.value;
-  if (!row || !canEdit.value || busy.value) return;
-  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'このプロットを削除')))) return;
-  if (await mutate('/DeletePlot.php', {
-    Mode: 'info',
-    PlotId: row.PlotId,
-    UpdateDate: row.UpdateDate
-  }, '削除', null)) infoOpen.value = false;
-}
-
-async function removeRows(all = false) {
-  const row = all ? selected.value : editingRow.value;
-  if (!row || !selected.value || !canEdit.value || busy.value) return;
-  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', all ? '全ての行を削除' : 'この行を削除')))) return;
-  if (await mutate('/DeletePlot.php', {
-    Mode: 'row',
-    PlotId: selected.value.PlotId,
-    PlotRowId: all ? null : row.PlotRowId,
-    UpdateDate: row.UpdateDate
-  }, '削除')) rowOpen.value = false;
-}
-
-async function copy(row: WorkSettingRow) {
-  if (!canEdit.value || busy.value || !(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0018', 'プロット')))) return;
-  await mutate('/CopyPlot.php', {
-    PlotId: row.PlotId,
-    UpdateDate: row.UpdateDate
-  }, 'コピー', null);
-}
-
-async function output(settings: ExportSettings) {
-  const folder = selected.value;
-  if (!folder || busy.value) return;
-  if (!rows.value.length) {
-    await props.dialogs.error(messageFormat('ERROR', 'E_0057', 'プロット'));
-    return;
-  }
-  busy.value = true;
-  try {
-    const data = await spinner.run(async () => {
-      await verifyAccess();
-      if (disposed) return;
-      return requireSuccess(await props.request<DownloadData>('/ExportPlot.php', 'POST', {
-        ...settings,
-        PlotId: folder.PlotId
-      }), messageFormat('ERROR', 'E_0003', 'プロットの出力'));
+  Object.assign(rowForm, {
+    IndexNum: '1',
+    Content: '',
+    StructureType: '0'
+  });
+  if (row) {
+    Object.assign(rowForm, Object.fromEntries(Object.keys(rowForm).map(key => [key, row[key] ?? rowForm[key as keyof typeof rowForm]])), {
+      IndexNum: String(rowPosition(row))
     });
-    if (data && !disposed) {
-      downloadBase64(data);
-      exportOpen.value = false;
-    }
-  } catch (error) {
-    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの出力'));
-  } finally {
-    busy.value = false;
+  } else rowForm.IndexNum = String(1);
+  rowErrors.value = {};
+  rowFields.setValues(rowForm);
+  rowRevision.value++;
+  rowOpened.value = true;
+}
+
+function changeRowField(key: keyof typeof rowForm) {
+  Object.assign(rowForm, {
+    [key]: rowFields.getValue(key, rowForm[key])
+  });
+  if (key === 'StructureType') rowFields.setValue('IndexNum', String(rows.value.filter(item => item.localKey !== editingRow.value?.localKey && Number(item.StructureType) === Number(rowForm.StructureType)).length + 1));
+}
+
+async function commitRow() {
+  if (!canEdit.value || busy.value) return;
+  const values = rowFields.getValues(rowForm);
+  rowErrors.value = {};
+  if (!/^\d+$/.test(values.IndexNum) || Number(values.IndexNum) < 1) rowErrors.value.IndexNum = messageFormat('ERROR', 'E_0001', '並び順');
+  if (!values.Content.trim()) rowErrors.value.Content = messageFormat('ERROR', 'E_0001', '内容');
+  if (!['1', '2', '3', '4'].includes(String(values.StructureType))) rowErrors.value.StructureType = messageFormat('ERROR', 'E_0001', '起承転結');
+  const first = Object.keys(rowErrors.value)[0];
+  if (first) {
+    await nextTick();
+    rowFields.focus(first);
+    return;
   }
+  const value: NarrativeDraftRow = {
+    ...localRow(values),
+    ...editingRow.value,
+    ...values
+  };
+  rows.value = placeNarrativeRow(rows.value, value, Number(values.IndexNum), true);
+  rowOpened.value = false;
+  editingRow.value = null;
 }
 
-function beginDrag(event: DragEvent, row: WorkSettingRow) {
-  if (!canEdit.value) return;
-  dragged.value = String(row.PlotRowId);
-  event.dataTransfer?.setData('text/plain', dragged.value);
+function closeRow() {
+  rowOpened.value = false;
+  editingRow.value = null;
 }
 
-function touchMove(event: TouchEvent) {
-  const point = event.touches[0];
-  if (!point || !dragged.value) return;
-  event.preventDefault();
-  touchTarget.value = document.elementFromPoint(point.clientX, point.clientY)?.closest<HTMLElement>('[data-narrative-row]')?.dataset.narrativeRow || null;
+function removeRow() {
+  if (!canEdit.value || busy.value || !editingRow.value) return;
+  rows.value = rows.value.filter(item => item.localKey !== editingRow.value?.localKey);
+  closeRow();
 }
-/** ドラッグ時も、表示順を直接確定せず、元の親更新日時と全行の並び順をAPIへ送る。 */
 
+function beginRowDrag(event: DragEvent, row: NarrativeDraftRow) {
+  if (!canEdit.value || busy.value) {
+    event.preventDefault();
+    return;
+  }
+  draggedRow.value = row.localKey;
+  event.dataTransfer?.setData('text/plain', String(row.localKey));
+}
 
-async function reorder(target: string | null) {
-  const from = dragged.value;
-  dragged.value = null;
-  touchTarget.value = null;
-  if (!from || !target || from === target || busy.value || !selected.value || !canEdit.value) return;
-  const sourceIndex = rows.value.findIndex(row => String(row.PlotRowId) === from);
-  const targetIndex = rows.value.findIndex(row => String(row.PlotRowId) === target);
-  if (sourceIndex < 0 || targetIndex < 0) return;
-  if (Number(rows.value[sourceIndex]?.StructureType || 0) !== Number(rows.value[targetIndex]?.StructureType || 0)) {
+async function dropRow(row: NarrativeDraftRow) {
+  const source = draggedRow.value;
+  draggedRow.value = null;
+  dragOverRow.value = null;
+  if (!canEdit.value || busy.value || source === null || source === row.localKey) return;
+  const next = dragNarrativeRow(rows.value, source, row.localKey, true);
+  if (!next) {
     await props.dialogs.error(messageFormat('ERROR', 'E_0059'));
     return;
   }
-  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0019', 'プロット')))) return;
-  const order = [...rows.value];
-  const moved = order.splice(sourceIndex, 1)[0]!;
-  order.splice(targetIndex, 0, moved);
-  await mutate('/UpdatePlotOrder.php', {
-    PlotId: selected.value.PlotId,
-    UpdateDate: selected.value.UpdateDate,
-    OrderList: order.map((row, index) => ({
-      PlotRowId: row.PlotRowId,
-      IndexNum: index + 1,
-      StructureType: Number(row.StructureType) || 0
-    }))
-  }, '並び順の更新');
+  rows.value = next;
 }
-onMounted(async () => {
-  await load(props.targetParentId || null);
-  if (!disposed && props.targetId) {
-    const row = rows.value.find(row => String(row.PlotRowId) === props.targetId);
-    if (row) openRow(row);
+
+function touchRowStart(event: TouchEvent, row: NarrativeDraftRow) {
+  if (!canEdit.value || busy.value) return;
+  event.preventDefault();
+  draggedRow.value = row.localKey;
+}
+
+function touchRowMove(event: TouchEvent) {
+  if (draggedRow.value === null) return;
+  const point = event.touches[0];
+  if (!point) return;
+  event.preventDefault();
+  const key = document.elementFromPoint(point.clientX, point.clientY)?.closest<HTMLElement>('[data-narrative-row]')?.dataset.narrativeRow;
+  dragOverRow.value = key ? Number(key) : null;
+}
+
+function touchRowEnd() {
+  const target = rows.value.find(row => row.localKey === dragOverRow.value);
+  if (target) void dropRow(target);else {
+    draggedRow.value = null;
+    dragOverRow.value = null;
   }
-});
-
-function changeStructure() {
-  if (editingRow.value) return;
-  const type = Number(fields.getValue('StructureType', '0'));
-  fields.setValue('IndexNum', type ? String(rows.value.filter(row => Number(row.StructureType || 0) === type).length + 1) : '');
 }
 
-async function back() {
-  if (props.backStoryId) {
-    await navigateTo({
-      ...workLocation('MenuStory'),
-      query: {
-        menu: 'MenuStory',
-        parent: props.backStoryId
-      }
+function changeProduction() {
+  form.ProductionType = fields.getValue('ProductionType', '0');
+}
+
+async function applyTemplate() {
+  if (!canEdit.value || busy.value) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0017', 'プロット')))) return;
+  rows.value = templates.value.filter(row => String(row.Content || '').trim() && Number(row.StructureType) >= 1 && Number(row.StructureType) <= 4).sort((a, b) => Number(a.StructureType) - Number(b.StructureType) || Number(a.IndexNum) - Number(b.IndexNum)).map(row => localRow({
+    ...row
+  }));
+}
+
+async function copy(parent: WorkSettingRow) {
+  if (!canEdit.value || busy.value) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'このプロットをコピー')))) return;
+  busy.value = true;
+  let success = false;
+  try {
+    await spinner.run(async () => {
+      if (!(await verifyAccess()) || disposed) return;
+      requireSuccess(await props.request('/CopyPlot.php', 'POST', {
+        PlotId: parent.PlotId,
+        UpdateDate: parent.UpdateDate
+      }), messageFormat('ERROR', 'E_0003', 'コピー'));
+      success = true;
     });
+  } catch (error) {
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'コピー'));
+  } finally {
+    busy.value = false;
+  }
+  if (success && !disposed) await load();
+}
+
+async function save() {
+  if (!canEdit.value || busy.value) return;
+  const values = fields.getValues(form);
+  const detail = rows.value.map(rowValue);
+  errors.value = {};
+  if (!values.Name.trim()) errors.value.Name = messageFormat('ERROR', 'E_0001', 'プロット名');
+  if (values.Name.length > 100) errors.value.Name = messageFormat('ERROR', 'E_0002', 'プロット名', 100);
+  detail.forEach((row, index) => {
+    if (!String(row.Content || '').trim()) errors.value['row:' + rows.value[index]!.localKey] = messageFormat('ERROR', 'E_0001', '内容');
+    if (!['1', '2', '3', '4'].includes(String(row.StructureType)) && !(Number(row.StructureType) === 0 && row.PlotRowId)) errors.value['row:' + rows.value[index]!.localKey] = messageFormat('ERROR', 'E_0001', '起承転結');
+  });
+  const first = Object.keys(errors.value)[0];
+  if (first) {
+    await nextTick();
+    const invalid = rows.value.find(row => 'row:' + row.localKey === first);
+    if (invalid) openRow(invalid);else fields.focus(first);
     return;
   }
-  await load();
+  busy.value = true;
+  let success = false;
+  try {
+    await spinner.run(async () => {
+      if (!(await verifyAccess()) || disposed) return;
+      requireSuccess(await props.request('/SavePlot.php', 'POST', {
+        Mode: 'bundle',
+        PlotId: selected.value?.PlotId ?? null,
+        UpdateDate: selected.value?.UpdateDate ?? null,
+        PlotName: values.Name,
+        ProductionType: Number(values.ProductionType),
+        Rows: detail,
+        RowsSnapshot: snapshot.value
+      }), messageFormat('ERROR', 'E_0003', 'プロットの保存'));
+      success = true;
+    });
+    if (success && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'プロットの保存'));
+  } catch (error) {
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの保存'));
+  } finally {
+    busy.value = false;
+  }
+  if (success && !disposed) {
+    close();
+    await load();
+  }
 }
-const structureOptions = [{
-  value: '0',
-  label: ''
-}, {
-  value: '1',
-  label: '起'
-}, {
-  value: '2',
-  label: '承'
-}, {
-  value: '3',
-  label: '転'
-}, {
-  value: '4',
-  label: '結'
-}];
-const groups = computed(() => [1, 2, 3, 4, 0].map(type => ({
-  type,
-  label: structureOptions[type]?.label || messageFormat('INFO', 'I_0072'),
-  rows: rows.value.filter(row => Number(row.StructureType || 0) === type)
-})).filter(group => group.rows.length));
 
-function structureClass(type: number) {
-  return ['', 'ki', 'sho', 'ten', 'ketsu'][type];
+async function remove() {
+  const parent = selected.value;
+  if (!parent || !canEdit.value || busy.value) return;
+  if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0001', 'このプロットを削除')))) return;
+  busy.value = true;
+  let success = false;
+  try {
+    await spinner.run(async () => {
+      if (!(await verifyAccess()) || disposed) return;
+      requireSuccess(await props.request('/DeletePlot.php', 'POST', {
+        Mode: 'info',
+        PlotId: parent.PlotId,
+        UpdateDate: parent.UpdateDate
+      }), messageFormat('ERROR', 'E_0003', 'プロットの削除'));
+      success = true;
+    });
+    if (success && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', '削除'), messageFormat('INFO', 'I_0001', 'プロットの削除'));
+  } catch (error) {
+    if (!disposed) await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', 'プロットの削除'));
+  } finally {
+    busy.value = false;
+  }
+  if (success && !disposed) {
+    close();
+    await load();
+  }
 }
+onMounted(async () => {
+  await load();
+  if (!disposed && (props.targetId || props.detailId)) {
+    const parent = records.value.find(row => String(row.PlotId) === (props.detailId || props.targetParentId || props.targetId));
+    if (parent) {
+      await openDetail(parent);
+      // 行を指す検索結果から移動した場合は、その行の入力ダイアログまで開く。
+      if (!disposed && props.targetParentId) {
+        const target = rows.value.find(row => String(row.PlotRowId) === props.targetId);
+        if (target) openRow(target);
+      }
+    }
+  }
+});
 </script>
 <template>
   <div>
-    <WorkContentHeader
-      :title="selected ? String(selected.PlotName) : 'プロット作成'"
-      icon="fa-sitemap"
-      :work-title="work?.WorkTitle"
-      :role="work ? role : undefined"
-    />
-    <template v-if="!selected">
+    <template v-if="!detailId">
+      <WorkContentHeader
+        title="プロット作成"
+        icon="fa-file-lines"
+        :work-title="work?.WorkTitle"
+        :role="work ? role : undefined"
+       />
       <div
         v-if="canEdit"
         class="ButtonGroup MarginBottom20"
       >
         <ButtonComponent
           type="button"
-          variant="PrimaryButton"
-          @click="openInfo()"
+          variant="SuccessButton"
+          @click="openNew"
         >
           <i
             class="fas fa-plus"
             aria-hidden="true"
-          />
-          プロット作成
-        </ButtonComponent>
-      </div>
-      <div class="StoryFolderGrid">
-        <FolderCard
-          v-for="folder in folders"
-          :key="String(folder.PlotId)"
-          :title="String(folder.PlotName)"
-          :badge="productionLabel(folder.ProductionType)"
-          @open="load(folder.PlotId)"
-        >
-          <template
-            v-if="canEdit"
-            #actions
-          >
-            <ButtonComponent
-              type="button"
-              variant="SecondaryButton ButtonSmall"
-              @click="copy(folder)"
-            >
-              <i
-                class="fas fa-copy"
-                aria-hidden="true"
-              />
-              コピー
-            </ButtonComponent>
-            <ButtonComponent
-              type="button"
-              variant="SecondaryButton ButtonSmall"
-              @click="openInfo(folder)"
-            >
-              <i
-                class="fas fa-pen"
-                aria-hidden="true"
-              />
-              編集
-            </ButtonComponent>
-          </template>
-        </FolderCard>
-      </div>
-    </template>
-    <template v-else>
-      <div class="ButtonGroup MarginBottom20">
-        <ButtonComponent
-          type="button"
-          variant="SecondaryButton"
-          @click="back"
-        >
-          <i
-            class="fas fa-arrow-left"
-            aria-hidden="true"
-          />
-          戻る
-        </ButtonComponent>
-        <ButtonComponent
-          v-if="canEdit"
-          type="button"
-          variant="PrimaryButton"
-          @click="openRow()"
-        >
-          <i
-            class="fas fa-plus"
-            aria-hidden="true"
-          />
+           />
           追加
         </ButtonComponent>
-        <ButtonComponent
-          type="button"
-          variant="SuccessButton"
-          @click="exportOpen = true"
-        >
-          <i
-            class="fas fa-file-export"
-            aria-hidden="true"
-          />
-          出力
-        </ButtonComponent>
-        <ButtonComponent
-          v-if="canEdit"
-          type="button"
-          variant="DeleteButton"
-          @click="removeRows(true)"
-        >
-          <i
-            class="fas fa-trash"
-            aria-hidden="true"
-          />
-          消去
-        </ButtonComponent>
       </div>
-      <div class="StoryListViewport">
-        <div class="StoryList">
-          <div
-            v-for="group in groups"
-            :key="group.type"
-            class="PlotSection"
-          >
-            <div class="PlotSectionHeader">
-              <span
-                class="PlotBadge"
-                :class="structureClass(group.type)"
-              >{{ group.label }}</span>
-            </div>
-            <div
-              v-for="(row,index) in group.rows"
-              :key="String(row.PlotRowId)"
-              class="StoryItem"
-              :data-narrative-row="String(row.PlotRowId)"
-              :class="{DragOver:touchTarget === String(row.PlotRowId)}"
-              @click="openRow(row)"
-              @dragover.prevent
-              @drop.prevent="reorder(String(row.PlotRowId))"
-            >
-              <ButtonComponent
-                v-if="canEdit"
-                unstyled
-                type="button"
-                class="StoryDragHandle"
-                title="並び替え"
-                aria-label="並び替え"
-                draggable="true"
-                @click.stop
-                @dragstart="beginDrag($event,row)"
-                @dragend="dragged = null"
-                @touchstart.stop="dragged = String(row.PlotRowId)"
-                @touchmove="touchMove"
-                @touchend="reorder(touchTarget)"
-              >
-                <i
-                  class="fa-solid fa-hand"
-                  aria-hidden="true"
-                />
-              </ButtonComponent>
-              <div class="StoryNumber">{{ index+1 }}</div>
-              <div class="PlotRowContent">
-                <span class="StoryText">{{ row.Content }}</span>
-              </div>
-            </div>
-          </div>
-          <p v-if="!rows.length">{{ messageFormat('INFO','I_0048') }}</p>
-        </div>
-      </div>
-      <div class="ListFooter">
-        <span class="RecordCount">
-          {{ rows.length }}
-          件
-        </span>
-      </div>
+      <TableComponent
+        :rows="records"
+        :columns="columns"
+        row-key="PlotId"
+        :loading="busy"
+        :hide-meta="hideMeta"
+      >
+        <template #cell-Detail="{row}">
+          <ButtonComponent
+            type="button"
+            variant="PrimaryButton ButtonSmall"
+            @click="openDetail(row as WorkSettingRow)"
+          >詳細</ButtonComponent>
+        </template>
+        <template #cell-Copy="{row}">
+          <ButtonComponent
+            v-if="canEdit"
+            type="button"
+            variant="SecondaryButton ButtonSmall"
+            @click="copy(row as WorkSettingRow)"
+          >コピー</ButtonComponent>
+        </template>
+      </TableComponent>
     </template>
     <BaseDialog
-      v-model="infoOpen"
-      :title="editingInfo ? 'プロット情報編集' : 'プロット作成'"
-      size="DialogMedium"
+      :close-on-escape="!busy"
+      v-model="opened"
+      :title="title"
+      size="DialogLarge"
+      section-navigation
+      @close="close"
     >
-      <section
-        :key="revision"
-        class="FormSection"
-      >
-        <TextFieldComponent
-          :ref="el => fields.register('Name',el,infoForm.Name)"
-          label="プロット名"
-          :maxlength="30"
-          required
-          :readonly="!canEdit"
-          :error="errors.Name"
-        />
-        <SelectBoxComponent
-          :ref="el => fields.register('ProductionType',el,infoForm.ProductionType)"
-          label="制作区分"
-          :options="productionOptions"
-          :disabled="!canEdit"
-        />
-      </section>
+      <div :key="revision">
+        <section class="FormSection">
+          <h3 class="FormSectionTitle">基本</h3>
+          <div class="FormGrid">
+            <TextFieldComponent
+              :ref="el=>fields.register('Name',el,form.Name)"
+              label="プロット名"
+              required
+              :maxlength="30"
+              :readonly="!canEdit"
+              :error="errors.Name"
+             />
+            <SelectBoxComponent
+              :ref="el=>fields.register('ProductionType',el,form.ProductionType)"
+              label="制作区分"
+              :options="productionOptions"
+              :readonly="!canEdit || !!selected"
+              @value-change="changeProduction"
+             />
+          </div>
+        </section>
+        <section class="FormSection">
+          <h3 class="FormSectionTitle">プロット行</h3>
+          <div
+            v-if="canEdit"
+            class="ButtonGroup MarginBottom20"
+          >
+            <ButtonComponent
+              type="button"
+              variant="PrimaryButton ButtonSmall"
+              @click="addRow"
+            >行を追加</ButtonComponent>
+            <ButtonComponent
+              v-if="templates.length"
+              type="button"
+              variant="SecondaryButton ButtonSmall"
+              @click="applyTemplate"
+            >テンプレートから作成</ButtonComponent>
+          </div>
+          <div class="StoryList">
+            <div
+              v-for="group in [1,2,3,4,0].filter(value=>rows.some(item=>Number(item.StructureType)===value))"
+              :key="group"
+              class="PlotSection"
+            >
+              <div class="PlotSectionHeader">
+                <span
+                  class="PlotBadge"
+                  :class="['','ki','sho','ten','ketsu'][group]"
+                >{{ group ? ['','起','承','転','結'][group] : messageFormat('INFO','I_0072') }}</span>
+              </div>
+              <template
+                v-for="row in rows.filter(item=>Number(item.StructureType)===group)"
+                :key="row.localKey"
+              >
+                <div
+                  class="StoryItem "
+                  :class="{Dragging:draggedRow===row.localKey,DragOver:dragOverRow===row.localKey,NarrativeAction:!!row.ActionLine}"
+                  :data-narrative-row="row.localKey"
+                  @click="openRow(row)"
+                  @dragover.prevent="dragOverRow=row.localKey"
+                  @drop.prevent="dropRow(row)"
+                >
+                  <button
+                    v-if="canEdit"
+                    class="StoryDragHandle"
+                    type="button"
+                    draggable="true"
+                    title="並び替え"
+                    aria-label="並び替え"
+                    @click.stop
+                    @dragstart="beginRowDrag($event,row)"
+                    @dragend="draggedRow=null;dragOverRow=null"
+                    @touchstart="touchRowStart($event,row)"
+                    @touchmove="touchRowMove"
+                    @touchend="touchRowEnd"
+                    @touchcancel="draggedRow=null;dragOverRow=null"
+                  >
+                    <i
+                      class="fa-solid fa-hand"
+                      aria-hidden="true"
+                     />
+                  </button>
+                  <div class="StoryNumber">{{ rowPosition(row) }}</div>
+                  <div class="PlotRowContent">
+                    <span class="StoryText">{{ row.Content }}</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </section>
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"
           variant="CloseButton"
-          @click="infoOpen = false"
+          @click="close"
         >閉じる</ButtonComponent>
         <template v-if="canEdit">
           <ButtonComponent
-            v-if="editingInfo"
+            type="button"
+            variant="ClearButton"
+            @click="clear"
+          >クリア</ButtonComponent>
+          <ButtonComponent
+            v-if="selected"
             type="button"
             variant="DeleteButton"
-            @click="removeInfo"
+            @click="remove"
           >削除</ButtonComponent>
-          <ButtonComponent
-            v-if="!editingInfo && hasTemplate"
-            type="button"
-            variant="PrimaryButton"
-            @click="saveInfo(true)"
-          >テンプレートから作成</ButtonComponent>
           <ButtonComponent
             type="button"
             variant="SaveButton"
-            @click="saveInfo(false)"
+            @click="save"
           >保存</ButtonComponent>
         </template>
       </template>
     </BaseDialog>
     <BaseDialog
-      v-model="rowOpen"
-      :title="editingRow ? 'プロット行編集' : 'プロット行追加'"
-      size="DialogMedium"
+      v-model="rowOpened"
+      title="プロット行"
+      size="DialogLarge"
+      @close="closeRow"
     >
-      <section
-        :key="revision"
-        class="FormSection"
-      >
+      <div :key="rowRevision">
         <TextFieldComponent
-          :ref="el => fields.register('IndexNum',el,rowForm.IndexNum)"
+          :ref="el=>rowFields.register('IndexNum',el,rowForm.IndexNum)"
           label="並び順"
           numeric-only
           :maxlength="10"
-          :readonly="!canEdit"
           required
-          :error="errors.IndexNum"
-        />
+          :readonly="!canEdit"
+          :error="rowErrors.IndexNum"
+         />
         <SelectBoxComponent
-          :ref="el => fields.register('StructureType',el,String(editingRow?.StructureType || '0'))"
+          :ref="el=>rowFields.register('StructureType',el,rowForm.StructureType)"
           label="起承転結"
-          required
-          :error="errors.StructureType"
-          @value-change="changeStructure"
-          :options="structureOptions"
-          :disabled="!canEdit"
-        />
-        <TextAreaComponent
-          :ref="el => fields.register('Content',el,rowForm.Content)"
-          label="内容"
+          :options="[{value:'0',label:''},{value:'1',label:'起'},{value:'2',label:'承'},{value:'3',label:'転'},{value:'4',label:'結'}]"
           :readonly="!canEdit"
-          required
-          :error="errors.Content"
-        />
-      </section>
+          :error="rowErrors.StructureType"
+          @value-change="changeRowField('StructureType')"
+         />
+        <TextAreaComponent
+          :ref="el=>rowFields.register('Content',el,rowForm.Content)"
+          label="内容"
+          :readonly="!canEdit "
+          :required="true"
+          :error="rowErrors.Content"
+         />
+      </div>
       <template #actions>
         <ButtonComponent
           type="button"
           variant="CloseButton"
-          @click="rowOpen = false"
+          @click="closeRow"
         >閉じる</ButtonComponent>
         <template v-if="canEdit">
           <ButtonComponent
             v-if="editingRow"
             type="button"
             variant="DeleteButton"
-            @click="removeRows(false)"
+            @click="removeRow"
           >削除</ButtonComponent>
           <ButtonComponent
             type="button"
             variant="SaveButton"
-            @click="saveRow"
-          >保存</ButtonComponent>
+            @click="commitRow"
+          >反映</ButtonComponent>
         </template>
       </template>
     </BaseDialog>
-    <ExportSettingsDialog
-      v-model="exportOpen"
-      :show-items="false"
-      @export="output"
-    />
   </div>
 </template>

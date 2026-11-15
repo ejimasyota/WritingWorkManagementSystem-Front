@@ -309,11 +309,9 @@ onMounted(async () => {
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
     />
-    <div
-      v-if="canAdd"
-      class="ButtonGroup"
-    >
+    <div class="ButtonGroup">
       <ButtonComponent
+        v-if="canAdd"
         type="button"
         variant="SuccessButton"
         @click="openNew"
@@ -324,8 +322,6 @@ onMounted(async () => {
         />
         追加
       </ButtonComponent>
-    </div>
-    <div class="ButtonGroup ViewToggleButtonGroup">
       <ButtonComponent
         type="button"
         variant="SecondaryButton"
@@ -335,7 +331,7 @@ onMounted(async () => {
           :class="treeVisible ? 'fas fa-table' : 'fas fa-sitemap'"
           aria-hidden="true"
         />
-        {{ treeVisible ? '一覧表示' : 'ツリー表示' }}
+        {{ treeVisible ? '一覧表示' : '舞台ツリー' }}
       </ButtonComponent>
     </div>
     <div v-show="!treeVisible">
@@ -443,7 +439,7 @@ onMounted(async () => {
             :ref="el => fields.register('StageType', el, form.StageType)"
             label="舞台区分"
             :options="StageTypeOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.StageType"
           />
           <SelectBoxComponent
@@ -452,7 +448,7 @@ onMounted(async () => {
             info-icon-flg
             :info-message="messageFormat('INFO','I_0084')"
             :options="ParentStageIdOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.ParentStageId"
           />
           <TextFieldComponent

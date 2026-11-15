@@ -355,14 +355,14 @@ onMounted(async () => {
             :ref="el => fields.register('OrgId', el, form.OrgId)"
             label="所属組織"
             :options="organizationOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.OrgId"
           />
           <SelectBoxComponent
             :ref="el => fields.register('LeaderId', el, form.LeaderId)"
             label="リーダー"
             :options="leaderOptions"
-            :disabled="!canEdit"
+            :readonly="!canEdit"
             :error="errors.LeaderId"
           />
           <TextFieldComponent

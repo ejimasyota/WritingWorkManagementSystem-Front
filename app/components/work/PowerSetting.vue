@@ -19,7 +19,10 @@ const props = defineProps<{
   hideMeta?: boolean;
   targetId?: string;
   targetParentId?: string;
+  readonly?: boolean;
+  detailRow?: WorkSettingRow;
 }>();
+const emit = defineEmits(['close']);
 const spinner = useOperationSpinner();
 const fields = useInputFields();
 const work = ref<WorkInfo>();
@@ -40,7 +43,7 @@ const form = reactive({
   "PowerName": "",
   "Description": ""
 });
-const canAdd = computed(() => initialized.value && !!work.value && (props.isAdmin || isCreator.value));
+const canAdd = computed(() => !props.readonly && initialized.value && !!work.value && (props.isAdmin || isCreator.value));
 const canEdit = canAdd;
 const dialogTitle = computed(() => '能力設定（' + (selected.value ? canEdit.value ? '編集' : '詳細' : '新規登録') + '）');
 const role = computed(() => props.isAdmin ? '管理者' : isCreator.value ? '作成者' : 'アシスタント');
@@ -182,6 +185,7 @@ function openNew() {
 function close() {
   if (saving.value) return;
   opened.value = false;
+  emit('close');
   clear();
 }
 
@@ -246,6 +250,7 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
 }
 onMounted(async () => {
   await load();
+  if (!disposed && props.detailRow) selectRow(props.detailRow);
   if (!disposed && props.targetId) {
     const target = rows.value.find(row => String(row.PowerId) === props.targetId);
     if (target) selectRow(target);
@@ -255,51 +260,54 @@ onMounted(async () => {
 
 <template>
   <div>
-    <WorkContentHeader
-      title="能力設定"
-      icon="fa-bolt"
-      :work-title="work?.WorkTitle"
-      :role="work ? role : undefined"
-    />
-    <div
-      v-if="canAdd"
-      class="ButtonGroup"
-    >
-      <ButtonComponent
-        type="button"
-        variant="SuccessButton"
-        @click="openNew"
+    <template v-if="!detailRow">
+      <WorkContentHeader
+        title="能力設定"
+        icon="fa-bolt"
+        :work-title="work?.WorkTitle"
+        :role="work ? role : undefined"
+       />
+      <div
+        v-if="canAdd"
+        class="ButtonGroup"
       >
-        <i
-          class="fas fa-plus"
-          aria-hidden="true"
-        />
-        追加
-      </ButtonComponent>
-    </div>
-    <TableComponent
-      :rows="rows"
-      :columns="columns"
-      row-key="PowerId"
-      :hide-meta="hideMeta"
-      :loading="loading"
-    >
-      <template #cell-Detail="{ row }">
         <ButtonComponent
           type="button"
-          variant="PrimaryButton ButtonSmall"
-          @click.stop="selectRow(row as WorkSettingRow)"
+          variant="SuccessButton"
+          @click="openNew"
         >
           <i
-            class="fas fa-eye"
+            class="fas fa-plus"
             aria-hidden="true"
-          />
-          詳細
+           />
+          追加
         </ButtonComponent>
-      </template>
-    </TableComponent>
+      </div>
+      <TableComponent
+        :rows="rows"
+        :columns="columns"
+        row-key="PowerId"
+        :hide-meta="hideMeta"
+        :loading="loading"
+      >
+        <template #cell-Detail="{ row }">
+          <ButtonComponent
+            type="button"
+            variant="PrimaryButton ButtonSmall"
+            @click.stop="selectRow(row as WorkSettingRow)"
+          >
+            <i
+              class="fas fa-eye"
+              aria-hidden="true"
+             />
+            詳細
+          </ButtonComponent>
+        </template>
+      </TableComponent>
+    </template>
     <BaseDialog
       v-model="opened"
+      @close="close"
       :title="dialogTitle"
       size="DialogLarge"
     >
@@ -316,27 +324,33 @@ onMounted(async () => {
             :error="errors.PowerName"
             :maxlength="50"
             required
-          />
+           />
           <TextFieldComponent
             :ref="el => fields.register('Description', el, form.Description)"
             label="説明"
             :readonly="!canEdit"
             :error="errors.Description"
             text-area-flg
-          />
+           />
         </div>
+      </section>
+      <section
+        :key="'conditions:' + revision"
+        class="FormSection"
+      >
+        <h3 class="FormSectionTitle">条件</h3>
         <EntryTableEditor
           :ref="el => fields.register('Conditions', el, conditions)"
           :definition="conditionsDefinition"
           :readonly="!canEdit"
           :dialogs="dialogs"
-        />
+         />
         <EntryTableEditor
           :ref="el => fields.register('Risk', el, risk)"
           :definition="riskDefinition"
           :readonly="!canEdit"
           :dialogs="dialogs"
-        />
+         />
       </section>
       <template #actions>
         <ButtonComponent
@@ -347,7 +361,7 @@ onMounted(async () => {
           <i
             class="fas fa-times"
             aria-hidden="true"
-          />
+           />
           閉じる
         </ButtonComponent>
         <template v-if="canEdit">
@@ -359,7 +373,7 @@ onMounted(async () => {
             <i
               class="fas fa-sync"
               aria-hidden="true"
-            />
+             />
             クリア
           </ButtonComponent>
           <ButtonComponent
@@ -371,7 +385,7 @@ onMounted(async () => {
             <i
               class="fas fa-trash"
               aria-hidden="true"
-            />
+             />
             削除
           </ButtonComponent>
           <ButtonComponent
@@ -382,7 +396,7 @@ onMounted(async () => {
             <i
               class="fas fa-save"
               aria-hidden="true"
-            />
+             />
             保存
           </ButtonComponent>
         </template>

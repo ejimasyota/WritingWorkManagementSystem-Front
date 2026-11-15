@@ -169,9 +169,10 @@ async function exportDocument(settings: Record<string, unknown>) {
   exportOpen.value = false;
   try {
     const finished = await spinner.run(async () => {
-      const data = requireSuccess(await props.request<DownloadData>('/ExportDocument.php', 'POST', {
-        WorkId: project.WorkId,
-        ...settings
+      const endpoint = settings.ReportType === 'Story' ? '/ExportStory.php' : settings.ReportType === 'Plot' ? '/ExportPlot.php' : '/ExportDocument.php';
+      const data = requireSuccess(await props.request<DownloadData>(endpoint, 'POST', {
+        ...settings,
+        WorkId: project.WorkId
       }), messageFormat('ERROR', 'E_0003', '出力'));
       downloadBase64(data);
       return true;
@@ -332,6 +333,6 @@ defineExpose({
     </TableComponent>
     <TextFieldComponent inline ref="fileInput" type="file" class="Hidden" accept=".csv" @change="restore" />
     <WorkCreateDialog v-model="createOpen" @create="createWork" />
-    <ExportSettingsDialog v-model="exportOpen" @export="exportDocument" />
+    <ExportSettingsDialog v-model="exportOpen" :work-id="exportProject?.WorkId" :request="request" :dialogs="dialogs" @export="exportDocument" />
   </div>
 </template>

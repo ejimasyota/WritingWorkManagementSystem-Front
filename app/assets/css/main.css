@@ -701,6 +701,17 @@ body.DarkMode .NotificationPanelItem:hover {
   min-height: 0;
 }
 
+.SidebarGroup + .SidebarGroup { margin-top: 16px; }
+.SidebarGroupTitle {
+  margin: 0;
+  padding: 8px 20px;
+  color: #b8c8d7;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+.SidebarBack { margin-bottom: 12px; }
+
 /* 5. サイドバーメニューボタン */
 .SidebarItem {
   display: flex;
@@ -1548,7 +1559,6 @@ body.DarkMode .OptionSearchEmpty {
 
 .DataTable td {
   padding: 12px;
-  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1556,7 +1566,7 @@ body.DarkMode .OptionSearchEmpty {
 
 /* 一覧の操作パレット列
  * 列幅はヘッダの width:1% でボタンの実寸まで縮めるため、
- * 通常セルの最大幅（200px）が残っているとボタンが3点リーダーで隠れてしまう */
+ * 操作ボタンは通常セルのテキスト省略対象に含めない。 */
 .DataTable td.ActionCol {
   max-width: none;
   text-align: center;
@@ -5402,10 +5412,11 @@ body.DarkMode .WbsChartBarLabel {
   justify-content: space-between;
   gap: 8px;
 }
-.TableColumnLabel { flex: 1; }
+.TableColumnLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .TableColumnLabel.Sortable { cursor: pointer; }
-.TableSortIcon { margin-left: 4px; }
+.TableSortIcon { flex-shrink: 0; margin-left: 4px; }
 .TableFilterButton {
+  flex-shrink: 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -5672,4 +5683,59 @@ body.DarkMode .StoryList .PlotSectionHeader{border-bottom-color:rgba(148,163,184
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* 固定フッターとセクション移動はスクロール本文の外側に配置する。 */
+.DialogButtonArea { border-top: 1px solid #ddd; padding-top: 16px; }
+body.DarkMode .DialogButtonArea { border-top-color: #555; }
+/* セクションへの移動は見出しの直下に固定し、狭い画面でも折り返す。 */
+.DialogLarge.DialogWithSectionNavigation { max-width: 1100px; }
+.DialogSectionNavigation {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #d5dde5;
+}
+.DialogSectionNavigation button {
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px 12px;
+  border: 1px solid #cbd8e5;
+  border-radius: 6px;
+  background: #eef4fa;
+  color: #245a80;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.DialogSectionNavigation button::before { content: '›'; margin-right: 8px; }
+.DialogSectionNavigation button:hover { background: #dcebf8; border-color: #6e9bc0; }
+.DialogSectionNavigation button:focus-visible { outline: 2px solid #2980b9; outline-offset: 2px; }
+body.DarkMode .DialogSectionNavigation { border-color: #526173; }
+body.DarkMode .DialogSectionNavigation button { background: #2d4053; color: #e2edf7; border-color: #60758a; }
+body.DarkMode .DialogSectionNavigation button:hover { background: #3a526a; }
+
+.InputWithButton { flex-wrap: nowrap; align-items: stretch; }
+.InputWithButton > .ButtonClass { flex-shrink: 0; height: 44px; min-height: 44px; }
+.RelationTypeControls { display: flex; gap: 8px; }
+.RelationTypeControls .SelectForm { width: auto; height: 50px; }
+
+/* 一覧の長文は列を押し広げず、セルのtitleから全文を確認できる。 */
+.TableCellText { display: block; width: 0; min-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.AbilityPowerControl .InputWithButton { flex: 1; min-width: 0; }
+
+.NarrativeContentControls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 12px; }
+.StoryList .StoryDragHandle { touch-action: none; }
+.StoryList .NarrativeAction .ExchangeBubble { border: 0; background: transparent; padding: 0; }
+
+
+/* カード表示ではデスクトップのリサイズ幅を持ち込まない。WBSは従来どおり表表示。 */
+@media (max-width: 768px) {
+  .DataTable:not(.WbsTaskTable) td { width: auto !important; min-width: 0 !important; max-width: 100% !important; }
 }
