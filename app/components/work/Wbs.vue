@@ -175,9 +175,13 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     await spinner.run(async () => {
       await readWorkAccess(props.request, work.value?.WorkId);
       if (disposed) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', operation));
+      const saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', operation));
+      if (operation === '保存') {
+        if (endpoint === '/SaveWbsInfo.php') editingInfo.value = { ...editingInfo.value, ...payload, ...saved };
+        if (endpoint === '/SaveWbsTask.php') editingTask.value = { ...editingTask.value, ...payload, ...saved };
+      }
       completed = true;
-      await read(id);
+      await read(endpoint === '/SaveWbsInfo.php' ? saved.WbsId ?? id : id);
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', operation));
   } catch (error) {
@@ -225,13 +229,13 @@ async function saveInfo() {
     fields.focus(Object.keys(errors.value)[0]!);
     return;
   }
-  if (await persist('/SaveWbsInfo.php', {
+  await persist('/SaveWbsInfo.php', {
     ...values,
     WbsId: editingInfo.value?.WbsId ?? null,
     UpdateDate: editingInfo.value?.UpdateDate ?? null,
     StartDate: start,
     EndDate: end
-  }, '保存', null)) infoOpen.value = false;
+  }, '保存', null);
 }
 
 function openTask(row: WorkSettingRow | null = null) {
@@ -298,7 +302,7 @@ async function saveTask() {
     EndDate: end,
     AssigneeIds: ids
   });
-  if (await persist('/SaveWbsTask.php', payload, '保存', selected.value.WbsId)) taskOpen.value = false;
+  await persist('/SaveWbsTask.php', payload, '保存', selected.value.WbsId);
 }
 
 async function removeInfo() {

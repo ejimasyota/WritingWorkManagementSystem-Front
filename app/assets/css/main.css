@@ -1233,7 +1233,7 @@ body.DarkMode .TagCountLabel {
 
 .CharaTagCard {
   position: relative;
-  padding: 10px 28px 10px 12px;
+  padding: 6px 30px 6px 12px;
   border-radius: 6px;
   background: #cccccc;
   color: #222;
@@ -1241,7 +1241,7 @@ body.DarkMode .TagCountLabel {
   font-weight: 500;
   word-break: break-word;
   width: fit-content;
-  min-height: 36px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -5745,3 +5745,32 @@ body.DarkMode .DialogSectionNavigation button:hover { background: #3a526a; }
 body.DarkMode .AffiliationWarning { color: #ff8a80; }
 
 .ImageListEditor .TagTabHeader { margin-bottom: 16px; }
+
+/* 業務入力の見出し。共通メッセージダイアログには適用しない。 */
+/* 業務見出しは四辺の枠線で領域を明確にする。共通メッセージには適用しない。 */
+.BusinessDialogTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border: 2px solid #496781;
+  border-left: 6px solid #2563a6;
+  border-radius: 8px;
+  background: #f3f6fa;
+  box-shadow: 0 2px 0 rgba(35, 70, 99, .12);
+  text-align: left;
+  color: #234663;
+}
+body.DarkMode .BusinessDialogTitle { background: #243242; border-color: #8aa6bf; border-left-color: #63b3ed; color: #e8f2fc; }
+.DialogBodyActions { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid #d5dde5; margin-top: 12px; }
+body.DarkMode .DialogBodyActions { border-color: #526173; }
+.DataTable td[data-label='詳細'] > .ButtonClass,
+.NarrativeTable td[data-label='コピー'] > .ButtonClass { width: 100%; }
+.CharaTagCardGrid { align-items: flex-start; }
+.TagNameButton { line-height: 20px; }
+
+/* 同じ画像カードの寸法・間隔を、業務ダイアログの幅によらず共有する。 */
+.ImageListEditor .ImageListGrid { grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 160px)); justify-content: start; }
+@media (max-width: 768px) { .ImageListEditor .ImageListGrid { grid-template-columns: minmax(0, 1fr); } }
+
+.CharaTagCard .TagNameButton { display: inline-flex; align-items: center; gap: 6px; width: auto; padding: 0; line-height: 20px; }

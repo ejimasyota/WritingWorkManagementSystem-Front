@@ -75,6 +75,7 @@ const columns: TableColumn[] = [{
   filterable: true
 }, {
   key: 'Description',
+  width: 360,
   label: '説明',
   sortable: true
 }, ...metadataColumns()];
@@ -179,11 +180,13 @@ async function save() {
   }) : '';
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     const finished = await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request('/SaveRace.php', 'POST', payload), messageFormat('ERROR', 'E_0003', '種族の保存'));
+      saved = requireSuccess(await props.request<Record<string, unknown>>('/SaveRace.php', 'POST', payload), messageFormat('ERROR', 'E_0003', '種族の保存'));
       if (disposed) return;
+      selected.value = { ...selected.value, ...payload, RaceId: saved.RaceId ?? payload.RaceId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
       completed = true;
       return true;
     });
@@ -195,9 +198,9 @@ async function save() {
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
-    clear();
     await load();
+    const latest = rows.value.find(row => String(row.RaceId) === String(selected.value?.RaceId));
+    if (latest) selectRow(latest);
   }
 }
 
@@ -226,7 +229,7 @@ async function remove() {
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    clear();
+    close();
     await load();
   }
 }
@@ -288,10 +291,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>
@@ -308,21 +307,25 @@ onMounted(async () => {
       >
         <h3 class="FormSectionTitle">基本</h3>
         <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('RaceName', el, form.RaceName)"
-            label="種族名"
-            :readonly="!canEdit"
-            :error="errors.RaceName"
-            required
-            :maxlength="50"
-          />
-          <TextFieldComponent
-            :ref="el => fields.register('Description', el, form.Description)"
-            label="説明"
-            :readonly="!canEdit"
-            :error="errors.Description"
-            text-area-flg
-          />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('RaceName', el, form.RaceName)"
+              label="種族名"
+              :readonly="!canEdit"
+              :error="errors.RaceName"
+              required
+              :maxlength="50"
+            />
+          </div>
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Description', el, form.Description)"
+              label="説明"
+              :readonly="!canEdit"
+              :error="errors.Description"
+              text-area-flg
+            />
+          </div>
         </div>
         <EntryTableEditor
           :ref="el => fields.register('PhysicalFeature', el, features)"

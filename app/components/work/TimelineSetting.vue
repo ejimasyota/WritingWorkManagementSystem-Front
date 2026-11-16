@@ -255,16 +255,19 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   key: 'Title',
+  width: 260,
   label: 'タイトル',
   sortable: true,
   filterable: true
 }, {
   key: 'EraName',
+  width: 200,
   label: '元号',
   sortable: true,
   filterable: true
 }, {
   key: 'EventDate',
+  width: 220,
   label: '発生時期',
   sortable: true
 }, {
@@ -274,10 +277,12 @@ const columns: TableColumn[] = [{
   filterable: true
 }, {
   key: 'EndDate',
+  width: 220,
   label: '終了時期',
   sortable: true
 }, {
   key: 'Content',
+  width: 360,
   label: '内容',
   sortable: true
 }, ...metadataColumns().map(column => ({
@@ -465,11 +470,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '年表一覧の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '年表一覧の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, TimeId: saved.TimeId ?? payload.TimeId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '年表一覧の' + operation));
   } catch (error) {
@@ -478,8 +487,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.TimeId) === String(selected.value?.TimeId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -539,10 +552,6 @@ onMounted(async () => {
             variant="PrimaryButton ButtonSmall"
             @click.stop="selectRow(row as WorkSettingRow)"
           >
-            <i
-              class="fas fa-eye"
-              aria-hidden="true"
-            />
             詳細
           </ButtonComponent>
         </template>
@@ -574,14 +583,16 @@ onMounted(async () => {
       >
         <h3 class="FormSectionTitle">基本</h3>
         <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('Title', el, form.Title)"
-            label="出来事タイトル"
-            :readonly="!canEdit"
-            :error="errors.Title"
-            required
-            :maxlength="30"
-          />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Title', el, form.Title)"
+              label="出来事タイトル"
+              :readonly="!canEdit"
+              :error="errors.Title"
+              required
+              :maxlength="30"
+            />
+          </div>
           <TextFieldComponent
             :ref="el => fields.register('EventDate', el, form.EventDate)"
             label="発生時期"
@@ -601,12 +612,14 @@ onMounted(async () => {
             input-readonly
             :date-picker-flg="canEdit"
           />
-          <TextFieldComponent
-            :ref="el => fields.register('Content', el, form.Content)"
-            label="内容"
-            :readonly="!canEdit"
-            text-area-flg
-          />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Content', el, form.Content)"
+              label="内容"
+              :readonly="!canEdit"
+              text-area-flg
+            />
+          </div>
         </div>
       </section>
       <section class="FormSection">

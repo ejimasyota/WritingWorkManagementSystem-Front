@@ -116,7 +116,8 @@ const columns: TableColumn[] = [{
 }, {
   key: 'Copy',
   label: 'コピー',
-  width: 90
+  width: 120,
+  minWidth: 120,
 }, {
   key: 'StoryName',
   label: 'ストーリー名',
@@ -398,7 +399,7 @@ function changeProduction() {
 }
 
 async function applyTemplate() {
-  if (!canEdit.value || busy.value) return;
+  if (!canEdit.value || busy.value || selected.value) return;
   if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0017', 'ストーリー')))) return;
   rows.value = templates.value.filter(row => String(row.Content || '').trim()).map(row => localRow({
     ...row,
@@ -481,10 +482,11 @@ async function save() {
   }
   busy.value = true;
   let success = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request('/SaveStory.php', 'POST', {
+      saved = requireSuccess(await props.request<Record<string, unknown>>('/SaveStory.php', 'POST', {
         Mode: 'bundle',
         StoryId: selected.value?.StoryId ?? null,
         UpdateDate: selected.value?.UpdateDate ?? null,
@@ -494,6 +496,7 @@ async function save() {
         Rows: detail,
         RowsSnapshot: snapshot.value
       }), messageFormat('ERROR', 'E_0003', 'ストーリーの保存'));
+      selected.value = { ...selected.value, StoryId: saved.StoryId ?? selected.value?.StoryId, UpdateDate: String(saved.UpdateDate ?? selected.value?.UpdateDate ?? '') };
       success = true;
     });
     if (success && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'ストーリーの保存'));
@@ -503,8 +506,8 @@ async function save() {
     busy.value = false;
   }
   if (success && !disposed) {
-    close();
-    await load();
+    if (selected.value?.StoryId) await openDetail(selected.value);
+    else await load();
   }
 }
 
@@ -575,6 +578,7 @@ onMounted(async () => {
       </ButtonComponent>
     </div>
     <TableComponent
+      table-class="NarrativeTable"
       :rows="records"
       :columns="columns"
       row-key="StoryId"
@@ -631,45 +635,12 @@ onMounted(async () => {
               :readonly="!canEdit"
               @value-change="form.PlotId=fields.getValue('PlotId','')"
              />
-            <ButtonComponent
-              type="button"
-              variant="SecondaryButton"
-              :disabled="!form.PlotId"
-              @click="plotDetailId=form.PlotId"
-            >関連プロット詳細</ButtonComponent>
+
           </div>
         </section>
         <section class="FormSection">
           <h3 class="FormSectionTitle">ストーリー行</h3>
-          <div
-            v-if="canEdit"
-            class="ButtonGroup MarginBottom20"
-          >
-            <ButtonComponent
-              type="button"
-              variant="PrimaryButton ButtonSmall"
-              @click="addRow"
-            >行を追加</ButtonComponent>
-            <ButtonComponent
-              type="button"
-              variant="SecondaryButton ButtonSmall"
-              @click="chooseImport"
-            >取込</ButtonComponent>
-            <TextFieldComponent
-              inline
-              ref="importFile"
-              class="Hidden NarrativeImportInput"
-              type="file"
-              accept=".txt,.docx"
-              @change="importRows"
-             />
-            <ButtonComponent
-              v-if="templates.length"
-              type="button"
-              variant="SecondaryButton ButtonSmall"
-              @click="applyTemplate"
-            >テンプレートから作成</ButtonComponent>
-          </div>
+
           <div class="StoryList">
             <template
               v-for="row in rows"
@@ -716,6 +687,40 @@ onMounted(async () => {
           </div>
         </section>
       </div>
+      <template #body-actions>
+        <template v-if="canEdit">
+          <ButtonComponent
+            type="button"
+            variant="PrimaryButton"
+            @click="addRow"
+          >行を追加</ButtonComponent>
+          <ButtonComponent
+            type="button"
+            variant="SecondaryButton"
+            @click="chooseImport"
+          >取込</ButtonComponent>
+          <TextFieldComponent
+            inline
+            ref="importFile"
+            class="Hidden NarrativeImportInput"
+            type="file"
+            accept=".txt,.docx"
+            @change="importRows"
+           />
+          <ButtonComponent
+            v-if="!selected && templates.length"
+            type="button"
+            variant="SecondaryButton"
+            @click="applyTemplate"
+          >テンプレートから作成</ButtonComponent>
+        </template>
+        <ButtonComponent
+          type="button"
+          variant="SecondaryButton"
+          :disabled="!form.PlotId"
+          @click="plotDetailId=form.PlotId"
+        >関連プロット詳細</ButtonComponent>
+      </template>
       <template #actions>
         <ButtonComponent
           type="button"

@@ -162,7 +162,7 @@ defineExpose({
         aria-label="詳細を開く"
         @click="openEditor"
       >
-        <i class="fas" :class="readonly ? 'fa-eye' : 'fa-edit'" aria-hidden="true" />
+        <i class="fas fa-edit" aria-hidden="true" />
       </ButtonComponent>
       <ButtonComponent
         v-if="datePickerFlg"

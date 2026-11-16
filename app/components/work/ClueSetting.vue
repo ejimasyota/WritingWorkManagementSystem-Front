@@ -180,11 +180,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '伏線メモの' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '伏線メモの' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, ClueId: saved.ClueId ?? payload.ClueId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '伏線メモの' + operation));
   } catch (error) {
@@ -193,8 +197,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.ClueId) === String(selected.value?.ClueId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -243,10 +251,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>
@@ -277,13 +281,15 @@ onMounted(async () => {
             :error="errors.Content"
             text-area-flg
           />
-          <TextFieldComponent
-            :ref="el => fields.register('RecoveryStatus', el, form.RecoveryStatus)"
-            label="回収方法"
-            :readonly="!canEdit"
-            :error="errors.RecoveryStatus"
-            text-area-flg
-          />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('RecoveryStatus', el, form.RecoveryStatus)"
+              label="回収方法"
+              :readonly="!canEdit"
+              :error="errors.RecoveryStatus"
+              text-area-flg
+            />
+          </div>
         </div>
       </section>
       <template #actions>

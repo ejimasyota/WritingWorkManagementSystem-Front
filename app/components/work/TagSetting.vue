@@ -189,11 +189,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', 'タグマスタの' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', 'タグマスタの' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, TagId: saved.TagId ?? payload.TagId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', 'タグマスタの' + operation));
   } catch (error) {
@@ -202,8 +206,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.TagId) === String(selected.value?.TagId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -223,37 +231,33 @@ onMounted(async () => {
       :work-title="work?.WorkTitle"
       :role="work ? role : undefined"
     />
-    <div
-      v-if="pendingTagEdit?.WorkId === work?.WorkId"
-      class="ButtonGroup"
-    >
-      <ButtonComponent
-        type="button"
-        variant="SecondaryButton"
-        @click="emit('navigate','MenuCharacter')"
-      >
-        <i
-          class="fas fa-arrow-left"
-          aria-hidden="true"
-        />
-        戻る
-      </ButtonComponent>
-    </div>
-    <div
-      v-if="canAdd"
-      class="ButtonGroup"
-    >
-      <ButtonComponent
-        type="button"
-        variant="SuccessButton"
-        @click="openNew"
-      >
-        <i
-          class="fas fa-plus"
-          aria-hidden="true"
-        />
-        追加
-      </ButtonComponent>
+    <div class="ButtonGroup">
+      <template v-if="pendingTagEdit?.WorkId === work?.WorkId">
+        <ButtonComponent
+          type="button"
+          variant="SecondaryButton"
+          @click="emit('navigate','MenuCharacter')"
+        >
+          <i
+            class="fas fa-arrow-left"
+            aria-hidden="true"
+          />
+          戻る
+        </ButtonComponent>
+      </template>
+      <template v-if="canAdd">
+        <ButtonComponent
+          type="button"
+          variant="SuccessButton"
+          @click="openNew"
+        >
+          <i
+            class="fas fa-plus"
+            aria-hidden="true"
+          />
+          追加
+        </ButtonComponent>
+      </template>
     </div>
     <TableComponent
       :rows="rows"
@@ -268,10 +272,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>

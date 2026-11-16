@@ -149,11 +149,6 @@ const emit = defineEmits<{
   'manage-tags': [draft: CharacterDraft];
 }>();
 const draft = ref(createCharacterDraft());
-const affiliationEditor = ref<InstanceType<typeof AffiliationEditor> | null>(null);
-function registerAffiliationEditor(instance: unknown) {
-  affiliationEditor.value = instance as InstanceType<typeof AffiliationEditor> | null;
-  inputFields.register('affiliations', instance, draft.value.affiliations);
-}
 // 補助入力・色・サブ一覧の内部状態も初期化するためのフォーム更新番号。
 const formRevision = ref(0);
 const errors = ref<Record<string, string>>({});
@@ -302,7 +297,6 @@ async function save() {
   draft.value.tags = inputFields.getValue('tags', draft.value.tags);
   draft.value.images = inputFields.getValue('images', draft.value.images);
   draft.value.affiliations = inputFields.getValue('affiliations', draft.value.affiliations);
-  if (affiliationEditor.value && !affiliationEditor.value.validate()) return;
   errors.value = {};
   if (!draft.value.fields.CharaName?.trim()) errors.value.CharaName = messageFormat('ERROR', 'E_0001', 'キャラ名');
   const dateError = characterDateError(draft.value.fields.BirthDate || '', draft.value.fields.DeathDate || '');
@@ -684,18 +678,22 @@ function characterDateError(birth: string, death: string): string {
           </div>
         </div>
         <div class="FormGrid">
-          <EntryTableEditor
-            :ref="el => inputFields.register('Likes', el, draft.entries.Likes || [])"
-            :definition="entryDefinitions.Likes!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
-          <EntryTableEditor
-            :ref="el => inputFields.register('Dislikes', el, draft.entries.Dislikes || [])"
-            :definition="entryDefinitions.Dislikes!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Likes', el, draft.entries.Likes || [])"
+              :definition="entryDefinitions.Likes!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Dislikes', el, draft.entries.Dislikes || [])"
+              :definition="entryDefinitions.Dislikes!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
         </div>
       </section>
       <section
@@ -704,24 +702,30 @@ function characterDateError(birth: string, death: string): string {
       >
         <h3 class="FormSectionTitle">内面②</h3>
         <div class="FormGrid">
-          <EntryTableEditor
-            :ref="el => inputFields.register('Landmine', el, draft.entries.Landmine || [])"
-            :definition="entryDefinitions.Landmine!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
-          <EntryTableEditor
-            :ref="el => inputFields.register('StrongPoint', el, draft.entries.StrongPoint || [])"
-            :definition="entryDefinitions.StrongPoint!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
-          <EntryTableEditor
-            :ref="el => inputFields.register('WeakPoint', el, draft.entries.WeakPoint || [])"
-            :definition="entryDefinitions.WeakPoint!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Landmine', el, draft.entries.Landmine || [])"
+              :definition="entryDefinitions.Landmine!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('StrongPoint', el, draft.entries.StrongPoint || [])"
+              :definition="entryDefinitions.StrongPoint!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('WeakPoint', el, draft.entries.WeakPoint || [])"
+              :definition="entryDefinitions.WeakPoint!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
         </div>
       </section>
       <section
@@ -738,7 +742,7 @@ function characterDateError(birth: string, death: string): string {
           />
         </div>
         <AffiliationEditor
-          :ref="registerAffiliationEditor"
+          :ref="el => inputFields.register('affiliations', el, draft.affiliations)"
           :masters="masters"
           :readonly="readOnly"
           :dialogs="dialogs"
@@ -863,18 +867,22 @@ function characterDateError(birth: string, death: string): string {
           </div>
         </div>
         <div class="FormGrid">
-          <EntryTableEditor
-            :ref="el => inputFields.register('Habit', el, draft.entries.Habit || [])"
-            :definition="entryDefinitions.Habit!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
-          <EntryTableEditor
-            :ref="el => inputFields.register('Hobby', el, draft.entries.Hobby || [])"
-            :definition="entryDefinitions.Hobby!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Habit', el, draft.entries.Habit || [])"
+              :definition="entryDefinitions.Habit!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Hobby', el, draft.entries.Hobby || [])"
+              :definition="entryDefinitions.Hobby!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
         </div>
       </section>
       <section
@@ -901,12 +909,14 @@ function characterDateError(birth: string, death: string): string {
           </div>
         </div>
         <div class="FormGrid">
-          <EntryTableEditor
-            :ref="el => inputFields.register('Transition', el, draft.entries.Transition || [])"
-            :definition="entryDefinitions.Transition!"
-            :readonly="readOnly"
-            :dialogs="dialogs"
-          />
+          <div class="FormGridFullWidth">
+            <EntryTableEditor
+              :ref="el => inputFields.register('Transition', el, draft.entries.Transition || [])"
+              :definition="entryDefinitions.Transition!"
+              :readonly="readOnly"
+              :dialogs="dialogs"
+            />
+          </div>
         </div>
       </section>
       <section

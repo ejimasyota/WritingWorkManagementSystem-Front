@@ -1,5 +1,6 @@
 <template>
   <BaseDialog
+    plain-header
     :model-value="modelValue"
     :title="title"
     title-icon="fas fa-question-circle"

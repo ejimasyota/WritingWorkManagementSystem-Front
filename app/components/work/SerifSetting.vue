@@ -60,16 +60,18 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   "key": "CharaName",
-  "label": "キャラクター",
+  "label": "発言者",
   "sortable": true,
   "filterable": true
 }, {
   "key": "Situation",
+  width: 300,
   "label": "場面",
   "sortable": true,
   "filterable": false
 }, {
   "key": "Content",
+  width: 400,
   format: (value, row) => narrativeText({
     Content: value,
     Monologue: row.Monologue
@@ -197,11 +199,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', 'セリフ設定の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', 'セリフ設定の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, SerifId: saved.SerifId ?? payload.SerifId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', 'セリフ設定の' + operation));
   } catch (error) {
@@ -210,8 +216,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.SerifId) === String(selected.value?.SerifId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -260,10 +270,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-           />
           詳細
         </ButtonComponent>
       </template>
@@ -286,26 +292,30 @@ onMounted(async () => {
             :readonly="!canEdit"
             :error="errors.CharaId"
            />
-          <TextFieldComponent
-            :ref="el => fields.register('Situation', el, form.Situation)"
-            label="場面"
-            :readonly="!canEdit"
-            :error="errors.Situation"
-            text-area-flg
-           />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Situation', el, form.Situation)"
+              label="場面"
+              :readonly="!canEdit"
+              :error="errors.Situation"
+              text-area-flg
+             />
+          </div>
           <CheckBoxComponent
             :ref="el=>fields.register('Monologue',el,form.Monologue)"
             label="モノローグ"
             :readonly="!canEdit"
            />
-          <TextFieldComponent
-            :ref="el => fields.register('Content', el, form.Content)"
-            label="セリフ内容"
-            :readonly="!canEdit"
-            :error="errors.Content"
-            text-area-flg
-            required
-           />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Content', el, form.Content)"
+              label="セリフ内容"
+              :readonly="!canEdit"
+              :error="errors.Content"
+              text-area-flg
+              required
+             />
+          </div>
         </div>
       </section>
       <template #actions>

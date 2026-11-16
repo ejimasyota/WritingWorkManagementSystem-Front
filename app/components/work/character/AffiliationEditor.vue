@@ -10,7 +10,7 @@ import { messageFormat } from '../../../utils/messages';
 const props = defineProps<{ masters: CharacterMasters; readonly: boolean; dialogs: PageDialogs }>();
 const fields = useInputFields();
 const { value, setValue, getValue, updateValue } = useFieldValue<CharacterAffiliation[]>([]);
-defineExpose({ setValue, getValue, validate });
+defineExpose({ setValue, getValue });
 const opened = ref(false);
 const index = ref<number | null>(null);
 const draft = ref(empty());
@@ -51,19 +51,10 @@ function changed(key: keyof CharacterAffiliation) {
     fields.setValues({ TeamId: '', ClassId: '' });
   }
 }
-/** 移行された日付未設定の履歴も、親の保存時に該当行を開いて入力を求める。 */
-function validate(): boolean {
-  const missing = value.value.findIndex(row => !row.JoinedDate.trim());
-  if (missing < 0) return true;
-  open(missing);
-  errors.value.JoinedDate = messageFormat('ERROR', 'E_0001', '加入年月日');
-  return false;
-}
 async function commit() {
   if (props.readonly) return;
   Object.assign(draft.value, fields.getValues({ ...draft.value }));
   errors.value = {};
-  if (!draft.value.JoinedDate.trim()) errors.value.JoinedDate = messageFormat('ERROR', 'E_0001', '加入年月日');
   if (!draft.value.OrgId && !draft.value.TeamId && !draft.value.ClassId) errors.value.OrgId = messageFormat('ERROR', 'E_0054', '所属');
   if (compareFlexibleDates(draft.value.LeftDate, draft.value.JoinedDate) === -1) errors.value.LeftDate = messageFormat('ERROR', 'E_0094');
   if (Object.keys(errors.value).length) { await nextTick(); fields.focus(Object.keys(errors.value)[0]!); return; }
@@ -96,7 +87,7 @@ async function remove() {
     <SelectBoxComponent :ref="el => fields.register('TeamId', el, draft.TeamId)" label="チーム" :options="options('Team')" :readonly="readonly" @value-change="changed('TeamId')" />
     <SelectBoxComponent :ref="el => fields.register('ClassId', el, draft.ClassId)" label="階級" :options="options('Class')" :readonly="readonly" @value-change="changed('ClassId')" />
     <div class="FormGrid">
-      <TextFieldComponent :ref="el => fields.register('JoinedDate', el, draft.JoinedDate)" label="加入年月日" required date-picker-flg :readonly="readonly" :error="errors.JoinedDate" @value-change="changed('JoinedDate')" />
+      <TextFieldComponent :ref="el => fields.register('JoinedDate', el, draft.JoinedDate)" label="加入年月日" date-picker-flg :readonly="readonly" :error="errors.JoinedDate" @value-change="changed('JoinedDate')" />
       <TextFieldComponent :ref="el => fields.register('LeftDate', el, draft.LeftDate)" label="脱退年月日" date-picker-flg :readonly="readonly" :error="errors.LeftDate" @value-change="changed('LeftDate')" />
     </div>
     <p v-for="warning in warnings" :key="warning" class="AffiliationWarning"><i class="fas fa-exclamation-circle" aria-hidden="true" /> {{ warning }}</p>

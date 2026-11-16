@@ -103,6 +103,7 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   "key": "MoveName",
+  width: 260,
   "label": "技名",
   "sortable": true,
   "filterable": true
@@ -113,17 +114,20 @@ const columns: TableColumn[] = [{
   "filterable": true
 }, {
   "key": "Description",
+  width: 360,
   "label": "説明",
   "sortable": true,
   "filterable": false
 }, {
   "key": "Conditions",
+  width: 320,
   "format": value => formatEntry(value, conditionsDefinition),
   "label": "発動条件",
   "sortable": true,
   "filterable": false
 }, {
   "key": "Risk",
+  width: 320,
   "format": value => formatEntry(value, riskDefinition),
   "label": "代償・副作用",
   "sortable": true,
@@ -259,11 +263,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '技設定の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '技設定の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, MoveId: saved.MoveId ?? payload.MoveId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '技設定の' + operation));
   } catch (error) {
@@ -272,8 +280,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.MoveId) === String(selected.value?.MoveId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -322,10 +334,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-           />
           詳細
         </ButtonComponent>
       </template>
@@ -341,14 +349,16 @@ onMounted(async () => {
       >
         <h3 class="FormSectionTitle">基本</h3>
         <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('MoveName', el, form.MoveName)"
-            label="技名"
-            :readonly="!canEdit"
-            :error="errors.MoveName"
-            :maxlength="50"
-            required
-           />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('MoveName', el, form.MoveName)"
+              label="技名"
+              :readonly="!canEdit"
+              :error="errors.MoveName"
+              :maxlength="50"
+              required
+             />
+          </div>
           <FieldFrame label="関連能力">
             <div class="InputWithButton AbilityPowerControl">
               <SelectBoxComponent
@@ -374,13 +384,15 @@ onMounted(async () => {
               </ButtonComponent>
             </div>
           </FieldFrame>
-          <TextFieldComponent
-            :ref="el => fields.register('Description', el, form.Description)"
-            label="説明"
-            :readonly="!canEdit"
-            :error="errors.Description"
-            text-area-flg
-           />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Description', el, form.Description)"
+              label="説明"
+              :readonly="!canEdit"
+              :error="errors.Description"
+              text-area-flg
+             />
+          </div>
         </div>
       </section>
       <section

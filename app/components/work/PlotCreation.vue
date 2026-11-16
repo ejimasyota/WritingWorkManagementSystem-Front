@@ -98,7 +98,8 @@ const columns: TableColumn[] = [{
 }, {
   key: 'Copy',
   label: 'コピー',
-  width: 90
+  width: 120,
+  minWidth: 120,
 }, {
   key: 'PlotName',
   label: 'プロット名',
@@ -354,7 +355,7 @@ function changeProduction() {
 }
 
 async function applyTemplate() {
-  if (!canEdit.value || busy.value) return;
+  if (!canEdit.value || busy.value || selected.value) return;
   if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0017', 'プロット')))) return;
   rows.value = templates.value.filter(row => String(row.Content || '').trim() && Number(row.StructureType) >= 1 && Number(row.StructureType) <= 4).sort((a, b) => Number(a.StructureType) - Number(b.StructureType) || Number(a.IndexNum) - Number(b.IndexNum)).map(row => localRow({
     ...row
@@ -403,10 +404,11 @@ async function save() {
   }
   busy.value = true;
   let success = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request('/SavePlot.php', 'POST', {
+      saved = requireSuccess(await props.request<Record<string, unknown>>('/SavePlot.php', 'POST', {
         Mode: 'bundle',
         PlotId: selected.value?.PlotId ?? null,
         UpdateDate: selected.value?.UpdateDate ?? null,
@@ -415,6 +417,7 @@ async function save() {
         Rows: detail,
         RowsSnapshot: snapshot.value
       }), messageFormat('ERROR', 'E_0003', 'プロットの保存'));
+      selected.value = { ...selected.value, PlotId: saved.PlotId ?? selected.value?.PlotId, UpdateDate: String(saved.UpdateDate ?? selected.value?.UpdateDate ?? '') };
       success = true;
     });
     if (success && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'プロットの保存'));
@@ -424,8 +427,8 @@ async function save() {
     busy.value = false;
   }
   if (success && !disposed) {
-    close();
-    await load();
+    if (selected.value?.PlotId) await openDetail(selected.value);
+    else await load();
   }
 }
 
@@ -497,7 +500,8 @@ onMounted(async () => {
         </ButtonComponent>
       </div>
       <TableComponent
-        :rows="records"
+        table-class="NarrativeTable"
+      :rows="records"
         :columns="columns"
         row-key="PlotId"
         :loading="busy"
@@ -551,22 +555,7 @@ onMounted(async () => {
         </section>
         <section class="FormSection">
           <h3 class="FormSectionTitle">プロット行</h3>
-          <div
-            v-if="canEdit"
-            class="ButtonGroup MarginBottom20"
-          >
-            <ButtonComponent
-              type="button"
-              variant="PrimaryButton ButtonSmall"
-              @click="addRow"
-            >行を追加</ButtonComponent>
-            <ButtonComponent
-              v-if="templates.length"
-              type="button"
-              variant="SecondaryButton ButtonSmall"
-              @click="applyTemplate"
-            >テンプレートから作成</ButtonComponent>
-          </div>
+
           <div class="StoryList">
             <div
               v-for="group in [1,2,3,4,0].filter(value=>rows.some(item=>Number(item.StructureType)===value))"
@@ -621,6 +610,19 @@ onMounted(async () => {
           </div>
         </section>
       </div>
+      <template v-if="canEdit" #body-actions>
+        <ButtonComponent
+          type="button"
+          variant="PrimaryButton"
+          @click="addRow"
+        >行を追加</ButtonComponent>
+        <ButtonComponent
+          v-if="!selected && templates.length"
+          type="button"
+          variant="SecondaryButton"
+          @click="applyTemplate"
+        >テンプレートから作成</ButtonComponent>
+      </template>
       <template #actions>
         <ButtonComponent
           type="button"

@@ -23,7 +23,7 @@
           type="button"
           variant="PrimaryButton ButtonSmall"
           @click.stop="open(row as CharacterRow)"
-          ><i class="fas fa-eye" aria-hidden="true" /> 詳細</ButtonComponent
+          > 詳細</ButtonComponent
         ></template
       >
       <template #cell-Gender="{ value }">{{ value || "未設定" }}</template>
@@ -65,6 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { restoreImages } from '../../../utils/imageData';
 import { affiliationLabel, parseAffiliations } from '../../../utils/affiliationData';
 import { computed, onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 import { CONST_VARIABLE } from "../../../config/Const";
@@ -149,6 +150,7 @@ const columns: TableColumn[] = [
   },
   {
     key: "CharaName",
+    width: 260,
     label: "キャラ名",
     filterable: true,
     sortable: true,
@@ -364,12 +366,13 @@ function clear() {
 async function save(payload: Record<string, unknown>) {
   if (!canEdit.value || saving.value) return;
   saving.value = true;
+  let saved: Record<string, unknown> = {};
   try {
     const finished = await spinner.run(async () => {
       await verifyWork();
       if (disposed || !canEdit.value) return;
-      requireSuccess(
-        await props.request("/SaveCharacter.php", "POST", payload),
+      saved = requireSuccess(
+        await props.request<Record<string, unknown>>("/SaveCharacter.php", "POST", payload),
         messageFormat("ERROR", "E_0003", "保存"),
       );
       if (disposed) return;
@@ -381,8 +384,14 @@ async function save(payload: Record<string, unknown>) {
       messageFormat("INFO", "I_0001", "キャラ情報の保存"),
     );
     if (disposed) return;
-    opened.value = false;
+    selected.value = { ...selected.value, ...payload, CharaId: saved.CharaId ?? payload.CharaId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') } as CharacterRow;
     await spinner.run(loadList);
+    const latest = rows.value.find(row => String(row.CharaId) === String(selected.value?.CharaId));
+    if (latest) {
+      selected.value = { ...latest };
+      const retained = characterDialog.value?.getValue();
+      if (retained) characterDialog.value?.setValue({ ...retained, images: restoreImages(latest) });
+    }
   } catch (error) {
     if (!disposed)
       await reportBackendError(

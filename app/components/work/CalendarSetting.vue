@@ -71,16 +71,19 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   "key": "EraName",
+  width: 240,
   "label": "元号名",
   "sortable": true,
   "filterable": true
 }, {
   "key": "StartYear",
+  width: 180,
   "label": "開始年",
   "sortable": true,
   "filterable": false
 }, {
   "key": "EndYear",
+  width: 180,
   "label": "終了年",
   "sortable": true,
   "filterable": false
@@ -203,6 +206,8 @@ async function save() {
   }
   const payload: Record<string, unknown> = {
     ...values,
+    StartYear: Number.isNaN(start) ? null : start,
+    EndYear: Number.isNaN(end) ? null : end,
     CaleId: selected.value?.CaleId ?? null,
     UpdateDate: selected.value?.UpdateDate ?? null
   };
@@ -225,11 +230,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '元号設定の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '元号設定の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, CaleId: saved.CaleId ?? payload.CaleId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '元号設定の' + operation));
   } catch (error) {
@@ -238,8 +247,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.CaleId) === String(selected.value?.CaleId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -288,10 +301,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>
@@ -307,7 +316,7 @@ onMounted(async () => {
       >
         <h3 class="FormSectionTitle">基本</h3>
         <div class="FormGrid">
-          <CheckBoxComponent
+          <ToogleComponent
             :ref="el => fields.register('UseRealEra', el, useRealEra)"
             label="実元号を使用"
             :readonly="!canEdit"
@@ -321,17 +330,20 @@ onMounted(async () => {
             :readonly="!canEdit"
             @value-change="applyRealEra"
           />
-          <TextFieldComponent
-            :ref="el => fields.register('EraName', el, form.EraName)"
-            label="元号名"
-            :readonly="!canEdit"
-            :error="errors.EraName"
-            :maxlength="30"
-            required
-          />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('EraName', el, form.EraName)"
+              label="元号名"
+              :readonly="!canEdit"
+              :error="errors.EraName"
+              :maxlength="30"
+              required
+            />
+          </div>
           <TextFieldComponent
             :ref="el => fields.register('StartYear', el, form.StartYear)"
             label="開始年"
+            date-mode="year"
             :readonly="!canEdit"
             :error="errors.StartYear"
             input-readonly
@@ -340,6 +352,7 @@ onMounted(async () => {
           <TextFieldComponent
             :ref="el => fields.register('EndYear', el, form.EndYear)"
             label="終了年"
+            date-mode="year"
             :readonly="!canEdit"
             :error="errors.EndYear"
             input-readonly

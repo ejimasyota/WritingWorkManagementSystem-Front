@@ -11,6 +11,7 @@ interface Props {
   centeredActions?: boolean;
   closeOnEscape?: boolean;
   sectionNavigation?: boolean;
+  plainHeader?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   title: '',
@@ -97,7 +98,7 @@ onBeforeUnmount(() => {
           :aria-label="title"
           tabindex="-1"
         >
-          <div v-if="showTitle" class="DialogTitle">
+          <div v-if="showTitle" class="DialogTitle" :class="{ BusinessDialogTitle: !plainHeader }">
             <i
               v-if="titleIcon"
               :class="titleIcon"
@@ -109,6 +110,9 @@ onBeforeUnmount(() => {
           <DialogSectionNavigation v-if="sectionNavigation" :target="content" />
           <div ref="content" class="DialogContent">
             <slot />
+          </div>
+          <div v-if="$slots['body-actions']" class="DialogBodyActions">
+            <slot name="body-actions" />
           </div>
           <div class="DialogButtonArea" :class="{ CenteredDialogActions: centeredActions }">
             <slot name="actions" :close="close">

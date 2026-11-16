@@ -89,12 +89,11 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 ```dotenv
 NUXT_PUBLIC_API_BASE=/Back/Api
-NUXT_PUBLIC_LEGACY_WORK_PATH=/Front/Html/WorkManagement.html
 ```
 
 ログイン、登録、メイン画面からの通信はブラウザから既存PHPへ直接送ります。PHPセッションCookieと `Csrf.php` のOrigin検証を利用するため、NuxtとPHP APIは同じスキーム・ホスト・ポートで公開してください。開発時にNuxtを3000番ポートで起動する場合も、Webサーバーで `/Back/Api` をPHPへ、画面をNuxtへ振り分ける構成が必要です。Nuxt単体ではPHPを実行しません。
 
-作品の「移動」は `SetCurrentWork.php` が成功した後、既存の作品詳細画面へ遷移します。作品詳細画面自体は今回の移植対象に含めていません。実際に公開している作品詳細画面のパスを `NUXT_PUBLIC_LEGACY_WORK_PATH` に設定してください。
+作品の「移動」は `SetCurrentWork.php` が成功した後、Nuxtの `/work` へ遷移します。
 
 ### メイン画面の処理
 
@@ -124,7 +123,7 @@ Apache経由でHTMLだけが表示されてイベントが動かない場合は�
 
 ### 本番は静的ファイルを配信
 
-本番は `npm run generate` で生成した `.output/public` をApacheで直接配信します。
+本番は `npx nuxi generate` で生成した `.output` の中身を `/var/www/Front` へ配置し、Apacheは `/var/www/Front/public` を直接配信します。
 フロント配信用のNode.jsサーバーは常駐不要です。既存PHP APIは同じオリジンの `/Back/Api/` で実行します。
 
 本番用設定例は `deploy/apache/newworkmanagement.production.conf`、手順はドキュメントリポジトリの

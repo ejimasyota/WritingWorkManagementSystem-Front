@@ -77,6 +77,7 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   key: 'TeamName',
+  width: 260,
   label: 'チーム名',
   sortable: true,
   filterable: true
@@ -215,11 +216,13 @@ async function save() {
   payload.Images = imagePayload(fields.getValue('Images', [] as CharacterImage[]));
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     const finished = await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request('/SaveTeam.php', 'POST', payload), messageFormat('ERROR', 'E_0003', 'チームの保存'));
+      saved = requireSuccess(await props.request<Record<string, unknown>>('/SaveTeam.php', 'POST', payload), messageFormat('ERROR', 'E_0003', 'チームの保存'));
       if (disposed) return;
+      selected.value = { ...selected.value, ...payload, TeamId: saved.TeamId ?? payload.TeamId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
       completed = true;
       return true;
     });
@@ -231,9 +234,9 @@ async function save() {
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
-    clear();
     await load();
+    const latest = rows.value.find(row => String(row.TeamId) === String(selected.value?.TeamId));
+    if (latest) selectRow(latest);
   }
 }
 
@@ -262,7 +265,7 @@ async function remove() {
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    clear();
+    close();
     await load();
   }
 }
@@ -324,10 +327,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>

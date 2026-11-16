@@ -86,22 +86,26 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   "key": "PowerName",
+  width: 260,
   "label": "能力名",
   "sortable": true,
   "filterable": true
 }, {
   "key": "Description",
+  width: 360,
   "label": "説明",
   "sortable": true,
   "filterable": false
 }, {
   "key": "Conditions",
+  width: 320,
   "format": value => formatEntry(value, conditionsDefinition),
   "label": "発動条件",
   "sortable": true,
   "filterable": false
 }, {
   "key": "Risk",
+  width: 320,
   "format": value => formatEntry(value, riskDefinition),
   "label": "代償・副作用",
   "sortable": true,
@@ -232,11 +236,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '能力設定の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '能力設定の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, PowerId: saved.PowerId ?? payload.PowerId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '能力設定の' + operation));
   } catch (error) {
@@ -245,8 +253,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.PowerId) === String(selected.value?.PowerId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -297,10 +309,6 @@ onMounted(async () => {
             variant="PrimaryButton ButtonSmall"
             @click.stop="selectRow(row as WorkSettingRow)"
           >
-            <i
-              class="fas fa-eye"
-              aria-hidden="true"
-             />
             詳細
           </ButtonComponent>
         </template>
@@ -318,21 +326,25 @@ onMounted(async () => {
       >
         <h3 class="FormSectionTitle">基本</h3>
         <div class="FormGrid">
-          <TextFieldComponent
-            :ref="el => fields.register('PowerName', el, form.PowerName)"
-            label="能力名"
-            :readonly="!canEdit"
-            :error="errors.PowerName"
-            :maxlength="50"
-            required
-           />
-          <TextFieldComponent
-            :ref="el => fields.register('Description', el, form.Description)"
-            label="説明"
-            :readonly="!canEdit"
-            :error="errors.Description"
-            text-area-flg
-           />
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('PowerName', el, form.PowerName)"
+              label="能力名"
+              :readonly="!canEdit"
+              :error="errors.PowerName"
+              :maxlength="50"
+              required
+             />
+          </div>
+          <div class="FormGridFullWidth">
+            <TextFieldComponent
+              :ref="el => fields.register('Description', el, form.Description)"
+              label="説明"
+              :readonly="!canEdit"
+              :error="errors.Description"
+              text-area-flg
+             />
+          </div>
         </div>
       </section>
       <section

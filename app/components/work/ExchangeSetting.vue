@@ -85,6 +85,7 @@ const columns: TableColumn[] = [{
   sortable: true
 }, {
   key: 'Description',
+  width: 360,
   label: '概要'
 }, {
   key: 'RowCount',
@@ -409,10 +410,11 @@ async function save() {
   }
   busy.value = true;
   let success = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed) return;
-      requireSuccess(await props.request('/SaveExchange.php', 'POST', {
+      saved = requireSuccess(await props.request<Record<string, unknown>>('/SaveExchange.php', 'POST', {
         Mode: 'bundle',
         ExchangeId: selected.value?.ExchangeId ?? null,
         UpdateDate: selected.value?.UpdateDate ?? null,
@@ -421,6 +423,7 @@ async function save() {
         Rows: detail,
         RowsSnapshot: snapshot.value
       }), messageFormat('ERROR', 'E_0003', '掛け合いの保存'));
+      selected.value = { ...selected.value, ExchangeId: saved.ExchangeId ?? selected.value?.ExchangeId, UpdateDate: String(saved.UpdateDate ?? selected.value?.UpdateDate ?? '') };
       success = true;
     });
     if (success && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', '掛け合いの保存'));
@@ -430,8 +433,8 @@ async function save() {
     busy.value = false;
   }
   if (success && !disposed) {
-    close();
-    await load();
+    if (selected.value?.ExchangeId) await openDetail(selected.value);
+    else await load();
   }
 }
 
@@ -502,6 +505,7 @@ onMounted(async () => {
       </ButtonComponent>
     </div>
     <TableComponent
+      table-class="NarrativeTable"
       :rows="records"
       :columns="columns"
       row-key="ExchangeId"
@@ -528,14 +532,16 @@ onMounted(async () => {
         <section class="FormSection">
           <h3 class="FormSectionTitle">基本</h3>
           <div class="FormGrid">
-            <TextFieldComponent
-              :ref="el=>fields.register('Name',el,form.Name)"
-              label="掛け合い名"
-              required
-              :maxlength="30"
-              :readonly="!canEdit"
-              :error="errors.Name"
-             />
+            <div class="FormGridFullWidth">
+              <TextFieldComponent
+                :ref="el=>fields.register('Name',el,form.Name)"
+                label="掛け合い名"
+                required
+                :maxlength="30"
+                :readonly="!canEdit"
+                :error="errors.Name"
+               />
+            </div>
           </div>
           <TextFieldComponent
             :ref="el=>fields.register('Description',el,form.Description)"
@@ -546,16 +552,7 @@ onMounted(async () => {
         </section>
         <section class="FormSection">
           <h3 class="FormSectionTitle">掛け合い行</h3>
-          <div
-            v-if="canEdit"
-            class="ButtonGroup MarginBottom20"
-          >
-            <ButtonComponent
-              type="button"
-              variant="PrimaryButton ButtonSmall"
-              @click="addRow"
-            >行を追加</ButtonComponent>
-          </div>
+
           <div class="StoryList">
             <template
               v-for="row in rows"
@@ -624,6 +621,13 @@ onMounted(async () => {
           </div>
         </section>
       </div>
+      <template v-if="canEdit" #body-actions>
+        <ButtonComponent
+          type="button"
+          variant="PrimaryButton ButtonSmall"
+          @click="addRow"
+        >行を追加</ButtonComponent>
+      </template>
       <template #actions>
         <ButtonComponent
           type="button"

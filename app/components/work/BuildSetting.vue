@@ -56,6 +56,7 @@ const columns: TableColumn[] = [{
   minWidth: 110
 }, {
   "key": "BuildName",
+  width: 260,
   "label": "建物名",
   "sortable": true,
   "filterable": true
@@ -76,6 +77,7 @@ const columns: TableColumn[] = [{
   "filterable": false
 }, {
   "key": "Description",
+  width: 360,
   "label": "説明",
   "sortable": true,
   "filterable": false
@@ -205,11 +207,15 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
   if (saving.value || disposed || !canEdit.value) return;
   saving.value = true;
   let completed = false;
+  let saved: Record<string, unknown> = {};
   try {
     await spinner.run(async () => {
       if (!(await verifyAccess()) || disposed || !canEdit.value) return;
-      requireSuccess(await props.request(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '建物設定の' + operation));
-      if (!disposed) completed = true;
+      saved = requireSuccess(await props.request<Record<string, unknown>>(endpoint, 'POST', payload), messageFormat('ERROR', 'E_0003', '建物設定の' + operation));
+      if (!disposed) {
+        if (operation === '保存') selected.value = { ...selected.value, ...payload, BuildId: saved.BuildId ?? payload.BuildId, UpdateDate: String(saved.UpdateDate ?? payload.UpdateDate ?? '') };
+        completed = true;
+      }
     });
     if (completed && !disposed) await props.dialogs.info(messageFormat('INFO', 'I_0011', operation), messageFormat('INFO', 'I_0001', '建物設定の' + operation));
   } catch (error) {
@@ -218,8 +224,12 @@ async function persist(endpoint: string, payload: Record<string, unknown>, opera
     if (!disposed) saving.value = false;
   }
   if (completed && !disposed) {
-    close();
+    if (operation === '削除') close();
     await load();
+    if (operation === '保存' && selected.value) {
+      const latest = rows.value.find(row => String(row.BuildId) === String(selected.value?.BuildId));
+      if (latest) selectRow(latest);
+    }
   }
 }
 onMounted(async () => {
@@ -268,10 +278,6 @@ onMounted(async () => {
           variant="PrimaryButton ButtonSmall"
           @click.stop="selectRow(row as WorkSettingRow)"
         >
-          <i
-            class="fas fa-eye"
-            aria-hidden="true"
-          />
           詳細
         </ButtonComponent>
       </template>
@@ -323,13 +329,15 @@ onMounted(async () => {
               min="0"
               max="999999999999999"
             />
-            <TextFieldComponent
-              :ref="el => fields.register('Description', el, form.Description)"
-              label="説明"
-              :readonly="!canEdit"
-              :error="errors.Description"
-              text-area-flg
-            />
+            <div class="FormGridFullWidth">
+              <TextFieldComponent
+                :ref="el => fields.register('Description', el, form.Description)"
+                label="説明"
+                :readonly="!canEdit"
+                :error="errors.Description"
+                text-area-flg
+              />
+            </div>
           </div>
         </section>
         <section class="FormSection" aria-label="画像">

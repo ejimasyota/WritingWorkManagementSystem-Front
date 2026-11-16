@@ -27,6 +27,7 @@ const genre = ref<string | number>('');
 const division = ref<string | number>('');
 const rows = ref<TableRow[]>([]);
 const editingIndex = ref(-1);
+const current = ref<TableRow | null>(null);
 const form = reactive({
   index: '',
   narrator: '',
@@ -36,7 +37,7 @@ const form = reactive({
   monologue: false
 });
 const errors = ref<Record<string, string>>({});
-const editing = computed(() => !!props.template);
+const editing = computed(() => !!current.value);
 const isPlot = computed(() => Number(division.value) === 2);
 const structures = ['', '起', '承', '転', '結'];
 const divisionOptions = [{
@@ -94,11 +95,12 @@ function clearRow() {
 }
 watch(() => props.modelValue, open => {
   if (!open) return;
-  genre.value = props.template ? Number(props.template.Genre) : '';
-  division.value = props.template ? Number(props.template.DivisionType) : '';
+  current.value = props.template ? { ...props.template } : null;
+  genre.value = current.value ? Number(current.value.Genre) : '';
+  division.value = current.value ? Number(current.value.DivisionType) : '';
   inputFields.setValues({ genre: genre.value, division: division.value });
   try {
-    const text = props.template?.TemplateText;
+    const text = current.value?.TemplateText;
     const parsed = typeof text === 'string' ? JSON.parse(text) : text;
     rows.value = parsed && Array.isArray(parsed.Rows) ? parsed.Rows.map((row: TableRow) => ({
       ...row
@@ -197,31 +199,31 @@ async function save() {
   }
   try {
     const finished = await spinner.run(async () => {
-      requireSuccess(await props.request('/SaveTemplateMaster.php', 'POST', {
-        TemplateId: props.template?.TemplateId || null,
+      const saved = requireSuccess(await props.request<Record<string, unknown>>('/SaveTemplateMaster.php', 'POST', {
+        TemplateId: current.value?.TemplateId || null,
         Genre: Number(genre.value),
         DivisionType: Number(division.value),
         TemplateRows: rows.value,
-        UpdateDate: props.template?.UpdateDate || null
+        UpdateDate: current.value?.UpdateDate || null
       }), messageFormat('ERROR', 'E_0003', '保存'));
+      current.value = { ...current.value, ...saved };
       return true;
     });
     if (!finished) return;
     await props.dialogs.info(messageFormat('INFO', 'I_0011', '保存'), messageFormat('INFO', 'I_0001', 'テンプレートの保存'));
-    close();
     emit('changed');
   } catch (error) {
     await reportBackendError(props.dialogs, error, messageFormat('ERROR', 'E_0004', '保存'));
   }
 }
 async function remove() {
-  if (!props.template) return;
+  if (!current.value) return;
   if (!(await props.dialogs.confirm(messageFormat('CONFIRM', 'C_0004')))) return;
   try {
     const finished = await spinner.run(async () => {
       requireSuccess(await props.request('/DeleteTemplateMaster.php', 'POST', {
-        TemplateId: props.template.TemplateId,
-        UpdateDate: props.template.UpdateDate
+        TemplateId: current.value.TemplateId,
+        UpdateDate: current.value.UpdateDate
       }), messageFormat('ERROR', 'E_0003', '削除'));
       return true;
     });

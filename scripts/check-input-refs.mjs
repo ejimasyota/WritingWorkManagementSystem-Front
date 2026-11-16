@@ -4,6 +4,7 @@ import { modules } from './test-support.mjs';
 const names = ['TextFieldComponent','SelectBoxComponent','TextAreaComponent','ButtonComponent','CheckBoxComponent','RadioButtonComponent','ToogleComponent','FieldFrame','EntryTableEditor','ImageListEditor','RelatedItemsEditor','WorkCreateDialog','ExportSettingsDialog','DialogSectionNavigation','TableComponent'];
 const entries = Object.fromEntries(names.map(name=>[name,'app/components/'+name+'.vue']));
 Object.assign(entries, { AffiliationEditor:'app/components/work/character/AffiliationEditor.vue', CommonInfo:'app/components/work/CommonInfo.vue', StoryCreation:'app/components/work/StoryCreation.vue', PlotCreation:'app/components/work/PlotCreation.vue', ExchangeSetting:'app/components/work/ExchangeSetting.vue', MoveSetting:'app/components/work/MoveSetting.vue',SerifSetting:'app/components/work/SerifSetting.vue', CharacterList:'app/components/work/character/CharacterList.vue', TimelineSetting:'app/components/work/TimelineSetting.vue', Wbs:'app/components/work/Wbs.vue', KeywordSearch:'app/components/work/KeywordSearch.vue', WorkPage:'app/pages/work/index.vue' });
+Object.assign(entries, Object.fromEntries(['PowerSetting', 'CalendarSetting', 'RaceSetting', 'ClassSetting', 'OrganizationSetting', 'TeamSetting', 'StageSetting', 'BuildSetting', 'WeaponSetting', 'ItemSetting', 'ClueSetting', 'WorkMemoSetting', 'TermSetting', 'ReviewSetting', 'TagSetting', 'ChapterSetting'].map(name=>[name,'app/components/work/'+name+'.vue'])));
 const components = {...await modules(entries,{stubLayout:true}), ...await modules({UtilLayout:'app/layouts/UtilLayout.vue'})};
 const states = new Map();
 globalThis.useState = (key,initial) => { if(!states.has(key))states.set(key,ref(initial()));return states.get(key); };
@@ -30,13 +31,13 @@ const renderer=createRenderer({
   insertStaticContent(text,parent){const el=node('#static',text);el.parent=parent;parent.children.push(el);return [el,el];}
 });
 const Empty=defineComponent({setup:()=>()=>null});
-const Dialog=defineComponent({props:['modelValue'],setup:(props,ctx)=>()=>props.modelValue?h('dialog',[ctx.slots.default?.(),ctx.slots.actions?.()]):null});
+const Dialog=defineComponent({props:['modelValue'],setup:(props,ctx)=>()=>props.modelValue?h('dialog',[ctx.slots.default?.(),ctx.slots['body-actions']?.(),ctx.slots.actions?.()]):null});
 const Table=defineComponent({name:'TableComponent',props:['rows','columns','rowKey','pageSize'],setup:(props,ctx)=>()=>h('table',props.rows?.flatMap(row=>Object.entries(ctx.slots).filter(([name])=>name.startsWith('cell-')).map(([name,slot])=>slot({row,value:row[name.slice(5)]}))))});
 function mount(name,props={},events={}) {
   const state=reactive(props);const host=node('host');let root;
   const app=renderer.createApp(defineComponent({setup:()=>()=>h(components[name],{...state,...events})}));
   for(const [key,value] of Object.entries(components))if(key!=='TableComponent')app.component(key,value);
-  for(const key of ['DatePickerDialog','InfoIconComponent','ImageDialog','WorkContentHeader','TimelineChart','SettingsDialog','NotificationDialog','PageDialogHost','AnchoredDropdown'])app.component(key,Empty);
+  for(const key of ['DatePickerDialog','InfoIconComponent','ImageDialog','WorkContentHeader','TimelineChart','HierarchyBranch','SettingsDialog','NotificationDialog','PageDialogHost','AnchoredDropdown'])app.component(key,Empty);
   app.component('BaseDialog',Dialog);app.component('TableComponent',Table);
   app.config.warnHandler=message=>{throw Error(message);};
   root=app.mount(host);
@@ -144,7 +145,7 @@ for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],[
   const text=el=>el.text+el.children.map(text).join('');
   const editCard=async(index)=>{cards()[index].props.onClick();await settle();};
   const commit=()=>click(view.buttons('SaveButton').at(-1));
-  const add=()=>click(view.buttons('PrimaryButton ButtonSmall').at(-1));
+  const add=()=>click(view.buttons('PrimaryButton').at(-1) || view.buttons('PrimaryButton ButtonSmall').at(-1));
   if(kind!=='Exchange')assert.ok(!view.find('TableComponent').props.columns.some(column=>column.key==='Description'));
   await click(view.buttons('SuccessButton')[0]);set(view.field(label+'名'),'新規'+label);
   assert.equal(cards().length,0);await add();assert.equal(cards().length,0,'追加時点では一覧を変更しない');
@@ -177,8 +178,7 @@ for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],[
  const editor=view.find('AffiliationEditor');
  const add=view.buttons('PrimaryButton ButtonSmall')[0];await click(add);
  const org=view.find('SelectBoxComponent',p=>p.label==='組織');set(org,'1');org.emit('value-change');await settle();
- assert.equal(view.field('加入年月日').props.required,true);
- await click(view.buttons('SaveButton')[0]);assert.equal(get(editor).length,0);assert.ok(view.field('加入年月日').props.error);
+ assert.equal(view.field('加入年月日').props.required,false);
  set(view.field('加入年月日'),'1999年');view.field('加入年月日').emit('value-change');await settle();
  assert.ok(view.nodes().some(el=>el.tag==='p' && String(el.props.class).includes('AffiliationWarning')));
  set(view.field('脱退年月日'),'2005年');set(view.find('TextAreaComponent',p=>p.label==='備考'),'旧所属の備考');
@@ -205,9 +205,48 @@ for(const [kind,label] of [['Story','ストーリー'],['Plot','プロット'],[
  assert.equal(get(parent.find('AffiliationEditor')).length,2);
  const migrated=get(parent.find('AffiliationEditor')).map((row,i)=>({...row,JoinedDate:i===0?'':row.JoinedDate}));
  set(parent.find('AffiliationEditor'),migrated);
- await click(parent.buttons('SaveButton')[0]);assert.equal(writes.length,0);assert.ok(parent.field('加入年月日').props.error);
- set(parent.field('加入年月日'),'2021年');await click(parent.buttons('SaveButton')[0]);
+ await click(parent.buttons('SaveButton')[0]);assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].payload.Affiliations).Affiliations[0].JoinedDate,'');
  await click(parent.buttons('SaveButton')[0]);assert.equal(writes[0].url,'/SaveCharacter.php');assert.equal(JSON.parse(writes[0].payload.Affiliations).Affiliations.length,2);assert.equal(writes[0].payload.UpdateDate,'v1');parent.close();
+}
+// 保存後の連続更新では保存済みID・更新日時を使い、削除後はダイアログを閉じる。
+for (const [screen,kind,id,label] of [
+ ['PowerSetting','Power','PowerId','能力名'],['CalendarSetting','Calendar','CaleId','元号名'],
+ ['RaceSetting','Race','RaceId','種族名'],['ClassSetting','Class','ClassId','階級名'],
+ ['OrganizationSetting','Organization','OrgId','組織名'],['TeamSetting','Team','TeamId','チーム名'],
+ ['StageSetting','Stage','StageId','舞台名'],['BuildSetting','Build','BuildId','建物名'],
+ ['WeaponSetting','Weapon','WeaponId','武器名'],['ItemSetting','Item','ItemId','道具名'],
+ ['ClueSetting','Clue','ClueId','タイトル'],['WorkMemoSetting','WorkMemo','MemoId','タイトル'],
+ ['TermSetting','Term','TermId','用語名'],['ReviewSetting','Review','ReviewId','レビュー内容'],
+ ['TagSetting','Tag','TagId','タグ名'],['ChapterSetting','Chapter','ChapterId','チャプター名']
+]) {
+ let stored=[];const writes=[];const problems=[];
+ const testDialogs={...dialogs,error:async(...args)=>problems.push(args)};
+ const base=requestFor({});
+ const request=async(url,method,payload)=>{
+  if(url.startsWith('/Get'+kind+'List.php'))return ok({MemoList:kind==='WorkMemo'?stored:[],OrganizationList:[],CharacterList:[],CharaList:[],TeamList:[],StageList:[],BuildList:[],PowerList:kind==='Power'?stored:[],TimelineList:[],CalendarList:kind==='Calendar'?stored:[],RaceList:kind==='Race'?stored:[],ParentList:[],TagList:kind==='Tag'?stored:[],[kind+'List']:stored});
+  if(url==='/GetEraMasterOptions.php')return ok([]);
+  if(url==='/Save'+kind+'.php'){
+   writes.push({...payload});stored=[{...payload,[id]:1,UpdateDate:'saved-'+writes.length,RegistUser:'user'}];
+   return ok({[id]:1,UpdateDate:stored[0].UpdateDate});
+  }
+  if(url==='/Delete'+kind+'.php'){stored=[];return ok({});}
+  return base(url,method,payload);
+ };
+ const view=mount(screen,{request,dialogs:testDialogs,isAdmin:screen==='ReviewSetting'});await settle();
+ assert.ok(view.buttons('SuccessButton')[0],screen+' 追加 '+JSON.stringify(problems));
+ await click(view.buttons('SuccessButton')[0]);
+ const nameField=view.all().find(item=>item.type.__name==='TextFieldComponent'&&item.props.label===label);
+ assert.ok(nameField,screen+' name '+label);set(nameField,'保存した名称');
+ if(screen==='ChapterSetting')set(view.field('並び順'),'1');
+ if(screen==='ReviewSetting')set(view.find('SelectBoxComponent',p=>p.label==='評価'),'1');
+ if(screen==='CalendarSetting'){assert.ok(view.find('ToogleComponent',p=>p.label==='実元号を使用'));set(view.field('開始年'),'2000年');set(view.field('終了年'),'2001年');}
+ await click(view.buttons('SaveButton')[0]);assert.equal(writes.length,1,screen+' first save '+JSON.stringify(problems));
+ assert.ok(view.buttons('SaveButton').length,screen+' 保存後も表示');
+ await click(view.buttons('SaveButton')[0]);assert.equal(writes.length,2,screen+' second save '+JSON.stringify(problems));
+ assert.equal(writes[1][id],1,screen+' saved ID');assert.equal(writes[1].UpdateDate,'saved-1',screen+' saved version');
+ if(screen==='CalendarSetting'){assert.equal(writes[0].StartYear,2000);assert.equal(writes[0].EndYear,2001);}
+ await click(view.buttons('DeleteButton')[0]);assert.equal(view.buttons('SaveButton').length,0,screen+' 削除後は閉じる');
+ view.close();
 }
 // マスタセリフにも独白区分を保存し、次に開いたときに復元する。
 {
